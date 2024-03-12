@@ -52,17 +52,8 @@ tasks.test {
 
 processResources {
     filesMatching("/build.properties") {
-        expand(version: project.version, branch: readCurrentGitBranch(), commit: readCurrentGitCommit())
+        expand(version: project.version, commit: readCurrentGitCommit())
     }
-}
-
-def readCurrentGitBranch() {
-    def proc = ["git", "rev-parse", "--abbrev-ref", "HEAD"].execute(null, project.projectDir)
-    def exitCode = proc.waitFor()
-    if (exitCode != 0) {
-        throw new IllegalStateException("git rev-parse command exited with status code ${exitCode}:\n" + proc.err.readLines().join("\n"))
-    }
-    return proc.in.readLines()[0]
 }
 
 def readCurrentGitCommit() {

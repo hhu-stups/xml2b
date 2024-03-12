@@ -7,19 +7,16 @@ import de.hhu.stups.xml2b.translation.StandaloneTranslator;
 import de.hhu.stups.xml2b.translation.Translator;
 import de.hhu.stups.xml2b.translation.XSDTranslator;
 import org.apache.commons.cli.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.Properties;
 
 public class XML2B {
     private static final Properties buildProperties;
     static {
         buildProperties = new Properties();
-        final InputStream is = BParser.class.getResourceAsStream("build.properties");
+        final InputStream is = BParser.class.getResourceAsStream("/build.properties");
         if (is == null) {
             throw new IllegalStateException("Build properties not found, this should never happen!");
         } else {
@@ -30,23 +27,15 @@ public class XML2B {
             }
         }
     }
-    public final static String VERSION = "version", VERBOSE = "verbose", XSD = "xsd";
-
-    private File xmlFile, xsdFile;
-
-    private static boolean error = false;
-
-    public static boolean hasError() {
-        return error;
-    }
-
     public static String getVersion() {
         return buildProperties.getProperty("version");
     }
-
     public static String getGitSha() {
-        return buildProperties.getProperty("git");
+        return buildProperties.getProperty("commit");
     }
+
+    public final static String VERSION = "version", VERBOSE = "verbose", XSD = "xsd";
+    private File xmlFile, xsdFile;
 
     public void handleParameter(String[] args) {
         DefaultParser parser = new DefaultParser();
@@ -55,7 +44,7 @@ public class XML2B {
             CommandLine line = parser.parse(options, args);
             String[] remainingArgs = line.getArgs();
             if (line.hasOption(VERSION)) {
-                System.out.println("XML2B version: " + getVersion());
+                System.out.println("XML2B: " + getVersion() + " [" + getGitSha() + "]");
             }
             if (line.hasOption(XSD)) {
                 xsdFile = new File(line.getOptionValue(XSD));
@@ -77,42 +66,11 @@ public class XML2B {
 
     }
 
-    /*public static void main(String[] args) {
-        // To indicate an error we use the exit code -1
-        XML2B tla2b = new XML2B();
-
-        tla2b.handleParameter(args);
-
-        Translator translator = null;
-        try {
-            translator = new Translator(tla2b.mainFile);
-        } catch (FrontEndException e) {
-            System.exit(-1);
-        }
-        try {
-            translator.translate();
-        } catch (NotImplementedException e) {
-            System.err.print("**** Translation Error ****\n");
-            System.err.print("Not implemented:\n");
-            System.err.println(e.getMessage());
-            System.exit(-1);
-        } catch (TLA2BException e) {
-            System.err.print("**** Translation Error ****\n");
-            System.err.println(e.getMessage());
-            //e.printStackTrace();
-            System.exit(-1);
-        }
-        translator.createMachineFile();
-        translator.createProbFile();
-    }*/
-
     public static void main(String[] args) throws Exception {
         XML2B xml2B = new XML2B();
         xml2B.handleParameter(args);
-        // File xml = new File(xml2B.xmlFile);
-        //File xsd = new File(xml2B.xsdFile); //"src/main/resources/schema/railml3.xsd");
 
-        //Start start = xml2B.translate();
+        Start start = xml2B.translate();
 
         /*for (XmlSchemaElement e : xsdReader.getElements().keySet()) {
             System.out.println(e.getName() + ": ");
