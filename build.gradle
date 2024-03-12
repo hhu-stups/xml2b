@@ -1,0 +1,129 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'maven-publish'
+    id 'signing'
+
+    id "com.github.johnrengelman.shadow" version "8.1.1"
+}
+
+project.group = "de.hhu.stups"
+project.version = "0.1.0-SNAPSHOT"
+final isSnapshot = project.version.endsWith("-SNAPSHOT")
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    if (isSnapshot) {
+        maven {
+            name "sonatype snapshots"
+            url "https://oss.sonatype.org/content/repositories/snapshots"
+        }
+    }
+}
+
+dependencies {
+    implementation group: "de.hhu.stups", name: "de.prob2.kernel", version: "4.13.1-SNAPSHOT"
+    implementation group: 'commons-cli', name: 'commons-cli', version: '1.5.0'
+    //implementation group: 'com.github.xmlet', name: 'xsdParser', version: '1.2.9'
+    //implementation group: 'com.sun.xsom', name: 'xsom', version: '20140925'
+    //implementation group: 'org.apache.xmlbeans', name: 'xmlbeans', version: '5.2.0'
+    implementation group: 'org.apache.ws.xmlschema', name: 'xmlschema-core', version: '2.3.1'
+
+    testImplementation(platform("org.junit:junit-bom:5.9.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+}
+
+application {
+    mainClass = "de.hhu.stups.xml2b.XML2B"
+}
+
+jar {
+    manifest {
+        attributes([
+                "Main-Class": application.mainClass.get()
+        ])
+    }
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+processResources {
+    filesMatching("/build.properties") {
+        expand(version: project.version, branch: readCurrentGitBranch(), commit: readCurrentGitCommit())
+    }
+}
+
+def readCurrentGitBranch() {
+    def proc = ["git", "rev-parse", "--abbrev-ref", "HEAD"].execute(null, project.projectDir)
+    def exitCode = proc.waitFor()
+    if (exitCode != 0) {
+        throw new IllegalStateException("git rev-parse command exited with status code ${exitCode}:\n" + proc.err.readLines().join("\n"))
+    }
+    return proc.in.readLines()[0]
+}
+
+def readCurrentGitCommit() {
+    def proc = ["git", "rev-parse", "HEAD"].execute(null, project.projectDir)
+    def exitCode = proc.waitFor()
+    if (exitCode != 0) {
+        throw new IllegalStateException("git rev-parse command exited with status code ${exitCode}:\n" + proc.err.readLines().join("\n"))
+    }
+    return proc.in.readLines()[0]
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            pom {
+                name = "XML2B"
+                url = 'https://gitlab.cs.uni-duesseldorf.de/stups/prob/xml2b'
+
+                licenses {
+                    license {
+                        name = 'Eclipse Public License, Version 1.0'
+                        url = 'http://www.eclipse.org/org/documents/epl-v10.html'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:https://gitlab.cs.uni-duesseldorf.de/stups/prob/xml2b.git'
+                    developerConnection = 'scm:git:git@gitlab.cs.uni-duesseldorf.de:stups/prob/xml2b.git'
+                    url = 'https://gitlab.cs.uni-duesseldorf.de/stups/prob/xml2b'
+                }
+
+                developers {
+                    developer {
+                        id = 'gruteser'
+                        name = 'Jan Gruteser'
+                        email = 'jan.gruteser@hhu.de'
+                    }
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            final releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            final snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            url isSnapshot ? snapshotsRepoUrl : releasesRepoUrl
+            if (project.hasProperty('ossrhUsername') && project.hasProperty('ossrhPassword')) {
+                credentials {
+                    username project.ossrhUsername
+                    password project.ossrhPassword
+                }
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+ext."signing.secretKeyRingFile" = rootProject.file("secring.gpg").absolutePath
