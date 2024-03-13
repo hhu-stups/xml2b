@@ -1,6 +1,5 @@
 package de.hhu.stups.xml2b.cli;
 
-import ch.qos.logback.classic.ClassicConstants;
 import de.be4.classicalb.core.parser.node.Start;
 import de.be4.classicalb.core.parser.util.PrettyPrinter;
 import de.hhu.stups.xml2b.XML2B;
@@ -16,7 +15,7 @@ import java.nio.file.Files;
 public class XML2BCli {
 	private static final Logger LOGGER = LoggerFactory.getLogger(XML2BCli.class);
 
-	public final static String OUTPUT = "o", VERBOSE = "verbose", VERSION = "version", XSD = "xsd";
+	public final static String OUTPUT = "o", VERSION = "version", XSD = "xsd";
 	private File xmlFile, xsdFile, outputMch;
 
 	public void handleParameter(String[] args) {
@@ -27,9 +26,6 @@ public class XML2BCli {
 			String[] remainingArgs = line.getArgs();
 			if (line.hasOption(OUTPUT)) {
 				outputMch = new File(line.getOptionValue(OUTPUT));
-			}
-			if (line.hasOption(VERBOSE)) {
-				System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "logback_verbose.xml");
 			}
 			if (line.hasOption(VERSION)) {
 				LOGGER.info("XML2B: " + XML2B.getVersion() + " [" + XML2B.getGitSha() + "]");
@@ -82,7 +78,6 @@ public class XML2BCli {
 	private static Options getCommandlineOptions() {
 		Options options = new Options();
 		options.addOption(VERSION, false, "prints the current version of XML2B");
-		options.addOption(VERBOSE, false, "makes output more verbose");
 
 		Option output = Option.builder(OUTPUT)
 				.argName("path")
