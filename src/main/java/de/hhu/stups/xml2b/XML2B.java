@@ -46,10 +46,6 @@ public class XML2B {
     }
 
     public Start translate() {
-        Start start = translator.createBAst();
-        PrettyPrinter prettyPrinter = new PrettyPrinter();
-        start.apply(prettyPrinter);
-        System.out.println(prettyPrinter.getPrettyPrint());
-        return start;
+        return translator.createBAst();
     }
 }

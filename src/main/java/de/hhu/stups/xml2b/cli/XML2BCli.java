@@ -1,18 +1,23 @@
 package de.hhu.stups.xml2b.cli;
 
 import ch.qos.logback.classic.ClassicConstants;
+import de.be4.classicalb.core.parser.node.Start;
+import de.be4.classicalb.core.parser.util.PrettyPrinter;
 import de.hhu.stups.xml2b.XML2B;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.file.Files;
 
 public class XML2BCli {
 	private static final Logger LOGGER = LoggerFactory.getLogger(XML2BCli.class);
 
-	public final static String VERBOSE = "verbose", VERSION = "version", XSD = "xsd";
-	private File xmlFile, xsdFile;
+	public final static String OUTPUT = "o", VERBOSE = "verbose", VERSION = "version", XSD = "xsd";
+	private File xmlFile, xsdFile, outputMch;
 
 	public void handleParameter(String[] args) {
 		DefaultParser parser = new DefaultParser();
@@ -20,6 +25,9 @@ public class XML2BCli {
 		try {
 			CommandLine line = parser.parse(options, args);
 			String[] remainingArgs = line.getArgs();
+			if (line.hasOption(OUTPUT)) {
+				outputMch = new File(line.getOptionValue(OUTPUT));
+			}
 			if (line.hasOption(VERBOSE)) {
 				System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "logback_verbose.xml");
 			}
@@ -49,8 +57,26 @@ public class XML2BCli {
 	public static void main(String[] args) throws Exception {
 		XML2BCli xml2BCli = new XML2BCli();
 		xml2BCli.handleParameter(args);
+
 		XML2B xml2B = new XML2B(xml2BCli.xmlFile, xml2BCli.xsdFile);
-		xml2B.translate();
+		Start start = xml2B.translate();
+		xml2BCli.createMachine(start);
+	}
+
+	public void createMachine(Start start) {
+		PrettyPrinter prettyPrinter = new PrettyPrinter();
+		start.apply(prettyPrinter);
+		String machineContent = prettyPrinter.getPrettyPrint();
+		if (outputMch != null) {
+			try (final Writer writer = Files.newBufferedWriter(outputMch.toPath())) {
+				writer.write(machineContent);
+			} catch (IOException e) {
+				LOGGER.error("error creating machine file", e);
+			}
+		} else {
+			LOGGER.info("no output path provided, print machine:");
+			System.out.println(machineContent);
+		}
 	}
 
 	private static Options getCommandlineOptions() {
@@ -58,7 +84,7 @@ public class XML2BCli {
 		options.addOption(VERSION, false, "prints the current version of XML2B");
 		options.addOption(VERBOSE, false, "makes output more verbose");
 
-		Option output = Option.builder("o")
+		Option output = Option.builder(OUTPUT)
 				.argName("path")
 				.hasArg()
 				.desc("output path for generated machine")
