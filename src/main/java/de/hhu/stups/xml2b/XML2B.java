@@ -20,7 +20,7 @@ public class XML2B {
     private static final Properties buildProperties;
     static {
         buildProperties = new Properties();
-        final InputStream is = BParser.class.getResourceAsStream("/build.properties");
+        final InputStream is = XML2B.class.getResourceAsStream("build.properties");
         if (is == null) {
             throw new IllegalStateException("Build properties not found, this should never happen!");
         } else {

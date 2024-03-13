@@ -52,7 +52,7 @@ jar {
 }
 
 processResources {
-    filesMatching("/build.properties") {
+    filesMatching("de/hhu/stups/xml2b/build.properties") {
         expand(version: project.version, commit: readCurrentGitCommit())
     }
 }
