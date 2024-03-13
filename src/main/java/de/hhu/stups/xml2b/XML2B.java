@@ -1,5 +1,6 @@
 package de.hhu.stups.xml2b;
 
+import ch.qos.logback.classic.ClassicConstants;
 import de.be4.classicalb.core.parser.BParser;
 import de.be4.classicalb.core.parser.node.Start;
 import de.be4.classicalb.core.parser.util.PrettyPrinter;
@@ -7,12 +8,15 @@ import de.hhu.stups.xml2b.translation.StandaloneTranslator;
 import de.hhu.stups.xml2b.translation.Translator;
 import de.hhu.stups.xml2b.translation.XSDTranslator;
 import org.apache.commons.cli.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 public class XML2B {
+    private static final Logger LOGGER = LoggerFactory.getLogger(XML2B.class);
     private static final Properties buildProperties;
     static {
         buildProperties = new Properties();
@@ -34,7 +38,7 @@ public class XML2B {
         return buildProperties.getProperty("commit");
     }
 
-    public final static String VERSION = "version", VERBOSE = "verbose", XSD = "xsd";
+    public final static String VERBOSE = "verbose", VERSION = "version", XSD = "xsd";
     private File xmlFile, xsdFile;
 
     public void handleParameter(String[] args) {
@@ -43,14 +47,17 @@ public class XML2B {
         try {
             CommandLine line = parser.parse(options, args);
             String[] remainingArgs = line.getArgs();
+            if (line.hasOption(VERBOSE)) {
+                System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "logback_verbose.xml");
+            }
             if (line.hasOption(VERSION)) {
-                System.out.println("XML2B: " + getVersion() + " [" + getGitSha() + "]");
+                LOGGER.info("XML2B: " + getVersion() + " [" + getGitSha() + "]");
             }
             if (line.hasOption(XSD)) {
                 xsdFile = new File(line.getOptionValue(XSD));
             }
             if (remainingArgs.length != 1) {
-                System.out.println("Error: expected a XML file.");
+                LOGGER.error("Error: expected a XML file.");
                 HelpFormatter formatter = new HelpFormatter();
                 formatter.printHelp("java -jar XML2B.jar [file]", options);
                 System.exit(-1);
@@ -104,7 +111,7 @@ public class XML2B {
     private static Options getCommandlineOptions() {
         Options options = new Options();
         options.addOption(VERSION, false, "prints the current version of XML2B");
-        options.addOption(VERBOSE, false, "makes output more verbose (not used yet)");
+        options.addOption(VERBOSE, false, "makes output more verbose");
 
         Option output = Option.builder("o")
                 .argName("path")

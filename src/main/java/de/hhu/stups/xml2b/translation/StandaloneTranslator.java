@@ -15,7 +15,7 @@ import java.util.*;
 public class StandaloneTranslator extends Translator {
 
     public StandaloneTranslator(final File xmlFile) {
-	    super(xmlFile, null);
+        super(xmlFile, null);
     }
 
     @Override

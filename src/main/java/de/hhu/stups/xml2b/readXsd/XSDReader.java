@@ -1,6 +1,5 @@
 package de.hhu.stups.xml2b.readXsd;
 
-import de.hhu.stups.prob.translator.BString;
 import de.hhu.stups.xml2b.bTypes.BAttribute;
 import de.hhu.stups.xml2b.bTypes.BStringAttribute;
 import org.apache.ws.commons.schema.*;
@@ -13,7 +12,6 @@ import java.io.File;
 import java.util.*;
 
 public class XSDReader {
-
 	private final Map<QName, XmlSchemaType> types = new HashMap<>();
 	private final Map<XmlSchemaElement, Set<XmlSchemaAttribute>> elements = new HashMap<>();
 
