@@ -1,19 +1,15 @@
 package de.hhu.stups.xml2b;
 
 import de.be4.classicalb.core.parser.node.Start;
-import de.be4.classicalb.core.parser.util.PrettyPrinter;
 import de.hhu.stups.xml2b.translation.StandaloneTranslator;
 import de.hhu.stups.xml2b.translation.Translator;
 import de.hhu.stups.xml2b.translation.XSDTranslator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 public class XML2B {
-    private static final Logger LOGGER = LoggerFactory.getLogger(XML2B.class);
     private static final Properties buildProperties;
     static {
         buildProperties = new Properties();
