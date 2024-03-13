@@ -23,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    implementation group: "de.hhu.stups", name: "de.prob2.kernel", version: "4.13.1-SNAPSHOT"
+    implementation group: "de.hhu.stups", name: "bparser", version: "2.13.1-SNAPSHOT"
     implementation group: "ch.qos.logback", name: "logback-classic", version: "1.4.14"
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.5.0'
     //implementation group: 'com.github.xmlet', name: 'xsdParser', version: '1.2.9'

@@ -16,8 +16,8 @@ public class XSDTranslator extends Translator {
 
     public XSDTranslator(final File xmlFile, final File xsdFile) {
         super(xmlFile, xsdFile);
-
-        // TODO: validate XML -> allows assumption that a type is given for every element
+        XSDValidator.validateXmlForXsd(xmlFile, xsdFile);
+        // TODO: abort in case of errors
     }
 
     @Override
