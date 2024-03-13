@@ -43,7 +43,7 @@ public class XSDValidator {
 		}
 	}
 
-	static class CustomErrorHandler implements ErrorHandler {
+	private static class CustomErrorHandler implements ErrorHandler {
 		private final List<String> errors = new ArrayList<>();
 
 		@Override

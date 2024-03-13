@@ -40,7 +40,7 @@ tasks.test {
 }
 
 application {
-    mainClass = "de.hhu.stups.xml2b.XML2B"
+    mainClass = "de.hhu.stups.xml2b.cli.XML2BCli"
 }
 
 jar {

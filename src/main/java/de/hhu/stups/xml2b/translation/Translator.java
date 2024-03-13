@@ -17,17 +17,19 @@ public abstract class Translator {
 	protected Map<String, BAttribute> attributeTypes = new HashMap<>();
 	protected Map<String, Map<String, BAttribute>> xmlAttributes = new HashMap<>();
 	protected final XSDReader xsdReader;
+	private final String machineName;
 
 	public Translator(final File xmlFile, final File xsdFile) {
 		XMLReader xmlReader = new XMLReader();
 		this.xmlElements = xmlReader.readXML(xmlFile);
+		this.machineName = xmlFile.getName().split("\\.")[0];
 		this.xsdReader = xsdFile != null ? new XSDReader(xsdFile) : null;
 		this.getAttributeTypes();
 	}
 
 	protected abstract void getAttributeTypes();
 
-	public Start createBAst(String machineName) {
+	public Start createBAst() {
 		AAbstractMachineParseUnit aAbstractMachineParseUnit = new AAbstractMachineParseUnit();
 		aAbstractMachineParseUnit.setVariant(new AMachineMachineVariant());
 		AMachineHeader machineHeader = new AMachineHeader();

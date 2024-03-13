@@ -1,5 +1,7 @@
 package de.hhu.stups.xml2b.readXml;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -11,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class XMLReader {
+    private static final Logger LOGGER = LoggerFactory.getLogger(XMLReader.class);
     private int recId = 0;
 
     public List<XMLElement> readXML(File xmlFile) {
@@ -22,8 +25,8 @@ public class XMLReader {
             Element rootElement = document.getDocumentElement();
             return processElement(rootElement, recId);
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            LOGGER.error("failed to read XML file", e);
+            return new ArrayList<>();
         }
     }
 
