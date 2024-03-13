@@ -5,7 +5,6 @@ import org.apache.ws.commons.schema.XmlSchemaEnumerationFacet;
 import org.apache.ws.commons.schema.XmlSchemaFacet;
 
 import javax.xml.namespace.QName;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -160,17 +159,28 @@ public class TypeUtils {
 		// TODO: Only enum set when base is string!!
 		Set<String> enum_values = new HashSet<>();
 		for (XmlSchemaFacet facet : facets) {
-			if (facet instanceof XmlSchemaEnumerationFacet enumerationFacet) {
+			if (facet instanceof XmlSchemaEnumerationFacet) {
+				XmlSchemaEnumerationFacet enumerationFacet = (XmlSchemaEnumerationFacet) facet;
 				enum_values.add(enumerationFacet.getValue().toString());
 			}
 		}
 		if (enum_values.isEmpty()) {
-			return switch (getJavaType(xsdTypeQ)) {
-				case "BigDecimal", "Double", "Float" -> new BRealAttribute(ensureRealHasDot(value));
-				case "BigInteger", "Integer", "Short", "Long", "Duration" -> new BIntegerAttribute(value);
-				case "Boolean" -> new BBoolAttribute(value);
-				default -> new BStringAttribute(value);
-			};
+			switch (getJavaType(xsdTypeQ)) {
+				case "BigDecimal":
+				case "Double":
+				case "Float":
+					return new BRealAttribute(ensureRealHasDot(value));
+				case "BigInteger":
+				case "Integer":
+				case "Short":
+				case "Long":
+				case "Duration":
+					return new BIntegerAttribute(value);
+				case "Boolean":
+					return new BBoolAttribute(value);
+				default:
+					return new BStringAttribute(value);
+			}
 		} else {
 			return new BEnumSetAttribute(attributeName.getLocalPart(), enum_values.stream()
 					.map(e -> attributeName.getLocalPart() + "_" + e).collect(Collectors.toSet()), value);

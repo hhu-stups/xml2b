@@ -64,8 +64,9 @@ public class XSDTranslator extends Translator {
     protected List<PSet> getEnumSets() {
         List<PSet> enumSets = new ArrayList<>();
         for (BAttribute attribute : new HashSet<>(attributeTypes.values())) {
-            if (attribute instanceof BEnumSetAttribute enumSet) {
-                enumSets.add(new AEnumeratedSetSet(enumSet.getIdentifier().getIdentifier(),
+            if (attribute instanceof BEnumSetAttribute) {
+	            BEnumSetAttribute enumSet = (BEnumSetAttribute) attribute;
+	            enumSets.add(new AEnumeratedSetSet(enumSet.getIdentifier().getIdentifier(),
                         enumSet.getEnumValues().stream().map(ASTUtils::createIdentifier).collect(Collectors.toList())));
             }
         }
