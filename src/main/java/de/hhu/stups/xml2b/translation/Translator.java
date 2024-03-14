@@ -40,7 +40,7 @@ public abstract class Translator {
 		createDefinitionClause();
 		createFreetypeClause();
 		createSetsClause();
-		createAbstractConstantsClause();
+		//createAbstractConstantsClause();
 		createConstantsClause();
 		createPropertyClause();
 
@@ -112,7 +112,7 @@ public abstract class Translator {
 			}
 			recValues.add(new ARecEntry(
 					ASTUtils.createIdentifier("attributes"),
-					new ASetExtensionExpression(attributes)
+					!attributes.isEmpty() ? new ASetExtensionExpression(attributes) : new AEmptySetExpression()
 			));
 			ARecExpression rec = new ARecExpression(recValues);
 			AIntegerExpression recIndex = new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.recId())));
@@ -121,7 +121,7 @@ public abstract class Translator {
 			couple.add(rec);
 			sequenceOfRecords.add(new ACoupleExpression(couple));
 		}
-		value.setRight(new ASetExtensionExpression(sequenceOfRecords));
+		value.setRight(!sequenceOfRecords.isEmpty() ? new ASetExtensionExpression(sequenceOfRecords) : new AEmptySetExpression());
 
 		PPredicate abstractConstants = new AEqualPredicate(new AIntegerExpression(new TIntegerLiteral("1")), new AIntegerExpression(new TIntegerLiteral("1")));//createAbstractConstantsProperties();
 
