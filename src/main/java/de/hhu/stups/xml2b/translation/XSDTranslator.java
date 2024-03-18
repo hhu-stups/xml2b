@@ -22,20 +22,6 @@ public class XSDTranslator extends Translator {
 
     @Override
     protected void getAttributeTypes() {
-        /*for (XMLElement xmlElement : xmlElements) {
-            for (String attribute : xmlElement.attributes().keySet()) {
-                PExpression expression;
-                Object value = xmlElement.attributes().get(attribute);
-                if (value instanceof Double) {
-                    expression = new ARealSetExpression();
-                } else if (value instanceof Boolean) {
-                    expression = new ABoolSetExpression();
-                } else {
-                    expression = new AStringSetExpression();
-                }
-                this.attributeTypes.put(attribute, expression);
-            }
-        }*/
         Map<String, Set<XmlSchemaAttribute>> attributesOfElementName = xsdReader.getAttributesOfElementName();
         for (XMLElement element : xmlElements) {
             Map<String, String> presentAttributes = new HashMap<>(element.attributes());

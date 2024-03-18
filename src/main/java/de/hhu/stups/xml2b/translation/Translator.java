@@ -2,8 +2,8 @@ package de.hhu.stups.xml2b.translation;
 
 import de.be4.classicalb.core.parser.node.*;
 import de.hhu.stups.xml2b.bTypes.BAttribute;
+import de.hhu.stups.xml2b.readXml.CustomXMLReader;
 import de.hhu.stups.xml2b.readXml.XMLElement;
-import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
 
 import java.io.File;
@@ -12,15 +12,19 @@ import java.util.stream.Collectors;
 
 public abstract class Translator {
 
+	private static final String XML_DATA_CONSTANT_NAME = "xml_data", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES",
+			P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "elementType", ATTRIBUTES_NAME = "attributes";
+	private static final String UNIQUENESS_SUFFIX = "_";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
 	protected Map<String, BAttribute> attributeTypes = new HashMap<>();
 	protected Map<String, Map<String, BAttribute>> xmlAttributes = new HashMap<>();
 	protected final XSDReader xsdReader;
+
 	private final String machineName;
 
 	public Translator(final File xmlFile, final File xsdFile) {
-		XMLReader xmlReader = new XMLReader();
+		CustomXMLReader xmlReader = new CustomXMLReader();
 		this.xmlElements = xmlReader.readXML(xmlFile);
 		this.machineName = xmlFile.getName().split("\\.")[0];
 		this.xsdReader = xsdFile != null ? new XSDReader(xsdFile) : null;
@@ -59,51 +63,51 @@ public abstract class Translator {
 	}
 
 	private void createConstantsClause() {
-		AConstantsMachineClause constantsClause = new AConstantsMachineClause(ASTUtils.createIdentifierList("xml_data"));
+		AConstantsMachineClause constantsClause = new AConstantsMachineClause(ASTUtils.createIdentifierList(XML_DATA_CONSTANT_NAME));
 		machineClauseList.add(constantsClause);
 	}
 
 	private void createPropertyClause() {
 		// TYPE:
 		AMemberPredicate typification = new AMemberPredicate();
-		typification.setLeft(ASTUtils.createIdentifier("xml_data"));
+		typification.setLeft(ASTUtils.createIdentifier(XML_DATA_CONSTANT_NAME));
 		List<PRecEntry> recTypes = new ArrayList<>();
 		recTypes.add(new ARecEntry(
-				ASTUtils.createIdentifier("pId"),
+				ASTUtils.createIdentifier(P_ID_NAME),
 				new ANaturalSetExpression()
 		));
 		recTypes.add(new ARecEntry(
-				ASTUtils.createIdentifier("recId"),
+				ASTUtils.createIdentifier(REC_ID_NAME),
 				new ANatural1SetExpression()
 		));
 		recTypes.add(new ARecEntry(
-				ASTUtils.createIdentifier("type"),
-				ASTUtils.createIdentifier("xml_types")
+				ASTUtils.createIdentifier(TYPE_NAME),
+				ASTUtils.createIdentifier(XML_ELEMENT_TYPES_NAME)
 		));
 		recTypes.add(new ARecEntry(
-				ASTUtils.createIdentifier("attributes"),
-				new APowSubsetExpression(ASTUtils.createIdentifier("xml_attributes"))
+				ASTUtils.createIdentifier(ATTRIBUTES_NAME),
+				new APowSubsetExpression(ASTUtils.createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME))
 		));
 		typification.setRight(new ASeqExpression(new AStructExpression(recTypes)));
 
 		// VALUE:
 		AEqualPredicate value = new AEqualPredicate();
-		value.setLeft(ASTUtils.createIdentifier("xml_data"));
+		value.setLeft(ASTUtils.createIdentifier(XML_DATA_CONSTANT_NAME));
 
 		List<PExpression> sequenceOfRecords = new ArrayList<>();
 		for (XMLElement xmlElement : xmlElements) {
 			List<PRecEntry> recValues = new ArrayList<>();
 			recValues.add(new ARecEntry(
-					ASTUtils.createIdentifier("pId"),
+					ASTUtils.createIdentifier(P_ID_NAME),
 					new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.pId())))
 			));
 			recValues.add(new ARecEntry(
-					ASTUtils.createIdentifier("recId"),
+					ASTUtils.createIdentifier(REC_ID_NAME),
 					new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.recId())))
 			));
 			recValues.add(new ARecEntry(
-					ASTUtils.createIdentifier("type"),
-					ASTUtils.createIdentifier(xmlElement.elementType() + "_")
+					ASTUtils.createIdentifier(TYPE_NAME),
+					ASTUtils.createIdentifier(xmlElement.elementType() + UNIQUENESS_SUFFIX)
 			));
 			List<PExpression> attributes = new ArrayList<>();
 			for(String attribute : xmlElement.attributes().keySet()) {
@@ -111,7 +115,7 @@ public abstract class Translator {
 				attributes.add(new AFunctionExpression(ASTUtils.createIdentifier(attribute), Collections.singletonList(attrValue)));
 			}
 			recValues.add(new ARecEntry(
-					ASTUtils.createIdentifier("attributes"),
+					ASTUtils.createIdentifier(ATTRIBUTES_NAME),
 					!attributes.isEmpty() ? new ASetExtensionExpression(attributes) : new AEmptySetExpression()
 			));
 			ARecExpression rec = new ARecExpression(recValues);
@@ -153,7 +157,7 @@ public abstract class Translator {
 
 	private void createFreetypeClause() {
 		List<PFreetypeConstructor> constructors = getConstructorsForAttributes();
-		AFreetype freetype = new AFreetype(new TIdentifierLiteral("xml_attributes"), new ArrayList<>(), constructors);
+		AFreetype freetype = new AFreetype(new TIdentifierLiteral(XML_FREETYPE_ATTRIBUTES_NAME), new ArrayList<>(), constructors);
 		AFreetypesMachineClause freetypesMachineClause = new AFreetypesMachineClause(Collections.singletonList(freetype));
 		machineClauseList.add(freetypesMachineClause);
 	}
@@ -163,8 +167,8 @@ public abstract class Translator {
 		for (XMLElement xmlElement : xmlElements) {
 			elementTypes.add(xmlElement.elementType());
 		}
-		PSet typeSet = new AEnumeratedSetSet(ASTUtils.createTIdentifierLiteral("xml_types"),
-				elementTypes.stream().map(e -> e + "_").map(ASTUtils::createIdentifier).collect(Collectors.toList()));
+		PSet typeSet = new AEnumeratedSetSet(ASTUtils.createTIdentifierLiteral(XML_ELEMENT_TYPES_NAME),
+				elementTypes.stream().map(e -> e + UNIQUENESS_SUFFIX).map(ASTUtils::createIdentifier).collect(Collectors.toList()));
 		List<PSet> enumSets = getEnumSets();
 		List<PSet> sets = new ArrayList<>();
 		sets.add(typeSet);

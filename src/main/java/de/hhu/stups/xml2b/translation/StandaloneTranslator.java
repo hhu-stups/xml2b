@@ -20,20 +20,6 @@ public class StandaloneTranslator extends Translator {
 
     @Override
     protected void getAttributeTypes() {
-        /*for (XMLElement xmlElement : xmlElements) {
-            for (String attribute : xmlElement.attributes().keySet()) {
-                PExpression expression;
-                Object value = xmlElement.attributes().get(attribute);
-                if (value instanceof Double) {
-                    expression = new ARealSetExpression();
-                } else if (value instanceof Boolean) {
-                    expression = new ABoolSetExpression();
-                } else {
-                    expression = new AStringSetExpression();
-                }
-                this.attributeTypes.put(attribute, expression);
-            }
-        }*/
         for (XMLElement element : xmlElements) {
             Map<String, BAttribute> bAttributes = new HashMap<>();
             for (String attribute : element.attributes().keySet()) {
