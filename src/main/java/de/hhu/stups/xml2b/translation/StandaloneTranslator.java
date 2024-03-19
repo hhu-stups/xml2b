@@ -24,8 +24,13 @@ public class StandaloneTranslator extends Translator {
         for (XMLElement element : xmlElements) {
             Map<String, BAttribute> bAttributes = new HashMap<>();
             for (String attribute : element.attributes().keySet()) {
-                bAttributes.put(attribute, getAttributeObject(element.attributes().get(attribute)));
-                //attributeTypes.put()
+                BAttribute bAttribute = getAttributeObject(element.attributes().get(attribute));
+                bAttributes.put(attribute, bAttribute);
+                if (attributeTypes.containsKey(attribute) && !attributeTypes.get(attribute).getClass().equals(bAttribute.getClass())) {
+                    attributeTypes.put(attribute, new BStringAttribute(element.attributes().get(attribute)));
+                } else {
+                    attributeTypes.put(attribute, bAttribute);
+                }
             }
             xmlAttributes.put(element.elementType(), bAttributes);
         }

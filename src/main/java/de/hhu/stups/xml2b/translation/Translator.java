@@ -28,9 +28,7 @@ public abstract class Translator {
 	public Translator(final File xmlFile, final File xsdFile) throws BCompoundException {
 		CustomXMLReader xmlReader = new CustomXMLReader();
 		this.xmlElements = xmlReader.readXML(xmlFile, xsdFile);
-		if (!xmlReader.getErrors().isEmpty()) {
-			handleValidationErrors(xmlFile, xmlReader.getErrors());
-		}
+		this.handleValidationErrors(xmlFile, xmlReader.getErrors());
 		this.machineName = xmlFile.getName().split("\\.")[0];
 		this.xsdReader = xsdFile != null ? new XSDReader(xsdFile) : null;
 		this.getAttributeTypes();
@@ -41,7 +39,9 @@ public abstract class Translator {
 		for (CustomXMLReader.ValidationError error : errors) {
 			bExceptions.add(error.getBException(xmlFile.getAbsolutePath()));
 		}
-		throw new BCompoundException(bExceptions);
+		if (!bExceptions.isEmpty()) {
+			throw new BCompoundException(bExceptions);
+		}
 	}
 
 	protected abstract void getAttributeTypes();
