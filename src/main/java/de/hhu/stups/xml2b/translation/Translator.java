@@ -124,8 +124,9 @@ public abstract class Translator {
 					ASTUtils.createIdentifier(ELEMENT_PREFIX + xmlElement.elementType())
 			));
 			List<PExpression> attributes = new ArrayList<>();
-			for(String attribute : xmlElement.attributes().keySet()) {
-				PExpression attrValue = xmlAttributes.get(xmlElement.elementType()).get(attribute).getDataExpression();
+			Map<String, BAttribute> currentAttributes = xmlAttributes.get(xmlElement.elementType());
+			for(String attribute : currentAttributes.keySet()) {
+				PExpression attrValue = currentAttributes.get(attribute).getDataExpression();
 				attributes.add(new AFunctionExpression(ASTUtils.createIdentifier(ATTRIBUTE_PREFIX + attribute), Collections.singletonList(attrValue)));
 			}
 			recValues.add(new ARecEntry(
