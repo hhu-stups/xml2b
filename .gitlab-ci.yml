@@ -1,6 +1,7 @@
 image: eclipse-temurin:8
 stages:
   - test
+  - deploy
 
 variables:
   GRADLE_ARGS: --no-daemon --stacktrace --warning-mode=all
@@ -29,3 +30,17 @@ tests:jdk-17:
 tests:jdk-21:
   extends: .tests
   image: eclipse-temurin:21
+
+publish:
+  stage: deploy
+  before_script:
+    - export GRADLE_USER_HOME=`pwd`/.gradle
+    - apt-get update && apt-get install -y git
+
+    - openssl aes-256-cbc -pass "env:ENCRYPTION_PASSWORD" -d -a -md md5 -in secring.gpg.enc       -out secring.gpg
+    - openssl aes-256-cbc -pass "env:ENCRYPTION_PASSWORD" -d -a -md md5 -in pubring.gpg.enc       -out pubring.gpg
+    - openssl aes-256-cbc -pass "env:ENCRYPTION_PASSWORD" -d -a -md md5 -in gradle.properties.enc -out gradle.properties
+  script:
+    - ./gradlew ${GRADLE_OPTIONS} publish
+  only:
+    - main@stups/prob/xml2b
