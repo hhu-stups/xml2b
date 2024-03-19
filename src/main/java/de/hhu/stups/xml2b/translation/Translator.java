@@ -7,7 +7,6 @@ import de.hhu.stups.xml2b.bTypes.BAttribute;
 import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
-import de.hhu.stups.xml2b.translation.ASTUtils;
 
 import java.io.File;
 import java.util.*;
@@ -21,7 +20,7 @@ public abstract class Translator {
 	private static final String XML_DATA_CONSTANT_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES",
 			P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", ATTRIBUTES_NAME = "attributes";
 	private static final String ATTRIBUTE_PREFIX = "A_", ELEMENT_PREFIX = "E_";
-	public static final String XML_GET_ELEMENTS_OF_TYPE_NAME = "XML_getElementsOfType";
+	public static final String XML_GET_ELEMENTS_OF_TYPE_NAME = "XML_getElementsOfType", XML_GET_ELEMENT_OF_ID_NAME = "XML_getElementOfId";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
 	protected Map<String, BAttribute> attributeTypes = new HashMap<>();
@@ -77,7 +76,7 @@ public abstract class Translator {
 	}
 
 	private void createAbstractConstantsClause() {
-		AAbstractConstantsMachineClause constantsClause = new AAbstractConstantsMachineClause(createIdentifierList(XML_GET_ELEMENTS_OF_TYPE_NAME));
+		AAbstractConstantsMachineClause constantsClause = new AAbstractConstantsMachineClause(createIdentifierList(XML_GET_ELEMENTS_OF_TYPE_NAME, XML_GET_ELEMENT_OF_ID_NAME));
 		machineClauseList.add(constantsClause);
 	}
 
@@ -163,25 +162,59 @@ public abstract class Translator {
 						createIdentifier(XML_ELEMENT_TYPES_NAME)
 				),
 				new AComprehensionSetExpression(
-				createIdentifierList("e"),
-				new AConjunctPredicate(
-						new AMemberPredicate(
-								createIdentifier("e"),
-								new ARangeExpression(createIdentifier(XML_DATA_CONSTANT_NAME))
-						),
-						new AEqualPredicate(
-								new ARecordFieldExpression(
-										createIdentifier("e"),
-										createIdentifier(TYPE_NAME)
-								),
-								createIdentifier("t")
+					createIdentifierList("e"),
+					new AConjunctPredicate(
+							new AMemberPredicate(
+									createIdentifier("e"),
+									new ARangeExpression(createIdentifier(XML_DATA_CONSTANT_NAME))
+							),
+							new AEqualPredicate(
+									new ARecordFieldExpression(
+											createIdentifier("e"),
+											createIdentifier(TYPE_NAME)
+									),
+									createIdentifier("t")
+							)
+					)
+				)
+		));
+
+		// XML_getElementOfId = %(t,i).(t : XML_ELEMENT_TYPES & i : dom(XML_ATTRIBUTE_TYPES) | { e | e : ran(XML_DATA) & #el.((i,el) : A_id & el : e'attributes) })
+		AEqualPredicate getElementOfId = new AEqualPredicate();
+		getElementOfId.setLeft(createIdentifier(XML_GET_ELEMENT_OF_ID_NAME));
+		getElementOfId.setRight(new ALambdaExpression(
+				createIdentifierList("i"),
+				new AMemberPredicate(
+						createIdentifier("i"),
+						new ADomainExpression(createIdentifier(ATTRIBUTE_PREFIX + "id"))
+				),
+				new ADomainExpression(
+						new AComprehensionSetExpression(
+								createIdentifierList("e", "el"),
+								new AConjunctPredicate(
+										new AMemberPredicate(
+												createIdentifier("e"),
+												new ARangeExpression(createIdentifier(XML_DATA_CONSTANT_NAME))
+										),
+										new AConjunctPredicate(
+												new AMemberPredicate(
+														new ACoupleExpression(createIdentifierList("i","el")),
+														createIdentifier(ATTRIBUTE_PREFIX + "id")
+												),
+												new AMemberPredicate(
+														createIdentifier("el"),
+														new ARecordFieldExpression(
+																createIdentifier("e"),
+																createIdentifier(ATTRIBUTES_NAME)
+														)
+												)
+										)
+								)
 						)
 				)
-		)));
+		));
 
-		// { e, i | e : ran(XML_DATA) & e'elementType = E_netElement & #(val, el).((val,el) : A_id & el : e'attributes & i = val) }
-
-		return getElementsOfType;
+		return new AConjunctPredicate(getElementsOfType, getElementOfId);
 	}
 
 	private void createFreetypeClause() {
