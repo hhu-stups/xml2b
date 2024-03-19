@@ -1,5 +1,7 @@
 package de.hhu.stups.xml2b.cli;
 
+import de.be4.classicalb.core.parser.exceptions.BCompoundException;
+import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.Start;
 import de.be4.classicalb.core.parser.util.PrettyPrinter;
 import de.hhu.stups.xml2b.XML2B;
@@ -11,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.util.List;
 
 public class XML2BCli {
 	private static final Logger LOGGER = LoggerFactory.getLogger(XML2BCli.class);
@@ -54,9 +57,21 @@ public class XML2BCli {
 		XML2BCli xml2BCli = new XML2BCli();
 		xml2BCli.handleParameter(args);
 
-		XML2B xml2B = new XML2B(xml2BCli.xmlFile, xml2BCli.xsdFile);
-		Start start = xml2B.translate();
-		xml2BCli.createMachine(start);
+		try {
+			XML2B xml2B = new XML2B(xml2BCli.xmlFile, xml2BCli.xsdFile);
+			Start start = xml2B.translate();
+			if (xml2BCli.xsdFile != null) {
+				LOGGER.info(xml2BCli.xmlFile.getName() + " is valid according to " + xml2BCli.xsdFile.getName());
+			}
+			LOGGER.info("translation of " + xml2BCli.xmlFile.getName() + " succeeded");
+			xml2BCli.createMachine(start);
+		} catch (BCompoundException e) {
+			LOGGER.error(xml2BCli.xmlFile.getName() + " is NOT valid according to " + xml2BCli.xsdFile.getName());
+			List<BException> bExceptions = e.getBExceptions();
+			for (BException bException : bExceptions) {
+				LOGGER.error(bException.getMessage() + " at " + bException.getLocations().getFirst().toString());
+			}
+		}
 	}
 
 	public void createMachine(Start start) {
@@ -70,7 +85,7 @@ public class XML2BCli {
 				LOGGER.error("error creating machine file", e);
 			}
 		} else {
-			LOGGER.info("no output path provided, print machine:");
+			LOGGER.info("no output path provided, print machine");
 			System.out.println(machineContent);
 		}
 	}

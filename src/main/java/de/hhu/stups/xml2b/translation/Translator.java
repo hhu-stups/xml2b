@@ -4,7 +4,7 @@ import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.*;
 import de.hhu.stups.xml2b.bTypes.BAttribute;
-import de.hhu.stups.xml2b.readXml.CustomXMLReader;
+import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
 
@@ -27,7 +27,7 @@ public abstract class Translator {
 	private final String machineName;
 
 	public Translator(final File xmlFile, final File xsdFile) throws BCompoundException {
-		CustomXMLReader xmlReader = new CustomXMLReader();
+		XMLReader xmlReader = new XMLReader();
 		this.xmlElements = xmlReader.readXML(xmlFile, xsdFile);
 		this.handleValidationErrors(xmlFile, xmlReader.getErrors());
 		this.machineName = xmlFile.getName().split("\\.")[0];
@@ -35,9 +35,9 @@ public abstract class Translator {
 		this.getAttributeTypes();
 	}
 
-	private void handleValidationErrors(File xmlFile, List<CustomXMLReader.ValidationError> errors) throws BCompoundException {
+	private void handleValidationErrors(File xmlFile, List<XMLReader.ValidationError> errors) throws BCompoundException {
 		List<BException> bExceptions = new ArrayList<>();
-		for (CustomXMLReader.ValidationError error : errors) {
+		for (XMLReader.ValidationError error : errors) {
 			bExceptions.add(error.getBException(xmlFile.getAbsolutePath()));
 		}
 		if (!bExceptions.isEmpty()) {

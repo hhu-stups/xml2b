@@ -16,8 +16,8 @@ import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.util.*;
 
-public class CustomXMLReader extends DefaultHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(CustomXMLReader.class);
+public class XMLReader extends DefaultHandler {
+	private static final Logger LOGGER = LoggerFactory.getLogger(XMLReader.class);
 	private static class OpenXMLElement {
 		private final int recId, lineNumber, columnNumber;
 		private final Map<String, String> attributes;
