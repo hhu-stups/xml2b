@@ -69,7 +69,7 @@ public class XML2BCli {
 			LOGGER.error(xml2BCli.xmlFile.getName() + " is NOT valid according to " + xml2BCli.xsdFile.getName());
 			List<BException> bExceptions = e.getBExceptions();
 			for (BException bException : bExceptions) {
-				LOGGER.error(bException.getMessage() + " at " + bException.getLocations().getFirst().toString());
+				LOGGER.error(bException.getMessage() + " at " + bException.getLocations().get(0).toString());
 			}
 		}
 	}
