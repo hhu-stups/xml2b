@@ -27,6 +27,7 @@ public class StandaloneTranslator extends Translator {
                 BAttribute bAttribute = getAttributeObject(element.attributes().get(attribute));
                 bAttributes.put(attribute, bAttribute);
                 if (attributeTypes.containsKey(attribute) && !attributeTypes.get(attribute).getClass().equals(bAttribute.getClass())) {
+                    // if there is at least one type mismatch -> fall back to string
                     attributeTypes.put(attribute, new BStringAttribute(element.attributes().get(attribute)));
                 } else {
                     attributeTypes.put(attribute, bAttribute);

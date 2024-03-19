@@ -7,7 +7,7 @@ import de.hhu.stups.xml2b.translation.ASTUtils;
 import java.util.Set;
 
 public class BEnumSetAttribute extends BAttribute {
-	private static final String SUFFIX_FOR_SET = "_values";
+	private static final String SUFFIX_FOR_SET = "_VALUES";
 	private final String prefix;
 	private final AIdentifierExpression identifier;
 	private final Set<String> enum_values;
@@ -15,7 +15,7 @@ public class BEnumSetAttribute extends BAttribute {
 	public BEnumSetAttribute(String identifier, Set<String> values, String data) {
 		super(data);
 		this.prefix = identifier + "_";
-		this.identifier = ASTUtils.createIdentifier(identifier + SUFFIX_FOR_SET);
+		this.identifier = ASTUtils.createIdentifier(identifier.toUpperCase() + SUFFIX_FOR_SET);
 		this.enum_values = values;
 	}
 	public AIdentifierExpression getIdentifier() {

@@ -16,11 +16,12 @@ public abstract class Translator {
 
 	private static final String XML_DATA_CONSTANT_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES",
 			P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "elementType", ATTRIBUTES_NAME = "attributes";
-	private static final String UNIQUENESS_SUFFIX = "_";
+	private static final String ATTRIBUTE_PREFIX = "A_", ELEMENT_PREFIX = "E_";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
 	protected Map<String, BAttribute> attributeTypes = new HashMap<>();
 	protected Map<String, Map<String, BAttribute>> xmlAttributes = new HashMap<>();
+	private final List<String> usedIdentifiers = new ArrayList<>();
 	protected final XSDReader xsdReader;
 
 	private final String machineName;
@@ -120,12 +121,12 @@ public abstract class Translator {
 			));
 			recValues.add(new ARecEntry(
 					ASTUtils.createIdentifier(TYPE_NAME),
-					ASTUtils.createIdentifier(xmlElement.elementType() + UNIQUENESS_SUFFIX)
+					ASTUtils.createIdentifier(ELEMENT_PREFIX + xmlElement.elementType())
 			));
 			List<PExpression> attributes = new ArrayList<>();
 			for(String attribute : xmlElement.attributes().keySet()) {
 				PExpression attrValue = xmlAttributes.get(xmlElement.elementType()).get(attribute).getDataExpression();
-				attributes.add(new AFunctionExpression(ASTUtils.createIdentifier(attribute), Collections.singletonList(attrValue)));
+				attributes.add(new AFunctionExpression(ASTUtils.createIdentifier(ATTRIBUTE_PREFIX + attribute), Collections.singletonList(attrValue)));
 			}
 			recValues.add(new ARecEntry(
 					ASTUtils.createIdentifier(ATTRIBUTES_NAME),
@@ -181,7 +182,7 @@ public abstract class Translator {
 			elementTypes.add(xmlElement.elementType());
 		}
 		PSet typeSet = new AEnumeratedSetSet(ASTUtils.createTIdentifierLiteral(XML_ELEMENT_TYPES_NAME),
-				elementTypes.stream().map(e -> e + UNIQUENESS_SUFFIX).map(ASTUtils::createIdentifier).collect(Collectors.toList()));
+				elementTypes.stream().map(e -> ELEMENT_PREFIX + e).map(ASTUtils::createIdentifier).collect(Collectors.toList()));
 		List<PSet> enumSets = getEnumSets();
 		List<PSet> sets = new ArrayList<>();
 		sets.add(typeSet);
@@ -220,7 +221,7 @@ public abstract class Translator {
 		List<PFreetypeConstructor> freetypeConstructors = new ArrayList<>();
 		for (String attribute : attributeTypes.keySet()) {
 			freetypeConstructors.add(new AConstructorFreetypeConstructor(
-					new TIdentifierLiteral(attribute),
+					new TIdentifierLiteral(ATTRIBUTE_PREFIX + attribute),
 					attributeTypes.get(attribute).getSetExpression()
 			));
 		}
