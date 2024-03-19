@@ -92,13 +92,15 @@ public class XMLReader extends DefaultHandler {
 
 	public static class ValidationError {
 		private final String message;
-		private final int lineNumber, columnNumber;
+		private final int startLine, startColumn, endLine, endColumn;
 		private final SAXParseException exception;
 
-		public ValidationError(String message, int lineNumber, int columnNumber, SAXParseException exception) {
+		public ValidationError(String message, int startLine, int startColumn, int endLine, int endColumn, SAXParseException exception) {
 			this.message = message;
-			this.lineNumber = lineNumber;
-			this.columnNumber = columnNumber;
+			this.startLine = startLine;
+			this.startColumn = startColumn;
+			this.endLine = endLine;
+			this.endColumn = endColumn;
 			this.exception = exception;
 		}
 
@@ -107,7 +109,7 @@ public class XMLReader extends DefaultHandler {
 		}
 
 		public BException getBException(String fileName) {
-			BException.Location location = new BException.Location(fileName, lineNumber, columnNumber, lineNumber, columnNumber + 1);
+			BException.Location location = new BException.Location(fileName, startLine, startColumn, endLine, endColumn);
 			return new BException(fileName, Collections.singletonList(location), message, exception);
 		}
 
@@ -137,11 +139,11 @@ public class XMLReader extends DefaultHandler {
 		return errors;
 	}
 
-	private static String collectErrorInformationAsString(SAXParseException e) {
+	private String collectErrorInformationAsString(SAXParseException e) {
 		return "at line " + e.getLineNumber() + ", column " + e.getColumnNumber() + ": " + e.getMessage();
 	}
 
-	private static ValidationError collectError(SAXParseException e) {
-		return new ValidationError(e.getMessage(), e.getLineNumber(), e.getColumnNumber(), e);
+	private ValidationError collectError(SAXParseException e) {
+		return new ValidationError(e.getMessage(), e.getLineNumber(), 1, e.getLineNumber(), e.getColumnNumber(), e);
 	}
 }
