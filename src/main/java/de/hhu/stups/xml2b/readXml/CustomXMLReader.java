@@ -1,13 +1,18 @@
 package de.hhu.stups.xml2b.readXml;
 
+import de.be4.classicalb.core.parser.exceptions.BException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
+import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.util.*;
 
@@ -34,10 +39,16 @@ public class CustomXMLReader extends DefaultHandler {
 	private Locator locator;
 	private int recId = 1;
 
-	public List<XMLElement> readXML(File file) {
+	public List<XMLElement> readXML(File file, File xsdFile) {
 		try {
-			SAXParserFactory factory = SAXParserFactory.newInstance();
-			SAXParser saxParser = factory.newSAXParser();
+			SAXParserFactory saxFactory = SAXParserFactory.newInstance();
+			if (xsdFile != null) {
+				SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+				Schema schema = schemaFactory.newSchema(xsdFile);
+				saxFactory.setSchema(schema);
+				saxFactory.setNamespaceAware(true);
+			}
+			SAXParser saxParser = saxFactory.newSAXParser();
 			saxParser.parse(file, this);
 		} catch (Exception e) {
 			LOGGER.error("failed to read XML file", e);
@@ -77,5 +88,60 @@ public class CustomXMLReader extends DefaultHandler {
 		} else {
 			closedXMLElements.add(currentNode.getClosedXMLElement(qName, 0, locator.getLineNumber(), locator.getColumnNumber()));
 		}
+	}
+
+	public static class ValidationError {
+		private final String message;
+		private final int lineNumber, columnNumber;
+		private final SAXParseException exception;
+
+		public ValidationError(String message, int lineNumber, int columnNumber, SAXParseException exception) {
+			this.message = message;
+			this.lineNumber = lineNumber;
+			this.columnNumber = columnNumber;
+			this.exception = exception;
+		}
+
+		public String getMessage() {
+			return message;
+		}
+
+		public BException getBException(String fileName) {
+			BException.Location location = new BException.Location(fileName, lineNumber, columnNumber, lineNumber, columnNumber + 1);
+			return new BException(fileName, Collections.singletonList(location), message, exception);
+		}
+
+		public SAXParseException getException() {
+			return exception;
+		}
+	}
+
+	private final List<ValidationError> errors = new ArrayList<>();
+
+	@Override
+	public void warning(SAXParseException e) {
+		LOGGER.warn(collectErrorInformationAsString(e));
+	}
+
+	@Override
+	public void error(SAXParseException e) {
+		errors.add(collectError(e));
+	}
+
+	@Override
+	public void fatalError(SAXParseException e) {
+		errors.add(collectError(e));
+	}
+
+	public List<ValidationError> getErrors() {
+		return errors;
+	}
+
+	private static String collectErrorInformationAsString(SAXParseException e) {
+		return "at line " + e.getLineNumber() + ", column " + e.getColumnNumber() + ": " + e.getMessage();
+	}
+
+	private static ValidationError collectError(SAXParseException e) {
+		return new ValidationError(e.getMessage(), e.getLineNumber(), e.getColumnNumber(), e);
 	}
 }

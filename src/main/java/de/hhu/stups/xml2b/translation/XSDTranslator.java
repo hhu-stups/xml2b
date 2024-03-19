@@ -1,5 +1,6 @@
 package de.hhu.stups.xml2b.translation;
 
+import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.AEnumeratedSetSet;
 import de.be4.classicalb.core.parser.node.PSet;
 import de.hhu.stups.xml2b.bTypes.BAttribute;
@@ -14,9 +15,8 @@ import java.util.stream.Collectors;
 
 public class XSDTranslator extends Translator {
 
-    public XSDTranslator(final File xmlFile, final File xsdFile) {
+    public XSDTranslator(final File xmlFile, final File xsdFile) throws BCompoundException {
         super(xmlFile, xsdFile);
-        XSDValidator.validateXmlForXsd(xmlFile, xsdFile);
         // TODO: abort in case of errors
     }
 

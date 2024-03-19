@@ -1,5 +1,7 @@
 package de.hhu.stups.xml2b.translation;
 
+import de.be4.classicalb.core.parser.exceptions.BCompoundException;
+import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.*;
 import de.hhu.stups.xml2b.bTypes.BAttribute;
 import de.hhu.stups.xml2b.readXml.CustomXMLReader;
@@ -12,7 +14,7 @@ import java.util.stream.Collectors;
 
 public abstract class Translator {
 
-	private static final String XML_DATA_CONSTANT_NAME = "xml_data", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES",
+	private static final String XML_DATA_CONSTANT_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES",
 			P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "elementType", ATTRIBUTES_NAME = "attributes";
 	private static final String UNIQUENESS_SUFFIX = "_";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
@@ -23,12 +25,23 @@ public abstract class Translator {
 
 	private final String machineName;
 
-	public Translator(final File xmlFile, final File xsdFile) {
+	public Translator(final File xmlFile, final File xsdFile) throws BCompoundException {
 		CustomXMLReader xmlReader = new CustomXMLReader();
-		this.xmlElements = xmlReader.readXML(xmlFile);
+		this.xmlElements = xmlReader.readXML(xmlFile, xsdFile);
+		if (!xmlReader.getErrors().isEmpty()) {
+			handleValidationErrors(xmlFile, xmlReader.getErrors());
+		}
 		this.machineName = xmlFile.getName().split("\\.")[0];
 		this.xsdReader = xsdFile != null ? new XSDReader(xsdFile) : null;
 		this.getAttributeTypes();
+	}
+
+	private void handleValidationErrors(File xmlFile, List<CustomXMLReader.ValidationError> errors) throws BCompoundException {
+		List<BException> bExceptions = new ArrayList<>();
+		for (CustomXMLReader.ValidationError error : errors) {
+			bExceptions.add(error.getBException(xmlFile.getAbsolutePath()));
+		}
+		throw new BCompoundException(bExceptions);
 	}
 
 	protected abstract void getAttributeTypes();

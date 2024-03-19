@@ -1,5 +1,6 @@
 package de.hhu.stups.xml2b.translation;
 
+import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.PSet;
 import de.hhu.stups.xml2b.bTypes.BAttribute;
 import de.hhu.stups.xml2b.bTypes.BBoolAttribute;
@@ -14,7 +15,7 @@ import java.util.*;
 
 public class StandaloneTranslator extends Translator {
 
-    public StandaloneTranslator(final File xmlFile) {
+    public StandaloneTranslator(final File xmlFile) throws BCompoundException {
         super(xmlFile, null);
     }
 

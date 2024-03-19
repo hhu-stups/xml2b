@@ -1,5 +1,6 @@
 package de.hhu.stups.xml2b;
 
+import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.Start;
 import de.hhu.stups.xml2b.translation.StandaloneTranslator;
 import de.hhu.stups.xml2b.translation.Translator;
@@ -33,7 +34,7 @@ public class XML2B {
 
     private final Translator translator;
 
-    public XML2B(File xmlFile, File xsdFile) {
+    public XML2B(File xmlFile, File xsdFile) throws BCompoundException {
         if (xsdFile != null) {
             this.translator = new XSDTranslator(xmlFile, xsdFile);
         } else {
