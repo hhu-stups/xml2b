@@ -24,7 +24,7 @@ public abstract class Translator {
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
 	protected Map<String, BAttribute> attributeTypes = new HashMap<>();
-	protected Map<String, Map<String, BAttribute>> xmlAttributes = new HashMap<>();
+	protected Map<XMLElement, Map<String, BAttribute>> xmlAttributes = new HashMap<>();
 	private final List<String> usedIdentifiers = new ArrayList<>();
 	protected final XSDReader xsdReader;
 
@@ -128,7 +128,7 @@ public abstract class Translator {
 					createIdentifier(ELEMENT_PREFIX + xmlElement.elementType())
 			));
 			List<PExpression> attributes = new ArrayList<>();
-			Map<String, BAttribute> currentAttributes = xmlAttributes.get(xmlElement.elementType());
+			Map<String, BAttribute> currentAttributes = xmlAttributes.get(xmlElement);
 			for(String attribute : currentAttributes.keySet()) {
 				PExpression attrValue = currentAttributes.get(attribute).getDataExpression();
 				attributes.add(new AFunctionExpression(createIdentifier(ATTRIBUTE_PREFIX + attribute), Collections.singletonList(attrValue)));
@@ -179,7 +179,7 @@ public abstract class Translator {
 				)
 		));
 
-		// XML_getElementOfId = %(t,i).(t : XML_ELEMENT_TYPES & i : dom(XML_ATTRIBUTE_TYPES) | { e | e : ran(XML_DATA) & #el.((i,el) : A_id & el : e'attributes) })
+		// XML_getElementOfId = %(i).(i : dom(A_id) | dom({ e, el | e : ran(XML_DATA) & (i,el) : A_id & el : e'attributes }))
 		AEqualPredicate getElementOfId = new AEqualPredicate();
 		getElementOfId.setLeft(createIdentifier(XML_GET_ELEMENT_OF_ID_NAME));
 		getElementOfId.setRight(new ALambdaExpression(
@@ -213,6 +213,8 @@ public abstract class Translator {
 						)
 				)
 		));
+
+		// TODO: getAllChilds, getChildsOfType
 
 		return new AConjunctPredicate(getElementsOfType, getElementOfId);
 	}

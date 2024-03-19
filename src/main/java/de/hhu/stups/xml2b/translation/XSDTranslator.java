@@ -42,7 +42,7 @@ public class XSDTranslator extends Translator {
                 bAttributes.put(attribute, bAttribute);
                 attributeTypes.put(attribute, bAttribute); // TODO: a bit overhead; improve later
             }
-            xmlAttributes.put(element.elementType(), bAttributes);
+            xmlAttributes.put(element, bAttributes);
         }
     }
 
