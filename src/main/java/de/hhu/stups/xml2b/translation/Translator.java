@@ -7,16 +7,21 @@ import de.hhu.stups.xml2b.bTypes.BAttribute;
 import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
+import de.hhu.stups.xml2b.translation.ASTUtils;
 
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
+import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifierList;
+
 public abstract class Translator {
 
 	private static final String XML_DATA_CONSTANT_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES",
-			P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "elementType", ATTRIBUTES_NAME = "attributes";
+			P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", ATTRIBUTES_NAME = "attributes";
 	private static final String ATTRIBUTE_PREFIX = "A_", ELEMENT_PREFIX = "E_";
+	public static final String XML_GET_ELEMENTS_OF_TYPE_NAME = "XML_getElementsOfType";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
 	protected Map<String, BAttribute> attributeTypes = new HashMap<>();
@@ -55,10 +60,10 @@ public abstract class Translator {
 		machineHeader.setName(headerName);
 		aAbstractMachineParseUnit.setHeader(machineHeader);
 
-		createDefinitionClause();
+		//createDefinitionClause();
 		createFreetypeClause();
 		createSetsClause();
-		//createAbstractConstantsClause();
+		createAbstractConstantsClause();
 		createConstantsClause();
 		createPropertyClause();
 
@@ -72,65 +77,65 @@ public abstract class Translator {
 	}
 
 	private void createAbstractConstantsClause() {
-		AAbstractConstantsMachineClause constantsClause = new AAbstractConstantsMachineClause(ASTUtils.createIdentifierList("getElementForId"));
+		AAbstractConstantsMachineClause constantsClause = new AAbstractConstantsMachineClause(createIdentifierList(XML_GET_ELEMENTS_OF_TYPE_NAME));
 		machineClauseList.add(constantsClause);
 	}
 
 	private void createConstantsClause() {
-		AConstantsMachineClause constantsClause = new AConstantsMachineClause(ASTUtils.createIdentifierList(XML_DATA_CONSTANT_NAME));
+		AConstantsMachineClause constantsClause = new AConstantsMachineClause(createIdentifierList(XML_DATA_CONSTANT_NAME));
 		machineClauseList.add(constantsClause);
 	}
 
 	private void createPropertyClause() {
 		// TYPE:
 		AMemberPredicate typification = new AMemberPredicate();
-		typification.setLeft(ASTUtils.createIdentifier(XML_DATA_CONSTANT_NAME));
+		typification.setLeft(createIdentifier(XML_DATA_CONSTANT_NAME));
 		List<PRecEntry> recTypes = new ArrayList<>();
 		recTypes.add(new ARecEntry(
-				ASTUtils.createIdentifier(P_ID_NAME),
+				createIdentifier(P_ID_NAME),
 				new ANaturalSetExpression()
 		));
 		recTypes.add(new ARecEntry(
-				ASTUtils.createIdentifier(REC_ID_NAME),
+				createIdentifier(REC_ID_NAME),
 				new ANatural1SetExpression()
 		));
 		recTypes.add(new ARecEntry(
-				ASTUtils.createIdentifier(TYPE_NAME),
-				ASTUtils.createIdentifier(XML_ELEMENT_TYPES_NAME)
+				createIdentifier(TYPE_NAME),
+				createIdentifier(XML_ELEMENT_TYPES_NAME)
 		));
 		recTypes.add(new ARecEntry(
-				ASTUtils.createIdentifier(ATTRIBUTES_NAME),
-				new APowSubsetExpression(ASTUtils.createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME))
+				createIdentifier(ATTRIBUTES_NAME),
+				new APowSubsetExpression(createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME))
 		));
 		typification.setRight(new ASeqExpression(new AStructExpression(recTypes)));
 
 		// VALUE:
 		AEqualPredicate value = new AEqualPredicate();
-		value.setLeft(ASTUtils.createIdentifier(XML_DATA_CONSTANT_NAME));
+		value.setLeft(createIdentifier(XML_DATA_CONSTANT_NAME));
 
 		List<PExpression> sequenceOfRecords = new ArrayList<>();
 		for (XMLElement xmlElement : xmlElements) {
 			List<PRecEntry> recValues = new ArrayList<>();
 			recValues.add(new ARecEntry(
-					ASTUtils.createIdentifier(P_ID_NAME),
+					createIdentifier(P_ID_NAME),
 					new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.pId())))
 			));
 			recValues.add(new ARecEntry(
-					ASTUtils.createIdentifier(REC_ID_NAME),
+					createIdentifier(REC_ID_NAME),
 					new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.recId())))
 			));
 			recValues.add(new ARecEntry(
-					ASTUtils.createIdentifier(TYPE_NAME),
-					ASTUtils.createIdentifier(ELEMENT_PREFIX + xmlElement.elementType())
+					createIdentifier(TYPE_NAME),
+					createIdentifier(ELEMENT_PREFIX + xmlElement.elementType())
 			));
 			List<PExpression> attributes = new ArrayList<>();
 			Map<String, BAttribute> currentAttributes = xmlAttributes.get(xmlElement.elementType());
 			for(String attribute : currentAttributes.keySet()) {
 				PExpression attrValue = currentAttributes.get(attribute).getDataExpression();
-				attributes.add(new AFunctionExpression(ASTUtils.createIdentifier(ATTRIBUTE_PREFIX + attribute), Collections.singletonList(attrValue)));
+				attributes.add(new AFunctionExpression(createIdentifier(ATTRIBUTE_PREFIX + attribute), Collections.singletonList(attrValue)));
 			}
 			recValues.add(new ARecEntry(
-					ASTUtils.createIdentifier(ATTRIBUTES_NAME),
+					createIdentifier(ATTRIBUTES_NAME),
 					!attributes.isEmpty() ? new ASetExtensionExpression(attributes) : new AEmptySetExpression()
 			));
 			ARecExpression rec = new ARecExpression(recValues);
@@ -142,33 +147,42 @@ public abstract class Translator {
 		}
 		value.setRight(!sequenceOfRecords.isEmpty() ? new ASetExtensionExpression(sequenceOfRecords) : new AEmptySetExpression());
 
-		PPredicate abstractConstants = new AEqualPredicate(new AIntegerExpression(new TIntegerLiteral("1")), new AIntegerExpression(new TIntegerLiteral("1")));//createAbstractConstantsProperties();
-
+		PPredicate abstractConstants = createAbstractConstantsProperties();
 		APropertiesMachineClause propertiesClause = new APropertiesMachineClause(new AConjunctPredicate(abstractConstants, new AConjunctPredicate(typification, value)));
-		//APropertiesMachineClause propertiesClause = new APropertiesMachineClause(value);
 		machineClauseList.add(propertiesClause);
 	}
 
-	/*private PPredicate createAbstractConstantsProperties() {
-		// TODO: abstractConstants?
-		// typesOfSet(FTID, Set) == dom({ val, el | val |-> el : FTID & el : Set })
-		AEqualPredicate getElementForId = new AEqualPredicate();
-		getElementForId.setLeft(createIdentifier("getElementForId"));
-		getElementForId.setRight(new AComprehensionSetExpression(
-				createIdentifierList("id", "e"),
-				new AExistsPredicate(
-						createIdentifierList("id_val"),
-						new AConjunctPredicate(
-								new AMemberPredicate(
-										new ACoupleExpression(
-                                            createIdentifier("id_val"),
-												createIdentifier("")
-										)
-								)
+	private PPredicate createAbstractConstantsProperties() {
+		// XML_getElementsOfType = %t.(t : XML_ELEMENT_TYPES | { e | e : ran(XML_DATA) & e'elementType = t })
+		AEqualPredicate getElementsOfType = new AEqualPredicate();
+		getElementsOfType.setLeft(createIdentifier(XML_GET_ELEMENTS_OF_TYPE_NAME));
+		getElementsOfType.setRight(new ALambdaExpression(
+				createIdentifierList("t"),
+				new AMemberPredicate(
+						createIdentifier("t"),
+						createIdentifier(XML_ELEMENT_TYPES_NAME)
+				),
+				new AComprehensionSetExpression(
+				createIdentifierList("e"),
+				new AConjunctPredicate(
+						new AMemberPredicate(
+								createIdentifier("e"),
+								new ARangeExpression(createIdentifier(XML_DATA_CONSTANT_NAME))
+						),
+						new AEqualPredicate(
+								new ARecordFieldExpression(
+										createIdentifier("e"),
+										createIdentifier(TYPE_NAME)
+								),
+								createIdentifier("t")
 						)
-				)));
-		return getElementForId;
-	}*/
+				)
+		)));
+
+		// { e, i | e : ran(XML_DATA) & e'elementType = E_netElement & #(val, el).((val,el) : A_id & el : e'attributes & i = val) }
+
+		return getElementsOfType;
+	}
 
 	private void createFreetypeClause() {
 		List<PFreetypeConstructor> constructors = getConstructorsForAttributes();
@@ -198,17 +212,17 @@ public abstract class Translator {
 		// typesOfSet(FTID, Set) == dom({ val, el | val |-> el : FTID & el : Set })
 		AExpressionDefinitionDefinition typesOfSetDef = new AExpressionDefinitionDefinition();
 		typesOfSetDef.setName(new TIdentifierLiteral("typesOfSet"));
-		typesOfSetDef.setParameters(ASTUtils.createIdentifierList("FTID", "Set"));
+		typesOfSetDef.setParameters(createIdentifierList("FTID", "Set"));
 		typesOfSetDef.setRhs(new ADomainExpression(
 				new AComprehensionSetExpression(
-						ASTUtils.createIdentifierList("val", "el"),
+						createIdentifierList("val", "el"),
 						new AConjunctPredicate(
 								new AMemberPredicate(
-										new ACoupleExpression(ASTUtils.createIdentifierList("val", "el")),
-										ASTUtils.createIdentifier("FTID")),
+										new ACoupleExpression(createIdentifierList("val", "el")),
+										createIdentifier("FTID")),
 								new AMemberPredicate(
-										ASTUtils.createIdentifier("el"),
-										ASTUtils.createIdentifier("Set")
+										createIdentifier("el"),
+										createIdentifier("Set")
 								)
 						)
 				)
