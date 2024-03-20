@@ -3,12 +3,11 @@ package de.hhu.stups.xml2b.translation;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.AEnumeratedSetSet;
 import de.be4.classicalb.core.parser.node.PSet;
-import de.hhu.stups.xml2b.bTypes.BAttribute;
-import de.hhu.stups.xml2b.bTypes.BEnumSetAttribute;
-import de.hhu.stups.xml2b.bTypes.BStringAttribute;
+import de.hhu.stups.xml2b.bTypes.*;
 import de.hhu.stups.xml2b.readXml.XMLElement;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,6 +21,8 @@ public class XSDTranslator extends Translator {
 
     @Override
     protected void getAttributeTypes() {
+        // TODO: name enum sets after their schema name - otherwise they conflict (e.g. type in railML)
+        // TODO: allow enum set extensions with other: (tOtherEnumerationValue)
         Map<String, Set<XmlSchemaAttribute>> attributesOfElementName = xsdReader.getAttributesOfElementName();
         for (XMLElement element : xmlElements) {
             Map<String, String> presentAttributes = new HashMap<>(element.attributes());
@@ -49,12 +50,10 @@ public class XSDTranslator extends Translator {
     @Override
     protected List<PSet> getEnumSets() {
         List<PSet> enumSets = new ArrayList<>();
-        for (BAttribute attribute : new HashSet<>(attributeTypes.values())) {
-            if (attribute instanceof BEnumSetAttribute) {
-	            BEnumSetAttribute enumSet = (BEnumSetAttribute) attribute;
-	            enumSets.add(new AEnumeratedSetSet(enumSet.getIdentifier().getIdentifier(),
-                        enumSet.getEnumValues().stream().map(ASTUtils::createIdentifier).collect(Collectors.toList())));
-            }
+        for (QName enumSetId : xsdReader.getEnumSets().keySet()) {
+            BEnumSet enumSet = xsdReader.getEnumSets().get(enumSetId);
+            enumSets.add(new AEnumeratedSetSet(enumSet.getIdentifier().getIdentifier(),
+                    enumSet.getEnumValues().stream().map(ASTUtils::createIdentifier).collect(Collectors.toList())));
         }
         return enumSets;
     }

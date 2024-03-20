@@ -1,6 +1,8 @@
 package de.hhu.stups.xml2b.readXsd;
 
 import de.hhu.stups.xml2b.bTypes.BAttribute;
+import de.hhu.stups.xml2b.bTypes.BEnumSet;
+import de.hhu.stups.xml2b.bTypes.BEnumSetAttribute;
 import de.hhu.stups.xml2b.bTypes.BStringAttribute;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
@@ -14,22 +16,44 @@ import java.util.*;
 public class XSDReader {
 	private final Map<QName, XmlSchemaType> types = new HashMap<>();
 	private final Map<XmlSchemaElement, Set<XmlSchemaAttribute>> elements = new HashMap<>();
-
 	private final Map<String, Set<XmlSchemaAttribute>> attributesOfElementName = new HashMap<>();
+	private final Map<QName, BEnumSet> enumSets = new HashMap<>();
 
+	// TODO: Attribute Freetypes identifier müssen aus element:attribut bestehen. Aber deren Typen müssen global sein, z.B: applicationDirection
+	// gehe einfach einmal über alle SimpleTypes und extrahiere die enumSets. Wenn Attribut mit so einem Typ kommt: nehmen.
+	// Einschränkung: zwei gleich benannte Elemente mit gleich benanntem Attribut aber unterschiedlichen Typen (sehr selten?)
 	public XSDReader(final File xsdSchema) {
 		System.setProperty("javax.xml.accessExternalDTD", "all");
 		XmlSchema schema = new XmlSchemaCollection().read(new InputSource(xsdSchema.toURI().toString()));
 		this.collectSchemaTypes(schema);
 		this.collectSchemaElements();
+		this.collectEnumSets();
 	}
 
 	private void collectSchemaTypes(XmlSchema schema) {
+		List<XmlSchema> visited = new ArrayList<>();
+		visited.add(schema);
+		types.putAll(schema.getSchemaTypes());
+		for (XmlSchemaExternal external : schema.getExternals()) {
+			XmlSchema externalSchema = external.getSchema();
+			visited.add(externalSchema);
+			for (XmlSchemaExternal furtherExternal : externalSchema.getExternals()) {
+				collectSchemaTypes(furtherExternal.getSchema(), visited);
+			}
+			types.putAll(externalSchema.getSchemaTypes());
+		}
+	}
+
+	private void collectSchemaTypes(XmlSchema schema, List<XmlSchema> visited) {
 		types.putAll(schema.getSchemaTypes());
 		for (XmlSchemaExternal external : schema.getExternals()) {
 			XmlSchema externalSchema = external.getSchema();
 			for (XmlSchemaExternal furtherExternal : externalSchema.getExternals()) {
-				collectSchemaTypes(furtherExternal.getSchema());
+				XmlSchema furtherExternalSchema = furtherExternal.getSchema();
+				// prevent from looping in references
+				if (!visited.contains(furtherExternalSchema)) {
+					collectSchemaTypes(furtherExternal.getSchema());
+				}
 			}
 			types.putAll(externalSchema.getSchemaTypes());
 		}
@@ -103,7 +127,7 @@ public class XSDReader {
 		return collectedAttributes;
 	}
 
-	private static Set<XmlSchemaAttribute> extractAttributesFromXmlSchemaAttributeOrGroupRef(List<XmlSchemaAttributeOrGroupRef> attributes) {
+	private Set<XmlSchemaAttribute> extractAttributesFromXmlSchemaAttributeOrGroupRef(List<XmlSchemaAttributeOrGroupRef> attributes) {
 		Set<XmlSchemaAttribute> collectedAttributes = new HashSet<>();
 		for (XmlSchemaAttributeOrGroupRef attribute : attributes) {
 			if (attribute instanceof XmlSchemaAttribute) {
@@ -114,25 +138,54 @@ public class XSDReader {
 		return collectedAttributes;
 	}
 
+	private void collectEnumSets() {
+		for (QName typeName : types.keySet()) {
+			XmlSchemaType type = types.getOrDefault(typeName, null);
+			if (type instanceof XmlSchemaSimpleType
+					&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
+				XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
+				Set<String> enumValues = getEnumValuesFromFacets(restriction.getFacets(), typeName);
+				if (!enumValues.isEmpty() && TypeUtils.getJavaType(restriction.getBaseTypeName()).equals("String")) {
+					if (!enumSets.containsKey(typeName)) {
+						enumSets.put(typeName, new BEnumSet(typeName.getLocalPart(), enumValues));
+					} else {
+						enumSets.get(typeName).addValues(enumValues);
+					}
+				}
+			}
+		}
+	}
+
+	private static Set<String> getEnumValuesFromFacets(List<XmlSchemaFacet> facets, QName identifier) {
+		Set<String> enum_values = new HashSet<>();
+		for (XmlSchemaFacet facet : facets) {
+			if (facet instanceof XmlSchemaEnumerationFacet) {
+				XmlSchemaEnumerationFacet enumerationFacet = (XmlSchemaEnumerationFacet) facet;
+				enum_values.add(identifier.getLocalPart() + "_" + enumerationFacet.getValue().toString());
+			}
+		}
+		return enum_values;
+	}
+
 	public BAttribute extractAttributeType(XmlSchemaAttribute attribute, String value) {
 		return extractAttributeType(attribute.getQName(), attribute.getSchemaTypeName(), value);
 	}
 
 	private BAttribute extractAttributeType(QName attrName, QName typeName, String value) {
 		XmlSchemaType type = types.getOrDefault(typeName, null);
-		if (type instanceof XmlSchemaSimpleType
+		if (enumSets.containsKey(typeName)) {
+			return new BEnumSetAttribute(enumSets.get(typeName), value);
+		} else if (type instanceof XmlSchemaSimpleType
 				&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
 			XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
 			QName baseName = restriction.getBaseTypeName();
 			if (types.containsKey(baseName)) {
 				return extractAttributeType(attrName, baseName, value);
-			} else if (TypeUtils.getBType(attrName, baseName, value) instanceof BStringAttribute) {
-				return TypeUtils.getBType(attrName, baseName, restriction.getFacets(), value);
 			} else {
-				return TypeUtils.getBType(attrName, baseName, value);
+				return TypeUtils.getBType(baseName, value);
 			}
 		} else {
-			return TypeUtils.getBType(attrName, typeName, value);
+			return TypeUtils.getBType(typeName, value);
 		}
 	}
 
@@ -163,5 +216,9 @@ public class XSDReader {
 
 	public Map<String, Set<XmlSchemaAttribute>> getAttributesOfElementName() {
 		return attributesOfElementName;
+	}
+
+	public Map<QName, BEnumSet> getEnumSets() {
+		return enumSets;
 	}
 }

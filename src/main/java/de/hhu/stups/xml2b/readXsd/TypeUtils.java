@@ -5,6 +5,7 @@ import org.apache.ws.commons.schema.XmlSchemaEnumerationFacet;
 import org.apache.ws.commons.schema.XmlSchemaFacet;
 
 import javax.xml.namespace.QName;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -151,43 +152,28 @@ public class TypeUtils {
 		xsdTypesToJava.put("untypedAtomic", string);
 	}
 
-	public static BAttribute getBType(QName attributeName, QName xsdTypeQ, String value) {
-		return getBType(attributeName, xsdTypeQ, new ArrayList<>(), value);
-	}
-
-	public static BAttribute getBType(QName attributeName, QName xsdTypeQ, List<XmlSchemaFacet> facets, String value) {
-		// TODO: Only enum set when base is string!!
-		Set<String> enum_values = new HashSet<>();
-		for (XmlSchemaFacet facet : facets) {
-			if (facet instanceof XmlSchemaEnumerationFacet) {
-				XmlSchemaEnumerationFacet enumerationFacet = (XmlSchemaEnumerationFacet) facet;
-				enum_values.add(enumerationFacet.getValue().toString());
-			}
-		}
-		if (enum_values.isEmpty()) {
-			switch (getJavaType(xsdTypeQ)) {
-				case "BigDecimal":
-				case "Double":
-				case "Float":
-					return new BRealAttribute(ensureRealHasDot(value));
-				case "BigInteger":
-				case "Integer":
-				case "Short":
-				case "Long":
-				case "Duration":
-					return new BIntegerAttribute(value);
-				case "Boolean":
-					return new BBoolAttribute(value);
-				default:
-					return new BStringAttribute(value);
-			}
-		} else {
-			return new BEnumSetAttribute(attributeName.getLocalPart(), enum_values.stream()
-					.map(e -> attributeName.getLocalPart() + "_" + e).collect(Collectors.toSet()), value);
+	public static BAttribute getBType(QName xsdTypeQ, String value) {
+		switch (getJavaType(xsdTypeQ)) {
+			case "BigDecimal":
+			case "Double":
+			case "Float":
+				return new BRealAttribute(ensureRealHasDot(value));
+			case "BigInteger":
+			case "Integer":
+			case "Short":
+			case "Long":
+				return new BIntegerAttribute(value);
+			case "Duration":
+				double parsedDuration = (double) Duration.parse(value).withNanos(0).toMillis();
+				return new BRealAttribute(Double.toString(parsedDuration));
+			case "Boolean":
+				return new BBoolAttribute(value);
+			default:
+				return new BStringAttribute(value);
 		}
 	}
 
-	private static String getJavaType(QName xsdType) {
+	public static String getJavaType(QName xsdType) {
 		return xsdTypesToJava.getOrDefault(qNameToString(xsdType), "unknown");
 	}
 

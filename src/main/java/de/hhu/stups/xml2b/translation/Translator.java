@@ -4,6 +4,7 @@ import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.*;
 import de.hhu.stups.xml2b.bTypes.BAttribute;
+import de.hhu.stups.xml2b.bTypes.BStringAttribute;
 import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
@@ -131,7 +132,9 @@ public abstract class Translator {
 			Map<String, BAttribute> currentAttributes = xmlAttributes.get(xmlElement);
 			for(String attribute : currentAttributes.keySet()) {
 				PExpression attrValue = currentAttributes.get(attribute).getDataExpression();
-				attributes.add(new AFunctionExpression(createIdentifier(ATTRIBUTE_PREFIX + attribute), Collections.singletonList(attrValue)));
+				// id attribute is XML standard and should not be considered individually for each element type
+				String identifier = attribute.equals("id") ? attribute : xmlElement.elementType() + ":" + attribute;
+				attributes.add(new AFunctionExpression(createIdentifier(identifier), Collections.singletonList(attrValue)));
 			}
 			recValues.add(new ARecEntry(
 					createIdentifier(ATTRIBUTES_NAME),
@@ -186,7 +189,7 @@ public abstract class Translator {
 				createIdentifierList("i"),
 				new AMemberPredicate(
 						createIdentifier("i"),
-						new ADomainExpression(createIdentifier(ATTRIBUTE_PREFIX + "id"))
+						new ADomainExpression(createIdentifier("id"))
 				),
 				new ADomainExpression(
 						new AComprehensionSetExpression(
@@ -199,7 +202,7 @@ public abstract class Translator {
 										new AConjunctPredicate(
 												new AMemberPredicate(
 														new ACoupleExpression(createIdentifierList("i","el")),
-														createIdentifier(ATTRIBUTE_PREFIX + "id")
+														createIdentifier("id")
 												),
 												new AMemberPredicate(
 														createIdentifier("el"),
@@ -268,10 +271,24 @@ public abstract class Translator {
 	}
 
 	private List<PFreetypeConstructor> getConstructorsForAttributes() {
+		Map<String, BAttribute> attributeTypes = new HashMap<>();
 		List<PFreetypeConstructor> freetypeConstructors = new ArrayList<>();
+		for (XMLElement element : xmlElements) {
+			Map<String, BAttribute> attributes = xmlAttributes.get(element);
+			for (String attribute : attributes.keySet()) {
+				BAttribute bAttribute = attributes.get(attribute);
+				String attrIdentifier = attribute.equals("id") ? attribute : element.elementType() + ":" + attribute;
+				if (attributeTypes.containsKey(attribute) && !attributeTypes.get(attribute).getClass().equals(bAttribute.getClass())) {
+					// if there is at least one type mismatch -> fall back to string
+					attributeTypes.put(attrIdentifier, new BStringAttribute(element.attributes().get(attribute)));
+				} else {
+					attributeTypes.put(attrIdentifier, bAttribute);
+				}
+			}
+		}
 		for (String attribute : attributeTypes.keySet()) {
 			freetypeConstructors.add(new AConstructorFreetypeConstructor(
-					new TIdentifierLiteral(ATTRIBUTE_PREFIX + attribute),
+					new TIdentifierLiteral(attribute),
 					attributeTypes.get(attribute).getSetExpression()
 			));
 		}
