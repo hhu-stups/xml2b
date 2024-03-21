@@ -3,7 +3,6 @@ package de.hhu.stups.xml2b.readXsd;
 import de.hhu.stups.xml2b.bTypes.BAttribute;
 import de.hhu.stups.xml2b.bTypes.BEnumSet;
 import de.hhu.stups.xml2b.bTypes.BEnumSetAttribute;
-import de.hhu.stups.xml2b.bTypes.BStringAttribute;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.w3c.dom.NodeList;
@@ -168,10 +167,10 @@ public class XSDReader {
 	}
 
 	public BAttribute extractAttributeType(XmlSchemaAttribute attribute, String value) {
-		return extractAttributeType(attribute.getQName(), attribute.getSchemaTypeName(), value);
+		return extractAttributeType(attribute.getSchemaTypeName(), value);
 	}
 
-	private BAttribute extractAttributeType(QName attrName, QName typeName, String value) {
+	private BAttribute extractAttributeType(QName typeName, String value) {
 		XmlSchemaType type = types.getOrDefault(typeName, null);
 		if (enumSets.containsKey(typeName)) {
 			return new BEnumSetAttribute(enumSets.get(typeName), value);
@@ -180,7 +179,7 @@ public class XSDReader {
 			XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
 			QName baseName = restriction.getBaseTypeName();
 			if (types.containsKey(baseName)) {
-				return extractAttributeType(attrName, baseName, value);
+				return extractAttributeType(baseName, value);
 			} else {
 				return TypeUtils.getBType(baseName, value);
 			}

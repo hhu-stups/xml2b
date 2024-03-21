@@ -20,7 +20,6 @@ public abstract class Translator {
 
 	private static final String XML_DATA_CONSTANT_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES",
 			P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", ATTRIBUTES_NAME = "attributes";
-	private static final String ATTRIBUTE_PREFIX = "A_", ELEMENT_PREFIX = "E_";
 	public static final String XML_GET_ELEMENTS_OF_TYPE_NAME = "XML_getElementsOfType", XML_GET_ELEMENT_OF_ID_NAME = "XML_getElementOfId";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
@@ -60,7 +59,6 @@ public abstract class Translator {
 		machineHeader.setName(headerName);
 		aAbstractMachineParseUnit.setHeader(machineHeader);
 
-		//createDefinitionClause();
 		createFreetypeClause();
 		createSetsClause();
 		createAbstractConstantsClause();
@@ -126,7 +124,7 @@ public abstract class Translator {
 			));
 			recValues.add(new ARecEntry(
 					createIdentifier(TYPE_NAME),
-					createIdentifier(ELEMENT_PREFIX + xmlElement.elementType())
+					createIdentifier(xmlElement.elementType())
 			));
 			List<PExpression> attributes = new ArrayList<>();
 			Map<String, BAttribute> currentAttributes = xmlAttributes.get(xmlElement);
@@ -235,7 +233,7 @@ public abstract class Translator {
 			elementTypes.add(xmlElement.elementType());
 		}
 		PSet typeSet = new AEnumeratedSetSet(ASTUtils.createTIdentifierLiteral(XML_ELEMENT_TYPES_NAME),
-				elementTypes.stream().map(e -> ELEMENT_PREFIX + e).map(ASTUtils::createIdentifier).collect(Collectors.toList()));
+				elementTypes.stream().map(ASTUtils::createIdentifier).collect(Collectors.toList()));
 		List<PSet> enumSets = getEnumSets();
 		List<PSet> sets = new ArrayList<>();
 		sets.add(typeSet);
@@ -244,31 +242,6 @@ public abstract class Translator {
 	}
 
 	protected abstract List<PSet> getEnumSets();
-
-	private void createDefinitionClause() {
-		// TODO: abstractFunctions?
-		// typesOfSet(FTID, Set) == dom({ val, el | val |-> el : FTID & el : Set })
-		AExpressionDefinitionDefinition typesOfSetDef = new AExpressionDefinitionDefinition();
-		typesOfSetDef.setName(new TIdentifierLiteral("typesOfSet"));
-		typesOfSetDef.setParameters(createIdentifierList("FTID", "Set"));
-		typesOfSetDef.setRhs(new ADomainExpression(
-				new AComprehensionSetExpression(
-						createIdentifierList("val", "el"),
-						new AConjunctPredicate(
-								new AMemberPredicate(
-										new ACoupleExpression(createIdentifierList("val", "el")),
-										createIdentifier("FTID")),
-								new AMemberPredicate(
-										createIdentifier("el"),
-										createIdentifier("Set")
-								)
-						)
-				)
-		));
-		// TODO: getAllAttrForType(Type) == { s, v | #e.(s|->e : xml_data & e'type = Type & v = xml_data(s)'attributes) };
-		//    getAttrForType(Type, Attr) == { s, v | #e.(s|->e : xml_data & e'type = Type & v : getArgument(xml_data(s)'attributes, Attr)) };
-		machineClauseList.add(new ADefinitionsMachineClause(Collections.singletonList(typesOfSetDef)));
-	}
 
 	private List<PFreetypeConstructor> getConstructorsForAttributes() {
 		Map<String, BAttribute> attributeTypes = new HashMap<>();

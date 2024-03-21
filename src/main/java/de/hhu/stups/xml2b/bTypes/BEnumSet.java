@@ -1,16 +1,11 @@
 package de.hhu.stups.xml2b.bTypes;
 
 import de.be4.classicalb.core.parser.node.AIdentifierExpression;
-import de.be4.classicalb.core.parser.node.PExpression;
 import de.hhu.stups.xml2b.translation.ASTUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 public class BEnumSet {
-	private static final String TYPE_PREFIX = "T_";
 	private final String prefix;
 	private final AIdentifierExpression identifier;
 	private final Set<String> enum_values;
