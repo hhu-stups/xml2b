@@ -20,7 +20,8 @@ public abstract class Translator {
 
 	private static final String XML_DATA_CONSTANT_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES",
 			P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", ATTRIBUTES_NAME = "attributes";
-	public static final String XML_GET_ELEMENTS_OF_TYPE_NAME = "XML_getElementsOfType", XML_GET_ELEMENT_OF_ID_NAME = "XML_getElementOfId";
+	public static final String XML_GET_ELEMENTS_OF_TYPE_NAME = "XML_getElementsOfType", XML_GET_ELEMENT_OF_ID_NAME = "XML_getElementOfId",
+			XML_GET_CHILDS_NAME = "XML_getChilds";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
 	protected Map<String, BAttribute> attributeTypes = new HashMap<>();
@@ -75,7 +76,7 @@ public abstract class Translator {
 	}
 
 	private void createAbstractConstantsClause() {
-		AAbstractConstantsMachineClause constantsClause = new AAbstractConstantsMachineClause(createIdentifierList(XML_GET_ELEMENTS_OF_TYPE_NAME, XML_GET_ELEMENT_OF_ID_NAME));
+		AAbstractConstantsMachineClause constantsClause = new AAbstractConstantsMachineClause(createIdentifierList(XML_GET_ELEMENTS_OF_TYPE_NAME, XML_GET_ELEMENT_OF_ID_NAME, XML_GET_CHILDS_NAME));
 		machineClauseList.add(constantsClause);
 	}
 
@@ -215,9 +216,38 @@ public abstract class Translator {
 				)
 		));
 
-		// TODO: getAllChilds, getChildsOfType
+		// XML_getChilds = %(e).(e : ran(XML_DATA) | { c | c : ran(XML_DATA) & c'pId = e'recId })
+		AEqualPredicate getChilds = new AEqualPredicate();
+		getChilds.setLeft(createIdentifier(XML_GET_CHILDS_NAME));
+		getChilds.setRight(new ALambdaExpression(
+				createIdentifierList("e"),
+				new AMemberPredicate(
+						createIdentifier("e"),
+						new ARangeExpression(createIdentifier(XML_DATA_CONSTANT_NAME))
+				),
+				new AComprehensionSetExpression(
+						createIdentifierList("c"),
+						new AConjunctPredicate(
+								new AMemberPredicate(
+										createIdentifier("c"),
+										new ARangeExpression(createIdentifier(XML_DATA_CONSTANT_NAME))
+								),
+								new AEqualPredicate(
+										new ARecordFieldExpression(
+												createIdentifier("c"),
+												createIdentifier("pId")
+										),
+										new ARecordFieldExpression(
+												createIdentifier("e"),
+												createIdentifier("recId")
+										)
+								)
+						)
+				)
+		));
+		// TODO: getAllChilds, getChildsOfType, getIdOfElement
 
-		return new AConjunctPredicate(getElementsOfType, getElementOfId);
+		return new AConjunctPredicate(getElementsOfType, new AConjunctPredicate(getElementOfId, getChilds));
 	}
 
 	private void createFreetypeClause() {
