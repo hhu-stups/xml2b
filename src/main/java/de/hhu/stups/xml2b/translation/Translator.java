@@ -21,7 +21,7 @@ public abstract class Translator {
 	private static final String XML_DATA_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES",
 			ID_NAME = "id", P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", ATTRIBUTES_NAME = "attributes";
 	public static final String XML_GET_ELEMENTS_OF_TYPE_NAME = "XML_getElementsOfType", XML_GET_ELEMENT_OF_ID_NAME = "XML_getElementOfId",
-			XML_GET_CHILDS_NAME = "XML_getChilds", XML_GET_ID_OF_ELEMENT = "XML_getIdOfElement";
+			XML_GET_CHILDS_NAME = "XML_getChilds", XML_GET_ID_OF_ELEMENT_NAME = "XML_getIdOfElement", XML_ALL_IDS_OF_TYPE_NAME = "XML_allIdsOfType";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
 	protected Map<String, BAttribute> attributeTypes = new HashMap<>();
@@ -77,7 +77,8 @@ public abstract class Translator {
 
 	private void createAbstractConstantsClause() {
 		AAbstractConstantsMachineClause constantsClause = new AAbstractConstantsMachineClause(
-				createIdentifierList(XML_GET_ELEMENTS_OF_TYPE_NAME, XML_GET_ELEMENT_OF_ID_NAME, XML_GET_CHILDS_NAME, XML_GET_ID_OF_ELEMENT));
+				createIdentifierList(XML_GET_ELEMENTS_OF_TYPE_NAME, XML_GET_ELEMENT_OF_ID_NAME, XML_GET_CHILDS_NAME, XML_GET_ID_OF_ELEMENT_NAME,
+						XML_ALL_IDS_OF_TYPE_NAME));
 		machineClauseList.add(constantsClause);
 	}
 
@@ -249,7 +250,7 @@ public abstract class Translator {
 
 		// XML_getIdOfElement = %(e).(e : ran(XML_DATA) | { i | `id`(i) : e'attributes })
 		AEqualPredicate getIdOfElement = new AEqualPredicate();
-		getIdOfElement.setLeft(createIdentifier(XML_GET_ELEMENT_OF_ID_NAME));
+		getIdOfElement.setLeft(createIdentifier(XML_GET_ID_OF_ELEMENT_NAME));
 		getIdOfElement.setRight(new ALambdaExpression(
 				createIdentifierList("e"),
 				new AMemberPredicate(
@@ -277,6 +278,46 @@ public abstract class Translator {
 				)
 		));
 
+		// XML_allIdsOfType = %(t).(t : XML_ELEMENT_TYPES | dom({ i,e | e : ran(XML_DATA) & e'type = t & `id`(i) : e'attributes }))
+		AEqualPredicate allIdsOfType = new AEqualPredicate();
+		allIdsOfType.setLeft(createIdentifier(XML_ALL_IDS_OF_TYPE_NAME));
+		allIdsOfType.setRight(new ALambdaExpression(
+				createIdentifierList("t"),
+				new AMemberPredicate(
+						createIdentifier("t"),
+						createIdentifier(XML_ELEMENT_TYPES_NAME)
+				),
+				new ADomainExpression(
+					new AComprehensionSetExpression(
+							createIdentifierList("i","e"),
+							new AConjunctPredicate(
+									new AMemberPredicate(
+											createIdentifier("e"),
+											new ARangeExpression(createIdentifier(XML_DATA_NAME))
+									),
+									new AConjunctPredicate(
+											new AEqualPredicate(
+													new ARecordFieldExpression(
+															createIdentifier("e"),
+															createIdentifier(TYPE_NAME)
+													),
+													createIdentifier("t")
+											),
+											new AMemberPredicate(
+													new AFunctionExpression(
+															createIdentifier(ID_NAME),
+															createIdentifierList("i")
+													),
+													new ARecordFieldExpression(
+															createIdentifier("e"),
+															createIdentifier(ATTRIBUTES_NAME)
+													)
+											)
+									)
+							)
+					)
+				)
+		));
 		// TODO: getChildsOfType
 
 		return new AConjunctPredicate(
@@ -285,7 +326,10 @@ public abstract class Translator {
 						getElementOfId,
 						new AConjunctPredicate(
 								getChilds,
-								getIdOfElement
+								new AConjunctPredicate(
+										getIdOfElement,
+										allIdsOfType
+								)
 						)
 				)
 		);
