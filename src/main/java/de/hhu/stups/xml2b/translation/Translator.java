@@ -108,7 +108,7 @@ public abstract class Translator {
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(LOCATION_NAME),
-				new ACartesianProductExpression(new ACartesianProductExpression(new ACartesianProductExpression(new ANatural1SetExpression(), new ANatural1SetExpression()), new ANatural1SetExpression()), new ANatural1SetExpression())
+				new ACartesianProductExpression(new ACartesianProductExpression(new ANatural1SetExpression(), new ANatural1SetExpression()), new ACartesianProductExpression(new ANatural1SetExpression(), new ANatural1SetExpression()))
 		));
 		typification.setRight(new ASeqExpression(new AStructExpression(recTypes)));
 
@@ -143,14 +143,18 @@ public abstract class Translator {
 					createIdentifier(ATTRIBUTES_NAME),
 					!attributes.isEmpty() ? new ASetExtensionExpression(attributes) : new AEmptySetExpression()
 			));
-			List<PExpression> locationValues = new ArrayList<>();
-			locationValues.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.startLine()))));
-			locationValues.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.startColumn()))));
-			locationValues.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.endLine()))));
-			locationValues.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.endColumn()))));
+			List<PExpression> startLocation = new ArrayList<>();
+			startLocation.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.startLine()))));
+			startLocation.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.startColumn()))));
+			List<PExpression> endLocation = new ArrayList<>();
+			endLocation.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.endLine()))));
+			endLocation.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.endColumn()))));
+			List<PExpression> locations = new ArrayList<>();
+			locations.add(new ACoupleExpression(startLocation));
+			locations.add(new ACoupleExpression(endLocation));
 			recValues.add(new ARecEntry(
 					createIdentifier(LOCATION_NAME),
-					new ACoupleExpression(locationValues)
+					new ACoupleExpression(locations)
 			));
 			ARecExpression rec = new ARecExpression(recValues);
 			AIntegerExpression recIndex = new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.recId())));
