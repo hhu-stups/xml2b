@@ -75,17 +75,18 @@ public abstract class Translator {
 	}
 
 	private void createAbstractConstantsClause() {
-		AAbstractConstantsMachineClause constantsClause = new AAbstractConstantsMachineClause(
-				createIdentifierList(XML_GET_ELEMENTS_OF_TYPE_NAME, XML_GET_ELEMENT_OF_ID_NAME, XML_GET_CHILDS_NAME, XML_GET_CHILDS_OF_TYPE_NAME,
-						XML_GET_ID_OF_ELEMENT_NAME, XML_ALL_IDS_OF_TYPE_NAME));
+		List<PExpression> identifiers = createIdentifierList(XML_GET_ELEMENTS_OF_TYPE_NAME, XML_GET_ELEMENT_OF_ID_NAME, XML_GET_CHILDS_NAME, XML_GET_CHILDS_OF_TYPE_NAME,
+				XML_GET_ID_OF_ELEMENT_NAME, XML_ALL_IDS_OF_TYPE_NAME);
+		// activate memoization for all abstract constants
+		identifiers = identifiers.stream().map(identifier -> new ADescriptionExpression(new TPragmaFreeText("memo"), identifier)).collect(Collectors.toUnmodifiableList());
+		AAbstractConstantsMachineClause constantsClause = new AAbstractConstantsMachineClause(identifiers);
 		machineClauseList.add(constantsClause);
 	}
 
 	private void createConstantsClause() {
 		AConstantsMachineClause constantsClause = new AConstantsMachineClause(createIdentifierList(XML_DATA_NAME));
 		machineClauseList.add(constantsClause);
-	}
-	private void createPropertyClause() {
+	}	private void createPropertyClause() {
 		// TYPE:
 		AMemberPredicate typification = new AMemberPredicate();
 		typification.setLeft(createIdentifier(XML_DATA_NAME));
