@@ -140,6 +140,7 @@ public class XSDReader {
 	private void collectEnumSets() {
 		for (QName typeName : types.keySet()) {
 			XmlSchemaType type = types.getOrDefault(typeName, null);
+			// TODO: <xs:union memberTypes="rail3:tBaliseGroupType rail3:tOtherEnumerationValue"/>
 			if (type instanceof XmlSchemaSimpleType
 					&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
 				XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();

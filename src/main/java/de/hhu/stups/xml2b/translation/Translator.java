@@ -19,7 +19,7 @@ import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifierList;
 public abstract class Translator {
 
 	private static final String XML_DATA_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES",
-			ID_NAME = "id", P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", ATTRIBUTES_NAME = "attributes";
+			ID_NAME = "id", P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
 	public static final String XML_GET_ELEMENTS_OF_TYPE_NAME = "XML_getElementsOfType", XML_GET_ELEMENT_OF_ID_NAME = "XML_getElementOfId",
 			XML_GET_CHILDS_NAME = "XML_getChilds", XML_GET_ID_OF_ELEMENT_NAME = "XML_getIdOfElement", XML_ALL_IDS_OF_TYPE_NAME = "XML_allIdsOfType";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
@@ -44,8 +44,7 @@ public abstract class Translator {
 		List<BException> bExceptions = new ArrayList<>();
 		for (XMLReader.ValidationError error : errors) {
 			bExceptions.add(error.getBException(xmlFile.getAbsolutePath()));
-		}
-		if (!bExceptions.isEmpty()) {
+		}		if (!bExceptions.isEmpty()) {
 			throw new BCompoundException(bExceptions);
 		}
 	}
@@ -108,6 +107,10 @@ public abstract class Translator {
 				createIdentifier(ATTRIBUTES_NAME),
 				new APowSubsetExpression(createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME))
 		));
+		recTypes.add(new ARecEntry(
+				createIdentifier(LOCATION_NAME),
+				new ACartesianProductExpression(new ACartesianProductExpression(new ACartesianProductExpression(new ANatural1SetExpression(), new ANatural1SetExpression()), new ANatural1SetExpression()), new ANatural1SetExpression())
+		));
 		typification.setRight(new ASeqExpression(new AStructExpression(recTypes)));
 
 		// VALUE:
@@ -140,6 +143,15 @@ public abstract class Translator {
 			recValues.add(new ARecEntry(
 					createIdentifier(ATTRIBUTES_NAME),
 					!attributes.isEmpty() ? new ASetExtensionExpression(attributes) : new AEmptySetExpression()
+			));
+			List<PExpression> locationValues = new ArrayList<>();
+			locationValues.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.startLine()))));
+			locationValues.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.startColumn()))));
+			locationValues.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.endLine()))));
+			locationValues.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.endColumn()))));
+			recValues.add(new ARecEntry(
+					createIdentifier(LOCATION_NAME),
+					new ACoupleExpression(locationValues)
 			));
 			ARecExpression rec = new ARecExpression(recValues);
 			AIntegerExpression recIndex = new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.recId())));
@@ -318,6 +330,7 @@ public abstract class Translator {
 					)
 				)
 		));
+
 		// TODO: getChildsOfType
 
 		return new AConjunctPredicate(
