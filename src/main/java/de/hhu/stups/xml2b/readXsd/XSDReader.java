@@ -1,8 +1,6 @@
 package de.hhu.stups.xml2b.readXsd;
 
-import de.hhu.stups.xml2b.bTypes.BAttribute;
-import de.hhu.stups.xml2b.bTypes.BEnumSet;
-import de.hhu.stups.xml2b.bTypes.BEnumSetAttribute;
+import de.hhu.stups.xml2b.bTypes.*;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.w3c.dom.NodeList;
@@ -12,10 +10,12 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
+import static de.hhu.stups.xml2b.translation.Translator.ID_NAME;
+
 public class XSDReader {
 	private final Map<QName, XmlSchemaType> types = new HashMap<>();
-	private final Map<XmlSchemaElement, Set<XmlSchemaAttribute>> elements = new HashMap<>();
 	private final Map<String, Set<XmlSchemaAttribute>> attributesOfElementName = new HashMap<>();
+	private final Map<String, Set<BAttributeType>> attributeTypesOfElementName = new HashMap<>();
 	private final Map<QName, BEnumSet> enumSets = new HashMap<>();
 
 	// TODO: Attribute Freetypes identifier müssen aus element:attribut bestehen. Aber deren Typen müssen global sein, z.B: applicationDirection
@@ -27,6 +27,7 @@ public class XSDReader {
 		this.collectSchemaTypes(schema);
 		this.collectSchemaElements();
 		this.collectEnumSets();
+		this.collectAttributeTypes();
 	}
 
 	private void collectSchemaTypes(XmlSchema schema) {
@@ -96,7 +97,6 @@ public class XSDReader {
 		if (object instanceof XmlSchemaElement) {
 			XmlSchemaElement element = (XmlSchemaElement) object;
 			Set<XmlSchemaAttribute> attributes = collectSchemaAttributes(element);
-			elements.put(element, attributes);
 			attributesOfElementName.put(element.getName(), attributes);
 		}
 	}
@@ -167,25 +167,32 @@ public class XSDReader {
 		return enum_values;
 	}
 
-	public BAttribute extractAttributeType(XmlSchemaAttribute attribute, String value) {
-		return extractAttributeType(attribute.getSchemaTypeName(), value);
+	public void collectAttributeTypes() {
+		for (String elementType : attributesOfElementName.keySet()) {
+			Set<BAttributeType> attributeTypes = new HashSet<>();
+			for (XmlSchemaAttribute attribute : attributesOfElementName.get(elementType)) {
+				String attributeName = attribute.getName();
+				attributeTypes.add(extractAttributeType(attribute.getSchemaTypeName(), elementType, attributeName));
+			}
+			attributeTypesOfElementName.put(elementType, attributeTypes);
+		}
 	}
 
-	private BAttribute extractAttributeType(QName typeName, String value) {
+	private BAttributeType extractAttributeType(QName typeName, String elementType, String attributeName) {
 		XmlSchemaType type = types.getOrDefault(typeName, null);
 		if (enumSets.containsKey(typeName)) {
-			return new BEnumSetAttribute(enumSets.get(typeName), value);
+			return new BAttributeType(elementType, attributeName, enumSets.get(typeName));
 		} else if (type instanceof XmlSchemaSimpleType
 				&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
 			XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
 			QName baseName = restriction.getBaseTypeName();
 			if (types.containsKey(baseName)) {
-				return extractAttributeType(baseName, value);
+				return extractAttributeType(baseName, elementType, attributeName);
 			} else {
-				return TypeUtils.getBType(baseName, value);
+				return TypeUtils.getBAttributeType(baseName, elementType, attributeName);
 			}
 		} else {
-			return TypeUtils.getBType(typeName, value);
+			return TypeUtils.getBAttributeType(typeName, elementType, attributeName);
 		}
 	}
 
@@ -210,12 +217,8 @@ public class XSDReader {
 		return types;
 	}
 
-	public Map<XmlSchemaElement, Set<XmlSchemaAttribute>> getElements() {
-		return elements;
-	}
-
-	public Map<String, Set<XmlSchemaAttribute>> getAttributesOfElementName() {
-		return attributesOfElementName;
+	public Map<String, Set<BAttributeType>> getAttributeTypesOfElementName() {
+		return attributeTypesOfElementName;
 	}
 
 	public Map<QName, BEnumSet> getEnumSets() {

@@ -23,28 +23,40 @@ public class XSDTranslator extends Translator {
     protected void getAttributeTypes() {
         // TODO: name enum sets after their schema name - otherwise they conflict (e.g. type in railML)
         // TODO: allow enum set extensions with other: (tOtherEnumerationValue)
-        Map<String, Set<XmlSchemaAttribute>> attributesOfElementName = xsdReader.getAttributesOfElementName();
+        //Map<String, Set<XmlSchemaAttribute>> attributesOfElementName = xsdReader.getAttributesOfElementName();
+        Map<String, Set<BAttributeType>> types = xsdReader.getAttributeTypesOfElementName();
+        // add actual values:
         for (XMLElement element : xmlElements) {
             Map<String, String> presentAttributes = new HashMap<>(element.attributes());
-            Set<XmlSchemaAttribute> xsdAttributes = attributesOfElementName.getOrDefault(element.elementType(), new HashSet<>());
+            Set<BAttributeType> xsdAttributes = types.getOrDefault(element.elementType(), new HashSet<>());
             Map<String, BAttribute> bAttributes = new HashMap<>();
-            for (XmlSchemaAttribute attribute : xsdAttributes) {
-                String attrValue = presentAttributes.get(attribute.getName());
+            for (BAttributeType attribute : xsdAttributes) {
+                String attrName = attribute.getAttributeName();
+                String attrValue = presentAttributes.get(attrName);
                 if (attrValue != null) {
-                    BAttribute bAttribute = xsdReader.extractAttributeType(attribute, attrValue);
-                    bAttributes.put(attribute.getName(), bAttribute);
-                    attributeTypes.put(attribute.getName(), bAttribute); // TODO: a bit overhead; improve later
-                    presentAttributes.remove(attribute.getName());
+                    BAttribute bAttribute = attribute.getBAttribute(attrValue);
+                    bAttributes.put(attrName, bAttribute);
+                    //attributeTypes.put(attribute.getName(), bAttribute); // TODO: a bit overhead; improve later
+                    presentAttributes.remove(attrName);
                 }
             }
             // Add attributes with default STRING type that are not declared in the schema. This can happen for header attributes like xmlns.
             for (String attribute : presentAttributes.keySet()) {
-                BAttribute bAttribute = new BStringAttribute(presentAttributes.get(attribute));
+                BAttribute bAttribute = new BAttributeType(element.elementType(), attribute).getBAttribute(presentAttributes.get(attribute));
                 bAttributes.put(attribute, bAttribute);
-                attributeTypes.put(attribute, bAttribute); // TODO: a bit overhead; improve later
+                //attributeTypes.put(attribute, bAttribute); // TODO: a bit overhead; improve later
             }
             xmlAttributes.put(element, bAttributes);
+            //attributesOfElementName.remove(element.elementType());
         }
+        // add
+        attributeTypes.putAll(types);
+        /*for (Set<XmlSchemaAttribute> attributes : attributesOfElementName.values()) {
+            for (XmlSchemaAttribute attribute : attributes) {
+                BAttribute bAttribute = xsdReader.extractAttributeType(attribute, null);
+                attributeTypes.put(attribute.getName(), bAttribute); // TODO: a bit overhead; improve later
+            }
+        }*/
     }
 
     @Override

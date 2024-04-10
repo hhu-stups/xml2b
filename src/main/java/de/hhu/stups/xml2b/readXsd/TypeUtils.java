@@ -1,13 +1,9 @@
 package de.hhu.stups.xml2b.readXsd;
 
 import de.hhu.stups.xml2b.bTypes.*;
-import org.apache.ws.commons.schema.XmlSchemaEnumerationFacet;
-import org.apache.ws.commons.schema.XmlSchemaFacet;
 
 import javax.xml.namespace.QName;
-import java.time.Duration;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class TypeUtils {
 
@@ -152,24 +148,23 @@ public class TypeUtils {
 		xsdTypesToJava.put("untypedAtomic", string);
 	}
 
-	public static BAttribute getBType(QName xsdTypeQ, String value) {
+	public static BAttributeType getBAttributeType(QName xsdTypeQ, String elementType, String attributeName) {
 		switch (getJavaType(xsdTypeQ)) {
 			case "BigDecimal":
 			case "Double":
 			case "Float":
-				return new BRealAttribute(ensureRealHasDot(value));
+				return new BAttributeType(elementType, attributeName, BAttributeType.BType.REAL);
 			case "BigInteger":
 			case "Integer":
 			case "Short":
 			case "Long":
-				return new BIntegerAttribute(value);
+				return new BAttributeType(elementType, attributeName, BAttributeType.BType.INTEGER);
 			case "Duration":
-				double parsedDuration = (double) Duration.parse(value).withNanos(0).toMillis();
-				return new BRealAttribute(Double.toString(parsedDuration));
+				return new BAttributeType(elementType, attributeName, true);
 			case "Boolean":
-				return new BBoolAttribute(value);
+				return new BAttributeType(elementType, attributeName, BAttributeType.BType.BOOL);
 			default:
-				return new BStringAttribute(value);
+				return new BAttributeType(elementType, attributeName);
 		}
 	}
 
@@ -186,14 +181,5 @@ public class TypeUtils {
 			xsdType += qName.getLocalPart();
 		}
 		return xsdType;
-	}
-
-	private static String ensureRealHasDot(String value) {
-		// stricter checks should be done by validation in previous steps (string is assumed to be a number)
-		if (value.contains(".")) {
-			return value;
-		} else {
-			return value + ".0";
-		}
 	}
 }

@@ -2,10 +2,7 @@ package de.hhu.stups.xml2b.translation;
 
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.PSet;
-import de.hhu.stups.xml2b.bTypes.BAttribute;
-import de.hhu.stups.xml2b.bTypes.BBoolAttribute;
-import de.hhu.stups.xml2b.bTypes.BRealAttribute;
-import de.hhu.stups.xml2b.bTypes.BStringAttribute;
+import de.hhu.stups.xml2b.bTypes.*;
 import de.hhu.stups.xml2b.readXml.XMLElement;
 
 import java.io.File;
@@ -22,17 +19,25 @@ public class StandaloneTranslator extends Translator {
     @Override
     protected void getAttributeTypes() {
         for (XMLElement element : xmlElements) {
+            Set<BAttributeType> bAttributeTypesSet = new HashSet<>();
             Map<String, BAttribute> bAttributes = new HashMap<>();
             for (String attribute : element.attributes().keySet()) {
                 BAttribute bAttribute = getAttributeObject(element.attributes().get(attribute));
                 bAttributes.put(attribute, bAttribute);
                 if (attributeTypes.containsKey(attribute) && !attributeTypes.get(attribute).getClass().equals(bAttribute.getClass())) {
                     // if there is at least one type mismatch -> fall back to string
-                    attributeTypes.put(attribute, new BStringAttribute(element.attributes().get(attribute)));
+                    bAttributeTypesSet.add(new BAttributeType(element.elementType(), attribute));
+                } else if (bAttribute instanceof BBoolAttribute) {
+                    bAttributeTypesSet.add(new BAttributeType(element.elementType(), attribute, BAttributeType.BType.BOOL));
+                } else if (bAttribute instanceof BIntegerAttribute) {
+                    bAttributeTypesSet.add(new BAttributeType(element.elementType(), attribute, BAttributeType.BType.INTEGER));
+                } else if (bAttribute instanceof BRealAttribute) {
+                    bAttributeTypesSet.add(new BAttributeType(element.elementType(), attribute, BAttributeType.BType.REAL));
                 } else {
-                    attributeTypes.put(attribute, bAttribute);
+                    bAttributeTypesSet.add(new BAttributeType(element.elementType(), attribute));
                 }
             }
+            attributeTypes.put(element.elementType(), bAttributeTypesSet);
             xmlAttributes.put(element, bAttributes);
         }
     }

@@ -4,6 +4,7 @@ import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.*;
 import de.hhu.stups.xml2b.bTypes.BAttribute;
+import de.hhu.stups.xml2b.bTypes.BAttributeType;
 import de.hhu.stups.xml2b.bTypes.BStringAttribute;
 import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXml.XMLElement;
@@ -18,13 +19,13 @@ import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifierList;
 
 public abstract class Translator {
 
-	private static final String XML_DATA_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES",
+	public static final String XML_DATA_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES",
 			ID_NAME = "id", P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
 	public static final String XML_GET_ELEMENTS_OF_TYPE_NAME = "XML_getElementsOfType", XML_GET_ELEMENT_OF_ID_NAME = "XML_getElementOfId",
 			XML_GET_CHILDS_NAME = "XML_getChilds", XML_GET_CHILDS_OF_TYPE_NAME = "XML_getChildsOfType", XML_GET_ID_OF_ELEMENT_NAME = "XML_getIdOfElement", XML_ALL_IDS_OF_TYPE_NAME = "XML_allIdsOfType";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
-	protected Map<String, BAttribute> attributeTypes = new HashMap<>();
+	protected Map<String, Set<BAttributeType>> attributeTypes = new HashMap<>();
 	protected Map<XMLElement, Map<String, BAttribute>> xmlAttributes = new HashMap<>();
 	private final List<String> usedIdentifiers = new ArrayList<>();
 	protected final XSDReader xsdReader;
@@ -87,7 +88,7 @@ public abstract class Translator {
 		AConstantsMachineClause constantsClause = new AConstantsMachineClause(createIdentifierList(XML_DATA_NAME));
 		machineClauseList.add(constantsClause);
 	}
-	
+
 	private void createPropertyClause() {
 		// TYPE:
 		AMemberPredicate typification = new AMemberPredicate();
@@ -95,7 +96,8 @@ public abstract class Translator {
 		List<PRecEntry> recTypes = new ArrayList<>();
 		recTypes.add(new ARecEntry(
 				createIdentifier(P_ID_NAME),
-				new ANaturalSetExpression()		));
+				new ANaturalSetExpression()
+		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(REC_ID_NAME),
 				new ANatural1SetExpression()
@@ -424,26 +426,15 @@ public abstract class Translator {
 	protected abstract List<PSet> getEnumSets();
 
 	private List<PFreetypeConstructor> getConstructorsForAttributes() {
-		Map<String, BAttribute> attributeTypes = new HashMap<>();
 		List<PFreetypeConstructor> freetypeConstructors = new ArrayList<>();
-		for (XMLElement element : xmlElements) {
-			Map<String, BAttribute> attributes = xmlAttributes.get(element);
-			for (String attribute : attributes.keySet()) {
-				BAttribute bAttribute = attributes.get(attribute);
-				String attrIdentifier = attribute.equals(ID_NAME) ? attribute : element.elementType() + ":" + attribute;
-				if (attributeTypes.containsKey(attribute) && !attributeTypes.get(attribute).getClass().equals(bAttribute.getClass())) {
-					// if there is at least one type mismatch -> fall back to string
-					attributeTypes.put(attrIdentifier, new BStringAttribute(element.attributes().get(attribute)));
-				} else {
-					attributeTypes.put(attrIdentifier, bAttribute);
-				}
+		for (Set<BAttributeType> attributeTypes : attributeTypes.values()) {
+			for (BAttributeType attributeType : attributeTypes) {
+				String identifier = attributeType.getIdentifier();
+				freetypeConstructors.add(new AConstructorFreetypeConstructor(
+						new TIdentifierLiteral(identifier),
+						attributeType.getSetExpression()
+				));
 			}
-		}
-		for (String attribute : attributeTypes.keySet()) {
-			freetypeConstructors.add(new AConstructorFreetypeConstructor(
-					new TIdentifierLiteral(attribute),
-					attributeTypes.get(attribute).getSetExpression()
-			));
 		}
 		return freetypeConstructors;
 	}
