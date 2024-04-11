@@ -10,12 +10,10 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
-import static de.hhu.stups.xml2b.translation.Translator.ID_NAME;
-
 public class XSDReader {
 	private final Map<QName, XmlSchemaType> types = new HashMap<>();
 	private final Map<String, Set<XmlSchemaAttribute>> attributesOfElementName = new HashMap<>();
-	private final Map<String, Set<BAttributeType>> attributeTypesOfElementName = new HashMap<>();
+	private final Map<String, Map<String, BAttributeType>> attributeTypesOfElementName = new HashMap<>();
 	private final Map<QName, BEnumSet> enumSets = new HashMap<>();
 
 	// TODO: Attribute Freetypes identifier müssen aus element:attribut bestehen. Aber deren Typen müssen global sein, z.B: applicationDirection
@@ -169,10 +167,10 @@ public class XSDReader {
 
 	public void collectAttributeTypes() {
 		for (String elementType : attributesOfElementName.keySet()) {
-			Set<BAttributeType> attributeTypes = new HashSet<>();
+			Map<String, BAttributeType> attributeTypes = new HashMap<>();
 			for (XmlSchemaAttribute attribute : attributesOfElementName.get(elementType)) {
 				String attributeName = attribute.getName();
-				attributeTypes.add(extractAttributeType(attribute.getSchemaTypeName(), elementType, attributeName));
+				attributeTypes.put(attributeName, extractAttributeType(attribute.getSchemaTypeName(), elementType, attributeName));
 			}
 			attributeTypesOfElementName.put(elementType, attributeTypes);
 		}
@@ -181,7 +179,7 @@ public class XSDReader {
 	private BAttributeType extractAttributeType(QName typeName, String elementType, String attributeName) {
 		XmlSchemaType type = types.getOrDefault(typeName, null);
 		if (enumSets.containsKey(typeName)) {
-			return new BAttributeType(elementType, attributeName, enumSets.get(typeName));
+			return new BEnumSetAttributeType(elementType, attributeName, enumSets.get(typeName));
 		} else if (type instanceof XmlSchemaSimpleType
 				&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
 			XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
@@ -217,7 +215,7 @@ public class XSDReader {
 		return types;
 	}
 
-	public Map<String, Set<BAttributeType>> getAttributeTypesOfElementName() {
+	public Map<String, Map<String, BAttributeType>> getAttributeTypesOfElementName() {
 		return attributeTypesOfElementName;
 	}
 

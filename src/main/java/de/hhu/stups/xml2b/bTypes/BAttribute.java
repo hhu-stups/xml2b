@@ -2,13 +2,20 @@ package de.hhu.stups.xml2b.bTypes;
 
 import de.be4.classicalb.core.parser.node.PExpression;
 
-public abstract class BAttribute {
-	protected final String data;
+public class BAttribute {
+	private final BAttributeType type;
+	private final PExpression value;
 
-	public BAttribute(String data) {
-		this.data = data;
+	public BAttribute(final BAttributeType type, final PExpression value) {
+		this.type = type;
+		this.value = value;
 	}
 
-	abstract public PExpression getSetExpression();
-	abstract public PExpression getDataExpression();
+	public BAttributeType getType() {
+		return this.type;
+	}
+
+	public PExpression getValue() {
+		return this.value;
+	}
 }

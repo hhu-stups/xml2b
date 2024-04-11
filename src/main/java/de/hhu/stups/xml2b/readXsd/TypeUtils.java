@@ -153,18 +153,18 @@ public class TypeUtils {
 			case "BigDecimal":
 			case "Double":
 			case "Float":
-				return new BAttributeType(elementType, attributeName, BAttributeType.BType.REAL);
+				return new BRealAttributeType(elementType, attributeName);
 			case "BigInteger":
 			case "Integer":
 			case "Short":
 			case "Long":
-				return new BAttributeType(elementType, attributeName, BAttributeType.BType.INTEGER);
+				return new BIntegerAttributeType(elementType, attributeName);
 			case "Duration":
-				return new BAttributeType(elementType, attributeName, true);
+				return new BRealAttributeType(elementType, attributeName, true);
 			case "Boolean":
-				return new BAttributeType(elementType, attributeName, BAttributeType.BType.BOOL);
+				return new BBoolAttributeType(elementType, attributeName);
 			default:
-				return new BAttributeType(elementType, attributeName);
+				return new BStringAttributeType(elementType, attributeName);
 		}
 	}
 

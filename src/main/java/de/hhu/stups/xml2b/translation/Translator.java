@@ -3,9 +3,8 @@ package de.hhu.stups.xml2b.translation;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.*;
-import de.hhu.stups.xml2b.bTypes.BAttribute;
 import de.hhu.stups.xml2b.bTypes.BAttributeType;
-import de.hhu.stups.xml2b.bTypes.BStringAttribute;
+import de.hhu.stups.xml2b.bTypes.BStringAttributeType;
 import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
@@ -13,7 +12,6 @@ import de.hhu.stups.xml2b.readXsd.XSDReader;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
 import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifierList;
 import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.createAbstractConstantsClause;
@@ -128,12 +126,10 @@ public abstract class Translator {
 					createIdentifier(xmlElement.elementType())
 			));
 			List<PExpression> attributes = new ArrayList<>();
-			Map<String, BAttribute> currentAttributes = xmlAttributes.get(xmlElement);
-			for(String attribute : currentAttributes.keySet()) {
-				PExpression attrValue = currentAttributes.get(attribute).getDataExpression();
-				// id attribute is XML standard and should not be considered individually for each element type
-				String identifier = attribute.equals(ID_NAME) ? attribute : xmlElement.elementType() + ":" + attribute;
-				attributes.add(new AFunctionExpression(createIdentifier(identifier), Collections.singletonList(attrValue)));
+			Map<String, BAttributeType> currentAttributes = attributeTypes.getOrDefault(xmlElement.elementType(), new HashMap<>());
+			for (String attribute : xmlElement.attributes().keySet()) { // TODO: ignore attributes not present! (otherwise null)
+				attributes.add(currentAttributes.getOrDefault(attribute, new BStringAttributeType(xmlElement.elementType(), attribute))
+						.getDataExpression(xmlElement.attributes().get(attribute)));
 			}
 			recValues.add(new ARecEntry(
 					createIdentifier(ATTRIBUTES_NAME),
@@ -191,15 +187,23 @@ public abstract class Translator {
 
 	private List<PFreetypeConstructor> getConstructorsForAttributes() {
 		List<PFreetypeConstructor> freetypeConstructors = new ArrayList<>();
-		for (Set<BAttributeType> attributeTypes : attributeTypes.values()) {
-			for (BAttributeType attributeType : attributeTypes) {
+		for (Map<String, BAttributeType> attributeTypes : attributeTypes.values()) {
+			for (String attribute : attributeTypes.keySet()) {
+				BAttributeType attributeType = attributeTypes.get(attribute);
 				String identifier = attributeType.getIdentifier();
-				freetypeConstructors.add(new AConstructorFreetypeConstructor(
-						new TIdentifierLiteral(identifier),
-						attributeType.getSetExpression()
-				));
+				if (!identifier.equals(ID_NAME)) {
+					freetypeConstructors.add(new AConstructorFreetypeConstructor(
+							new TIdentifierLiteral(identifier),
+							attributeType.getSetExpression()
+					));
+				}
 			}
 		}
+		// add generic ID constructor; TODO: check if this is correct in general
+		freetypeConstructors.add(new AConstructorFreetypeConstructor(
+				new TIdentifierLiteral(ID_NAME),
+				new AStringSetExpression()
+		));
 		return freetypeConstructors;
 	}
 }
