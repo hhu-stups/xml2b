@@ -23,9 +23,8 @@ public abstract class Translator {
 			ID_NAME = "id", P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
-	protected Map<String, Set<BAttributeType>> attributeTypes = new HashMap<>();
-	protected Map<XMLElement, Map<String, BAttribute>> xmlAttributes = new HashMap<>();
-	private final List<String> usedIdentifiers = new ArrayList<>();
+	protected Map<String, Map<String, BAttributeType>> attributeTypes = new HashMap<>();
+	protected Map<XMLElement, Map<String, PExpression>> xmlAttributes = new HashMap<>();
 	protected final XSDReader xsdReader;
 
 	private final String machineName;
@@ -43,8 +42,7 @@ public abstract class Translator {
 		List<BException> bExceptions = new ArrayList<>();
 		for (XMLReader.ValidationError error : errors) {
 			bExceptions.add(error.getBException(xmlFile.getAbsolutePath()));
-		}
-		if (!bExceptions.isEmpty()) {
+		}		if (!bExceptions.isEmpty()) {
 			throw new BCompoundException(bExceptions);
 		}
 	}
