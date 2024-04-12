@@ -1,7 +1,6 @@
 package de.hhu.stups.xml2b.translation;
 
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
-import de.be4.classicalb.core.parser.node.PExpression;
 import de.be4.classicalb.core.parser.node.PSet;
 import de.hhu.stups.xml2b.bTypes.*;
 import de.hhu.stups.xml2b.readXml.XMLElement;

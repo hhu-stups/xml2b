@@ -42,7 +42,8 @@ public abstract class Translator {
 		List<BException> bExceptions = new ArrayList<>();
 		for (XMLReader.ValidationError error : errors) {
 			bExceptions.add(error.getBException(xmlFile.getAbsolutePath()));
-		}		if (!bExceptions.isEmpty()) {
+		}
+		if (!bExceptions.isEmpty()) {
 			throw new BCompoundException(bExceptions);
 		}
 	}
@@ -63,8 +64,7 @@ public abstract class Translator {
 		createConstantsClause();
 		createPropertyClause();
 
-        /*createVariableClause();
-        createInvariantClause();
+        /*createVariableClause();        createInvariantClause();
         createInitClause();
         createOperationsClause();*/
 
