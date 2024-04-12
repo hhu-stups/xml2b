@@ -126,9 +126,6 @@ public class XSDReader {
 		if (types.getOrDefault(element.getSchemaTypeName(), null) instanceof XmlSchemaComplexType) {
 			XmlSchemaComplexType complexType = (XmlSchemaComplexType) types.getOrDefault(element.getSchemaTypeName(), null);
 			attributes.addAll(collectSchemaAttributesForType(complexType));
-		} else if (attributeGroups.getOrDefault(element.getSchemaTypeName(), null) instanceof XmlSchemaAttributeGroup) {
-			XmlSchemaComplexType complexType = (XmlSchemaComplexType) types.getOrDefault(element.getSchemaTypeName(), null);
-			attributes.addAll(collectSchemaAttributesForType(complexType));
 		}
 		return attributes;
 	}
