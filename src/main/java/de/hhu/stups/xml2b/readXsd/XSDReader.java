@@ -9,6 +9,7 @@ import org.xml.sax.InputSource;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class XSDReader {
 	private final Map<QName, XmlSchemaType> types = new HashMap<>();
@@ -54,7 +55,8 @@ public class XSDReader {
 				XmlSchema furtherExternalSchema = furtherExternal.getSchema();
 				// prevent from looping in references
 				if (!visited.contains(furtherExternalSchema)) {
-					collectSchemaTypesAndAttributeGroups(furtherExternal.getSchema());
+					visited.add(furtherExternalSchema);
+					collectSchemaTypesAndAttributeGroups(furtherExternal.getSchema(), visited);
 				}
 			}
 			types.putAll(externalSchema.getSchemaTypes());
