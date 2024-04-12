@@ -24,7 +24,7 @@ public class XSDReader {
 		XmlSchema schema = new XmlSchemaCollection().read(new InputSource(xsdSchema.toURI().toString()));
 		this.collectSchemaTypes(schema);
 		this.collectSchemaElements();
-		this.collectEnumSets();
+		this.collectEnumSets(types.keySet());
 		this.collectAttributeTypes();
 	}
 
@@ -135,10 +135,9 @@ public class XSDReader {
 		return collectedAttributes;
 	}
 
-	private void collectEnumSets() {
-		for (QName typeName : types.keySet()) {
+	private void collectEnumSets(Set<QName> typeNames) {
+		for (QName typeName : typeNames) {
 			XmlSchemaType type = types.getOrDefault(typeName, null);
-			// TODO: <xs:union memberTypes="rail3:tBaliseGroupType rail3:tOtherEnumerationValue"/>
 			if (type instanceof XmlSchemaSimpleType
 					&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
 				XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
@@ -150,6 +149,12 @@ public class XSDReader {
 						enumSets.get(typeName).addValues(enumValues);
 					}
 				}
+			} else if (type instanceof XmlSchemaSimpleType
+					&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeUnion) {
+				// <xs:union memberTypes="rail3:tBaliseGroupType rail3:tOtherEnumerationValue"/>
+				// TODO: this solution does not work for multiple memberTypes that are already enum sets!
+				XmlSchemaSimpleTypeUnion union = (XmlSchemaSimpleTypeUnion) ((XmlSchemaSimpleType) type).getContent();
+				collectEnumSets(new HashSet<>(Arrays.asList(union.getMemberTypesQNames())));
 			}
 		}
 	}
