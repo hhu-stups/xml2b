@@ -12,6 +12,7 @@ import java.util.*;
 
 public class XSDReader {
 	private final Map<QName, XmlSchemaType> types = new HashMap<>();
+	private final Map<QName, XmlSchemaAttributeGroup> attributeGroups = new HashMap<>();
 	private final Map<String, Set<XmlSchemaAttribute>> attributesOfElementName = new HashMap<>();
 	private final Map<String, Map<String, BAttributeType>> attributeTypesOfElementName = new HashMap<>();
 	private final Map<QName, BEnumSet> enumSets = new HashMap<>();
@@ -22,38 +23,59 @@ public class XSDReader {
 	public XSDReader(final File xsdSchema) {
 		System.setProperty("javax.xml.accessExternalDTD", "all");
 		XmlSchema schema = new XmlSchemaCollection().read(new InputSource(xsdSchema.toURI().toString()));
-		this.collectSchemaTypes(schema);
+		this.collectSchemaTypesAndAttributeGroups(schema);
 		this.collectSchemaElements();
 		this.collectEnumSets(types.keySet());
 		this.collectAttributeTypes();
 	}
 
-	private void collectSchemaTypes(XmlSchema schema) {
+	private void collectSchemaTypesAndAttributeGroups(XmlSchema schema) {
 		List<XmlSchema> visited = new ArrayList<>();
 		visited.add(schema);
 		types.putAll(schema.getSchemaTypes());
+		collectAttributeGroups(schema.getAttributeGroups());
 		for (XmlSchemaExternal external : schema.getExternals()) {
 			XmlSchema externalSchema = external.getSchema();
 			visited.add(externalSchema);
 			for (XmlSchemaExternal furtherExternal : externalSchema.getExternals()) {
-				collectSchemaTypes(furtherExternal.getSchema(), visited);
+				collectSchemaTypesAndAttributeGroups(furtherExternal.getSchema(), visited);
 			}
 			types.putAll(externalSchema.getSchemaTypes());
+			collectAttributeGroups(externalSchema.getAttributeGroups());
 		}
 	}
 
-	private void collectSchemaTypes(XmlSchema schema, List<XmlSchema> visited) {
+	private void collectSchemaTypesAndAttributeGroups(XmlSchema schema, List<XmlSchema> visited) {
 		types.putAll(schema.getSchemaTypes());
+		collectAttributeGroups(schema.getAttributeGroups());
 		for (XmlSchemaExternal external : schema.getExternals()) {
 			XmlSchema externalSchema = external.getSchema();
 			for (XmlSchemaExternal furtherExternal : externalSchema.getExternals()) {
 				XmlSchema furtherExternalSchema = furtherExternal.getSchema();
 				// prevent from looping in references
 				if (!visited.contains(furtherExternalSchema)) {
-					collectSchemaTypes(furtherExternal.getSchema());
+					collectSchemaTypesAndAttributeGroups(furtherExternal.getSchema());
 				}
 			}
 			types.putAll(externalSchema.getSchemaTypes());
+			collectAttributeGroups(externalSchema.getAttributeGroups());
+		}
+	}
+
+	private void collectAttributeGroups(Map<QName, XmlSchemaAttributeGroup> groups) {
+		attributeGroups.putAll(groups);
+		Map<QName, XmlSchemaAttributeGroup> innerGroups = new HashMap<>();
+		for (XmlSchemaAttributeGroup group : groups.values()) {
+			for (XmlSchemaAttributeGroupMember member : group.getAttributes()) {
+				if (member instanceof XmlSchemaAttributeGroup) {
+					XmlSchemaAttributeGroup innerGroup = (XmlSchemaAttributeGroup) member;
+					innerGroups.put(innerGroup.getQName(), innerGroup);
+				}
+			}
+		}
+		attributeGroups.putAll(innerGroups);
+		if (!innerGroups.isEmpty()) {
+			collectAttributeGroups(innerGroups);
 		}
 	}
 
@@ -104,8 +126,10 @@ public class XSDReader {
 		if (types.getOrDefault(element.getSchemaTypeName(), null) instanceof XmlSchemaComplexType) {
 			XmlSchemaComplexType complexType = (XmlSchemaComplexType) types.getOrDefault(element.getSchemaTypeName(), null);
 			attributes.addAll(collectSchemaAttributesForType(complexType));
+		} else if (attributeGroups.getOrDefault(element.getSchemaTypeName(), null) instanceof XmlSchemaAttributeGroup) {
+			XmlSchemaComplexType complexType = (XmlSchemaComplexType) types.getOrDefault(element.getSchemaTypeName(), null);
+			attributes.addAll(collectSchemaAttributesForType(complexType));
 		}
-		// TODO: attributeGroups
 		return attributes;
 	}
 
@@ -130,6 +154,16 @@ public class XSDReader {
 			if (attribute instanceof XmlSchemaAttribute) {
 				XmlSchemaAttribute attr = (XmlSchemaAttribute) attribute;
 				collectedAttributes.add(attr);
+			} else if (attribute instanceof XmlSchemaAttributeGroupRef) {
+				XmlSchemaAttributeGroup group = attributeGroups.get(((XmlSchemaAttributeGroupRef) attribute).getTargetQName());
+				if (group != null) {
+					for (XmlSchemaAttributeGroupMember member : group.getAttributes()) {
+						if (member instanceof XmlSchemaAttribute) {
+							XmlSchemaAttribute attr = (XmlSchemaAttribute) member;
+							collectedAttributes.add(attr);
+						}
+					}
+				}
 			}
 		}
 		return collectedAttributes;
