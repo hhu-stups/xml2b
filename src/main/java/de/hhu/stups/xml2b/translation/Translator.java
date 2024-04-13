@@ -12,10 +12,10 @@ import de.hhu.stups.xml2b.readXsd.XSDReader;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
+
 import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
 import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifierList;
-import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.createAbstractConstantsClause;
-import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.createAbstractConstantsProperties;
+import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.*;
 
 public abstract class Translator {
 
@@ -24,10 +24,10 @@ public abstract class Translator {
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
 	protected Map<String, Map<String, BAttributeType>> attributeTypes = new HashMap<>();
-	protected Map<XMLElement, Map<String, PExpression>> xmlAttributes = new HashMap<>();
 	protected final XSDReader xsdReader;
 
 	private final String machineName;
+	private final List<String> usedIdentifiers = new ArrayList<>();
 
 	public Translator(final File xmlFile, final File xsdFile) throws BCompoundException {
 		XMLReader xmlReader = new XMLReader();
@@ -61,6 +61,7 @@ public abstract class Translator {
 		createFreetypeClause();
 		createSetsClause();
 		machineClauseList.add(createAbstractConstantsClause());
+		usedIdentifiers.addAll(getIdentifiers());
 		createConstantsClause();
 		createPropertyClause();
 
@@ -68,13 +69,21 @@ public abstract class Translator {
         createInitClause();
         createOperationsClause();*/
 
+		checkForDuplicateIdentifiers();
+
 		aAbstractMachineParseUnit.setMachineClauses(machineClauseList);
 		return new Start(aAbstractMachineParseUnit, new EOF());
 	}
 
+	private void checkForDuplicateIdentifiers() {
+		Set<String> setOfUsedIdentifiers = new HashSet<>(usedIdentifiers);
+		if (setOfUsedIdentifiers.size() != usedIdentifiers.size()) {
+			throw new RuntimeException("Duplicate identifiers found in generated AST");
+		}
 	private void createConstantsClause() {
 		AConstantsMachineClause constantsClause = new AConstantsMachineClause(createIdentifierList(XML_DATA_NAME));
 		machineClauseList.add(constantsClause);
+		usedIdentifiers.add(XML_DATA_NAME);
 	}
 
 	private void createPropertyClause() {
@@ -172,16 +181,17 @@ public abstract class Translator {
 		for (XMLElement xmlElement : xmlElements) {
 			elementTypes.add(xmlElement.elementType());
 		}
+		usedIdentifiers.addAll(elementTypes);
 		PSet typeSet = new AEnumeratedSetSet(ASTUtils.createTIdentifierLiteral(XML_ELEMENT_TYPES_NAME),
 				elementTypes.stream().map(ASTUtils::createIdentifier).collect(Collectors.toList()));
-		List<PSet> enumSets = getEnumSets();
+		List<PSet> enumSets = getEnumSets(usedIdentifiers);
 		List<PSet> sets = new ArrayList<>();
 		sets.add(typeSet);
 		sets.addAll(enumSets);
 		machineClauseList.add(new ASetsMachineClause(sets));
 	}
 
-	protected abstract List<PSet> getEnumSets();
+	protected abstract List<PSet> getEnumSets(List<String> usedIdentifiers);
 
 	private List<PFreetypeConstructor> getConstructorsForAttributes() {
 		List<PFreetypeConstructor> freetypeConstructors = new ArrayList<>();
@@ -194,6 +204,7 @@ public abstract class Translator {
 							new TIdentifierLiteral(identifier),
 							attributeType.getSetExpression()
 					));
+					usedIdentifiers.add(identifier);
 				}
 			}
 		}
@@ -202,6 +213,7 @@ public abstract class Translator {
 				new TIdentifierLiteral(ID_NAME),
 				new AStringSetExpression()
 		));
+		usedIdentifiers.add(ID_NAME);
 		return freetypeConstructors;
 	}
 }

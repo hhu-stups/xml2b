@@ -35,7 +35,7 @@ public class StandaloneTranslator extends Translator {
     }
 
     @Override
-    protected List<PSet> getEnumSets() {
+    protected List<PSet> getEnumSets(List<String> usedIdentifiers) {
         return new ArrayList<>();
     }
 

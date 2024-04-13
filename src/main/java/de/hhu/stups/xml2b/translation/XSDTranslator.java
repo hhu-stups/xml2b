@@ -44,12 +44,13 @@ public class XSDTranslator extends Translator {
     }
 
     @Override
-    protected List<PSet> getEnumSets() {
+    protected List<PSet> getEnumSets(List<String> usedIdentifiers) {
         List<PSet> enumSets = new ArrayList<>();
         for (QName enumSetId : xsdReader.getEnumSets().keySet()) {
             BEnumSet enumSet = xsdReader.getEnumSets().get(enumSetId);
             enumSets.add(new AEnumeratedSetSet(enumSet.getIdentifier().getIdentifier(),
                     enumSet.getEnumValues().stream().map(ASTUtils::createIdentifier).collect(Collectors.toList())));
+            usedIdentifiers.add(enumSet.getIdentifier().toString());
         }
         return enumSets;
     }
