@@ -76,10 +76,17 @@ public abstract class Translator {
 	}
 
 	private void checkForDuplicateIdentifiers() {
-		Set<String> setOfUsedIdentifiers = new HashSet<>(usedIdentifiers);
-		if (setOfUsedIdentifiers.size() != usedIdentifiers.size()) {
-			throw new RuntimeException("Duplicate identifiers found in generated AST");
+		Set<String> setOfUsedIdentifiers = new HashSet<>();
+		List<String> duplicates = new ArrayList<>();
+		for (String identifier : usedIdentifiers) {
+			if (!setOfUsedIdentifiers.add(identifier)) {
+				duplicates.add(identifier);
+			}
 		}
+		if (setOfUsedIdentifiers.size() != usedIdentifiers.size()) {
+			throw new RuntimeException("Duplicate identifiers found in generated AST: " + duplicates);
+		}
+	}
 	private void createConstantsClause() {
 		AConstantsMachineClause constantsClause = new AConstantsMachineClause(createIdentifierList(XML_DATA_NAME));
 		machineClauseList.add(constantsClause);
