@@ -255,7 +255,6 @@ public class AbstractConstantsProvider {
 												getIdOfElement,
 												allIdsOfType
 										)
-
 								)
 						)
 				)

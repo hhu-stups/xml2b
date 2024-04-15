@@ -61,15 +61,17 @@ public class XML2BCli {
 			XML2B xml2B = new XML2B(xml2BCli.xmlFile, xml2BCli.xsdFile);
 			Start start = xml2B.translate();
 			if (xml2BCli.xsdFile != null) {
-				LOGGER.info(xml2BCli.xmlFile.getName() + " is valid according to " + xml2BCli.xsdFile.getName());
+				LOGGER.info("{} is valid according to {}", xml2BCli.xmlFile.getName(), xml2BCli.xsdFile.getName());
 			}
-			LOGGER.info("translation of " + xml2BCli.xmlFile.getName() + " succeeded");
+			LOGGER.info("translation of {} succeeded", xml2BCli.xmlFile.getName());
 			xml2BCli.createMachine(start);
 		} catch (BCompoundException e) {
-			LOGGER.error(xml2BCli.xmlFile.getName() + " is NOT valid according to " + xml2BCli.xsdFile.getName());
+			if (xml2BCli.xsdFile != null) {
+				LOGGER.error("{} is NOT valid according to {}", xml2BCli.xmlFile.getName(), xml2BCli.xsdFile.getName());
+			}
 			List<BException> bExceptions = e.getBExceptions();
 			for (BException bException : bExceptions) {
-				LOGGER.error(bException.getMessage() + " at " + bException.getLocations().get(0).toString());
+				LOGGER.error("{} at {}", bException.getMessage(), bException.getLocations().get(0).toString());
 			}
 		}
 	}
