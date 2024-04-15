@@ -13,8 +13,7 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
-import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifierList;
+import static de.hhu.stups.xml2b.translation.ASTUtils.*;
 import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.*;
 
 public abstract class Translator {
@@ -42,8 +41,7 @@ public abstract class Translator {
 		List<BException> bExceptions = new ArrayList<>();
 		for (XMLReader.ValidationError error : errors) {
 			bExceptions.add(error.getBException(xmlFile.getAbsolutePath()));
-		}
-		if (!bExceptions.isEmpty()) {
+		}		if (!bExceptions.isEmpty()) {
 			throw new BCompoundException(bExceptions);
 		}
 	}
@@ -77,7 +75,7 @@ public abstract class Translator {
 
 	private void checkForDuplicateIdentifiers() {
 		Set<String> setOfUsedIdentifiers = new HashSet<>();
-		List<String> duplicates = new ArrayList<>();
+		Set<String> duplicates = new HashSet<>();
 		for (String identifier : usedIdentifiers) {
 			if (!setOfUsedIdentifiers.add(identifier)) {
 				duplicates.add(identifier);
@@ -93,8 +91,7 @@ public abstract class Translator {
 		usedIdentifiers.add(XML_DATA_NAME);
 	}
 
-	private void createPropertyClause() {
-		// TYPE:
+	private void createPropertyClause() {		// TYPE:
 		AMemberPredicate typification = new AMemberPredicate();
 		typification.setLeft(createIdentifier(XML_DATA_NAME));
 		List<PRecEntry> recTypes = new ArrayList<>();
@@ -129,11 +126,11 @@ public abstract class Translator {
 			List<PRecEntry> recValues = new ArrayList<>();
 			recValues.add(new ARecEntry(
 					createIdentifier(P_ID_NAME),
-					new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.pId())))
+					createInteger(xmlElement.pId())
 			));
 			recValues.add(new ARecEntry(
 					createIdentifier(REC_ID_NAME),
-					new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.recId())))
+					createInteger(xmlElement.recId())
 			));
 			recValues.add(new ARecEntry(
 					createIdentifier(TYPE_NAME),
@@ -150,11 +147,11 @@ public abstract class Translator {
 					!attributes.isEmpty() ? new ASetExtensionExpression(attributes) : new AEmptySetExpression()
 			));
 			List<PExpression> startLocation = new ArrayList<>();
-			startLocation.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.startLine()))));
-			startLocation.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.startColumn()))));
+			startLocation.add(createInteger(xmlElement.startLine()));
+			startLocation.add(createInteger(xmlElement.startColumn()));
 			List<PExpression> endLocation = new ArrayList<>();
-			endLocation.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.endLine()))));
-			endLocation.add(new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.endColumn()))));
+			endLocation.add(createInteger(xmlElement.endLine()));
+			endLocation.add(createInteger(xmlElement.endColumn()));
 			List<PExpression> locations = new ArrayList<>();
 			locations.add(new ACoupleExpression(startLocation));
 			locations.add(new ACoupleExpression(endLocation));
@@ -163,7 +160,7 @@ public abstract class Translator {
 					new ACoupleExpression(locations)
 			));
 			ARecExpression rec = new ARecExpression(recValues);
-			AIntegerExpression recIndex = new AIntegerExpression(new TIntegerLiteral(String.valueOf(xmlElement.recId())));
+			AIntegerExpression recIndex = createInteger(xmlElement.recId());
 			List<PExpression> couple = new ArrayList<>();
 			couple.add(recIndex);
 			couple.add(rec);

@@ -20,6 +20,14 @@ public class ASTUtils {
 		return list;
 	}
 
+	public static AIntegerExpression createInteger(int name) {
+		return new AIntegerExpression(new TIntegerLiteral(String.valueOf(name)));
+	}
+
+	public static AIntegerExpression createInteger(String name) {
+		return new AIntegerExpression(new TIntegerLiteral(name));
+	}
+
 	public static List<TIdentifierLiteral> createTIdentifierLiteral(String name) {
 		List<TIdentifierLiteral> list = new ArrayList<>();
 		TIdentifierLiteral tid = new TIdentifierLiteral(name);

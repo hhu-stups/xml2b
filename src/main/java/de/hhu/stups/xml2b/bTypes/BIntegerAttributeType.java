@@ -5,6 +5,7 @@ import de.be4.classicalb.core.parser.node.*;
 import java.util.Collections;
 
 import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
+import static de.hhu.stups.xml2b.translation.ASTUtils.createInteger;
 
 public class BIntegerAttributeType extends BAttributeType {
 	public BIntegerAttributeType(final String elementType, final String attributeName) {
@@ -23,7 +24,7 @@ public class BIntegerAttributeType extends BAttributeType {
 
 	@Override
 	public PExpression getDataExpression(String data) {
-		PExpression dataExpression = new AIntegerExpression(new TIntegerLiteral(data));
+		PExpression dataExpression = createInteger(data);
 		return new AFunctionExpression(createIdentifier(identifier), Collections.singletonList(dataExpression));
 	}
 }
