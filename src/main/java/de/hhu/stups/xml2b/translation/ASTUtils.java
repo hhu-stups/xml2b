@@ -21,7 +21,7 @@ public class ASTUtils {
 	}
 
 	public static AIntegerExpression createInteger(int name) {
-		return new AIntegerExpression(new TIntegerLiteral(String.valueOf(name)));
+		return createInteger(String.valueOf(name));
 	}
 
 	public static AIntegerExpression createInteger(String name) {
