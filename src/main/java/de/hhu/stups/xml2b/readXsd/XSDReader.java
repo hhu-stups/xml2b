@@ -12,6 +12,7 @@ import java.util.*;
 
 public class XSDReader {
 	private final Map<QName, XmlSchemaType> types = new HashMap<>();
+	private final Map<QName, XmlSchemaGroup> groups = new HashMap<>();
 	private final Map<QName, XmlSchemaAttributeGroup> attributeGroups = new HashMap<>();
 	private final Map<String, Set<XmlSchemaAttribute>> attributesOfElementName = new HashMap<>();
 	private final Map<String, Map<String, BAttributeType>> attributeTypesOfElementName = new HashMap<>();
@@ -23,30 +24,32 @@ public class XSDReader {
 	public XSDReader(final File xsdSchema) {
 		System.setProperty("javax.xml.accessExternalDTD", "all");
 		XmlSchema schema = new XmlSchemaCollection().read(new InputSource(xsdSchema.toURI().toString()));
-		this.collectSchemaTypesAndAttributeGroups(schema);
+		this.collectSchemaTypesAndGroups(schema);
 		this.collectSchemaElements();
 		this.collectEnumSets(types.keySet());
 		this.collectAttributeTypes();
 	}
 
-	private void collectSchemaTypesAndAttributeGroups(XmlSchema schema) {
+	private void collectSchemaTypesAndGroups(XmlSchema schema) {
 		List<XmlSchema> visited = new ArrayList<>();
 		visited.add(schema);
 		types.putAll(schema.getSchemaTypes());
+		collectGroups(schema.getGroups());
 		collectAttributeGroups(schema.getAttributeGroups());
 		for (XmlSchemaExternal external : schema.getExternals()) {
 			XmlSchema externalSchema = external.getSchema();
 			visited.add(externalSchema);
 			for (XmlSchemaExternal furtherExternal : externalSchema.getExternals()) {
-				collectSchemaTypesAndAttributeGroups(furtherExternal.getSchema(), visited);
+				collectSchemaTypesAndGroups(furtherExternal.getSchema(), visited);
 			}
 			types.putAll(externalSchema.getSchemaTypes());
 			collectAttributeGroups(externalSchema.getAttributeGroups());
 		}
 	}
 
-	private void collectSchemaTypesAndAttributeGroups(XmlSchema schema, List<XmlSchema> visited) {
+	private void collectSchemaTypesAndGroups(XmlSchema schema, List<XmlSchema> visited) {
 		types.putAll(schema.getSchemaTypes());
+		collectGroups(schema.getGroups());
 		collectAttributeGroups(schema.getAttributeGroups());
 		for (XmlSchemaExternal external : schema.getExternals()) {
 			XmlSchema externalSchema = external.getSchema();
@@ -55,12 +58,54 @@ public class XSDReader {
 				// prevent from looping in references
 				if (!visited.contains(furtherExternalSchema)) {
 					visited.add(furtherExternalSchema);
-					collectSchemaTypesAndAttributeGroups(furtherExternal.getSchema(), visited);
+					collectSchemaTypesAndGroups(furtherExternal.getSchema(), visited);
 				}
 			}
 			types.putAll(externalSchema.getSchemaTypes());
 			collectAttributeGroups(externalSchema.getAttributeGroups());
 		}
+	}
+
+	private void collectGroups(Map<QName, XmlSchemaGroup> schemaGroups) {
+		groups.putAll(schemaGroups);
+		Map<QName, XmlSchemaGroup> innerGroups = new HashMap<>();
+		for (XmlSchemaGroup group : schemaGroups.values()) {
+			innerGroups.putAll(collectGroupsForParticle(group.getParticle()));
+		}
+		groups.putAll(innerGroups);
+		if (!innerGroups.isEmpty()) {
+			collectGroups(innerGroups);
+		}
+	}
+
+	private Map<QName, XmlSchemaGroup> collectGroupsForParticle(XmlSchemaGroupParticle particle) {
+		Map<QName, XmlSchemaGroup> schemaGroups = new HashMap<>();
+		if (particle instanceof XmlSchemaAll) {
+			XmlSchemaAll schemaAll = (XmlSchemaAll) particle;
+			for (XmlSchemaAllMember all : schemaAll.getItems()) {
+				if (all instanceof XmlSchemaGroup) {
+					XmlSchemaGroup schemaGroup = (XmlSchemaGroup) all;
+					schemaGroups.putAll(collectGroupsForParticle(schemaGroup.getParticle()));
+				}
+			}
+		} else if (particle instanceof XmlSchemaSequence) {
+			XmlSchemaSequence schemaSequence = (XmlSchemaSequence) particle;
+			for (XmlSchemaSequenceMember sequence : schemaSequence.getItems()) {
+				if (sequence instanceof XmlSchemaGroup) {
+					XmlSchemaGroup schemaGroup = (XmlSchemaGroup) sequence;
+					schemaGroups.putAll(collectGroupsForParticle(schemaGroup.getParticle()));
+				}
+			}
+		} else if (particle instanceof XmlSchemaChoice) {
+			XmlSchemaChoice schemaChoice = (XmlSchemaChoice) particle;
+			for (XmlSchemaChoiceMember choice : schemaChoice.getItems()) {
+				if (choice instanceof XmlSchemaGroup) {
+					XmlSchemaGroup schemaGroup = (XmlSchemaGroup) choice;
+					schemaGroups.putAll(collectGroupsForParticle(schemaGroup.getParticle()));
+				}
+			}
+		}
+		return schemaGroups;
 	}
 
 	private void collectAttributeGroups(Map<QName, XmlSchemaAttributeGroup> groups) {
