@@ -51,13 +51,8 @@ public class XSDReader {
 
 	private void collectGroups(Map<QName, XmlSchemaGroup> schemaGroups) {
 		groups.putAll(schemaGroups);
-		Map<QName, XmlSchemaGroup> innerGroups = new HashMap<>();
 		for (XmlSchemaGroup group : schemaGroups.values()) {
-			innerGroups.putAll(collectGroupsForParticle(group.getParticle()));
-		}
-		groups.putAll(innerGroups);
-		if (!innerGroups.isEmpty()) {
-			collectGroups(innerGroups);
+			groups.putAll(collectGroupsForParticle(group.getParticle()));
 		}
 	}
 
