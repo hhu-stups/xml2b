@@ -5,8 +5,8 @@ import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.*;
 import de.hhu.stups.xml2b.bTypes.BAttributeType;
 import de.hhu.stups.xml2b.bTypes.BStringAttributeType;
-import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXml.XMLElement;
+import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
 
 import java.io.File;
@@ -41,7 +41,8 @@ public abstract class Translator {
 		List<BException> bExceptions = new ArrayList<>();
 		for (XMLReader.ValidationError error : errors) {
 			bExceptions.add(error.getBException(xmlFile.getAbsolutePath()));
-		}		if (!bExceptions.isEmpty()) {
+		}
+		if (!bExceptions.isEmpty()) {
 			throw new BCompoundException(bExceptions);
 		}
 	}
@@ -64,7 +65,8 @@ public abstract class Translator {
 		createConstantsClause();
 		createPropertyClause();
 
-        /*createVariableClause();        createInvariantClause();
+        /*createVariableClause();
+        createInvariantClause();
         createInitClause();
         createOperationsClause();*/
 
@@ -87,20 +89,23 @@ public abstract class Translator {
 			throw new RuntimeException("Duplicate identifiers found in generated AST: " + duplicates);
 		}
 	}
+
 	private void createConstantsClause() {
 		AConstantsMachineClause constantsClause = new AConstantsMachineClause(createIdentifierList(XML_DATA_NAME));
 		machineClauseList.add(constantsClause);
 		usedIdentifiers.add(XML_DATA_NAME);
 	}
 
-	private void createPropertyClause() {		// TYPE:
+	private void createPropertyClause() {
+		// TYPE:
 		AMemberPredicate typification = new AMemberPredicate();
 		typification.setLeft(createIdentifier(XML_DATA_NAME));
 		List<PRecEntry> recTypes = new ArrayList<>();
 		recTypes.add(new ARecEntry(
 				createIdentifier(P_ID_NAME),
 				new ANaturalSetExpression()
-		));		recTypes.add(new ARecEntry(
+		));
+		recTypes.add(new ARecEntry(
 				createIdentifier(REC_ID_NAME),
 				new ANatural1SetExpression()
 		));

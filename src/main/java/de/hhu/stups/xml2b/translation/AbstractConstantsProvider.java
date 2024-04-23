@@ -12,8 +12,12 @@ import static de.hhu.stups.xml2b.translation.Translator.*;
 
 public class AbstractConstantsProvider {
 
-	private static final String XML_GET_ELEMENTS_OF_TYPE_NAME = "XML_getElementsOfType", XML_GET_ELEMENT_OF_ID_NAME = "XML_getElementOfId",
-			XML_GET_CHILDS_NAME = "XML_getChilds", XML_GET_CHILDS_OF_TYPE_NAME = "XML_getChildsOfType", XML_GET_ID_OF_ELEMENT_NAME = "XML_getIdOfElement", XML_ALL_IDS_OF_TYPE_NAME = "XML_allIdsOfType";
+	private static final String XML_GET_ELEMENTS_OF_TYPE_NAME = "XML_getElementsOfType",
+			XML_GET_ELEMENT_OF_ID_NAME = "XML_getElementOfId",
+			XML_GET_CHILDS_NAME = "XML_getChilds",
+			XML_GET_CHILDS_OF_TYPE_NAME = "XML_getChildsOfType",
+			XML_GET_ID_OF_ELEMENT_NAME = "XML_getIdOfElement",
+			XML_ALL_IDS_OF_TYPE_NAME = "XML_allIdsOfType";
 
 	public static List<String> getIdentifiers() {
 		List<String> identifiers = new ArrayList<>();
