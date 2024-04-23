@@ -139,3 +139,16 @@ The main motivation is the derivation of attribute types, which cannot be provid
 |                |                                 | "27.5"  | 27.5    |
 | boolean        | BOOL                            | "true"  | TRUE    |
 | anything else  | STRING                          | "data"  | "data"  |
+
+
+### General checks
+
+
+### Provided Abstract Contants
+
+- `XML_getElementsOfType = %t.(t : XML_ELEMENT_TYPES | { e | e : ran(XML_DATA) & e'elementType = t })`
+- `XML_getElementOfId = %(i).(i : dom('id') | dom({ e, el | e : ran(XML_DATA) & (i,el) : 'id' & el : e'attributes }))`
+- `XML_getChilds = %(e).(e : ran(XML_DATA) | { c | c : ran(XML_DATA) & c'pId = e'recId })`
+- `XML_getChildsOfType = %(e,t).(e : ran(XML_DATA) & t : XML_ELEMENT_TYPES | { c | c : ran(XML_DATA) & c'pId = e'recId & c'type = t })`
+- `XML_getIdOfElement = %(e).(e : ran(XML_DATA) | { i | 'id'(i) : e'attributes })`
+- `XML_allIdsOfType = %(t).(t : XML_ELEMENT_TYPES | dom({ i,e | e : ran(XML_DATA) & e'type = t & 'id'(i) : e'attributes }))`

@@ -66,7 +66,7 @@ public class AbstractConstantsProvider {
 				)
 		));
 
-		// XML_getElementOfId = %(i).(i : dom(A_id) | dom({ e, el | e : ran(XML_DATA) & (i,el) : A_id & el : e'attributes }))
+		// XML_getElementOfId = %(i).(i : dom(`id`) | dom({ e, el | e : ran(XML_DATA) & (i,el) : `id` & el : e'attributes }))
 		AEqualPredicate getElementOfId = new AEqualPredicate();
 		getElementOfId.setLeft(createIdentifier(XML_GET_ELEMENT_OF_ID_NAME));
 		getElementOfId.setRight(new ALambdaExpression(
