@@ -39,6 +39,8 @@ public class XMLReader extends DefaultHandler {
 	private Locator locator;
 	private int recId = 1;
 
+	// TODO: namespaces?
+	// TODO: read element values
 	public List<XMLElement> readXML(File file, File xsdFile) {
 		try {
 			SAXParserFactory saxFactory = SAXParserFactory.newInstance();

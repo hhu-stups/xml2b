@@ -49,6 +49,7 @@ public abstract class Translator {
 	protected abstract void getAttributeTypes();
 
 	public Start createBAst() {
+		AGeneratedParseUnit aGeneratedParseUnit = new AGeneratedParseUnit();
 		AAbstractMachineParseUnit aAbstractMachineParseUnit = new AAbstractMachineParseUnit();
 		aAbstractMachineParseUnit.setVariant(new AMachineMachineVariant());
 		AMachineHeader machineHeader = new AMachineHeader();
@@ -70,7 +71,8 @@ public abstract class Translator {
 		checkForDuplicateIdentifiers();
 
 		aAbstractMachineParseUnit.setMachineClauses(machineClauseList);
-		return new Start(aAbstractMachineParseUnit, new EOF());
+		aGeneratedParseUnit.setParseUnit(aAbstractMachineParseUnit);
+		return new Start(aGeneratedParseUnit, new EOF());
 	}
 
 	private void checkForDuplicateIdentifiers() {
@@ -98,8 +100,7 @@ public abstract class Translator {
 		recTypes.add(new ARecEntry(
 				createIdentifier(P_ID_NAME),
 				new ANaturalSetExpression()
-		));
-		recTypes.add(new ARecEntry(
+		));		recTypes.add(new ARecEntry(
 				createIdentifier(REC_ID_NAME),
 				new ANatural1SetExpression()
 		));
