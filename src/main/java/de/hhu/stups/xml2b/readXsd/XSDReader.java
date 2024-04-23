@@ -24,27 +24,10 @@ public class XSDReader {
 	public XSDReader(final File xsdSchema) {
 		System.setProperty("javax.xml.accessExternalDTD", "all");
 		XmlSchema schema = new XmlSchemaCollection().read(new InputSource(xsdSchema.toURI().toString()));
-		this.collectSchemaTypesAndGroups(schema);
+		this.collectSchemaTypesAndGroups(schema, new ArrayList<>());
 		this.collectSchemaElements();
 		this.collectEnumSets(types.keySet());
 		this.collectAttributeTypes();
-	}
-
-	private void collectSchemaTypesAndGroups(XmlSchema schema) {
-		List<XmlSchema> visited = new ArrayList<>();
-		visited.add(schema);
-		types.putAll(schema.getSchemaTypes());
-		collectGroups(schema.getGroups());
-		collectAttributeGroups(schema.getAttributeGroups());
-		for (XmlSchemaExternal external : schema.getExternals()) {
-			XmlSchema externalSchema = external.getSchema();
-			visited.add(externalSchema);
-			for (XmlSchemaExternal furtherExternal : externalSchema.getExternals()) {
-				collectSchemaTypesAndGroups(furtherExternal.getSchema(), visited);
-			}
-			types.putAll(externalSchema.getSchemaTypes());
-			collectAttributeGroups(externalSchema.getAttributeGroups());
-		}
 	}
 
 	private void collectSchemaTypesAndGroups(XmlSchema schema, List<XmlSchema> visited) {
