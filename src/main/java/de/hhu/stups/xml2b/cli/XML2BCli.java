@@ -31,13 +31,13 @@ public class XML2BCli {
 				outputMch = new File(line.getOptionValue(OUTPUT));
 			}
 			if (line.hasOption(VERSION)) {
-				LOGGER.info("XML2B: " + XML2B.getVersion() + " [" + XML2B.getGitSha() + "]");
+				LOGGER.info("XML2B: {} [{}]", XML2B.getVersion(), XML2B.getGitSha());
 			}
 			if (line.hasOption(XSD)) {
 				xsdFile = new File(line.getOptionValue(XSD));
 			}
 			if (remainingArgs.length != 1) {
-				LOGGER.error("Error: expected a XML file.");
+				LOGGER.error("Error: expected an XML file.");
 				HelpFormatter formatter = new HelpFormatter();
 				formatter.printHelp("java -jar XML2B.jar [file]", options);
 				System.exit(-1);
@@ -45,7 +45,7 @@ public class XML2BCli {
 				xmlFile = new File(remainingArgs[0]);
 			}
 		} catch (ParseException e) {
-			System.out.println(e.getMessage());
+			LOGGER.error(e.getMessage());
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp("java -jar XML2B.jar [file]", options);
 			System.exit(-1);

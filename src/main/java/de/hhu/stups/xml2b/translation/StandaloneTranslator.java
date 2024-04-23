@@ -30,7 +30,6 @@ public class StandaloneTranslator extends Translator {
                 }
             }
             attributeTypes.put(element.elementType(), bAttributeTypesSet);
-            //xmlAttributes.put(element, bAttributes);
         }
     }
 
