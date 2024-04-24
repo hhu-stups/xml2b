@@ -19,10 +19,10 @@ public class StandaloneTranslator extends Translator {
     @Override
     protected void getAttributeTypes() {
         for (XMLElement element : xmlElements) {
-            Map<String, BAttributeType> bAttributeTypesSet = new HashMap<>();
+            Map<String, BAttributeType> bAttributeTypesSet = attributeTypes.getOrDefault(element.elementType(), new HashMap<>());
             for (String attribute : element.attributes().keySet()) {
                 BAttributeType bAttributeType = getAttribute(element.elementType(), attribute, element.attributes().get(attribute));
-                if (attributeTypes.containsKey(attribute) && !attributeTypes.get(attribute).getClass().equals(bAttributeType.getClass())) {
+                if (bAttributeTypesSet.containsKey(attribute) && !bAttributeTypesSet.get(attribute).getClass().equals(bAttributeType.getClass())) {
                     // if there is at least one type mismatch -> fall back to string
                     bAttributeTypesSet.put(attribute, new BStringAttributeType(element.elementType(), attribute));
                 } else {
@@ -39,8 +39,7 @@ public class StandaloneTranslator extends Translator {
             String content = element.content();
             if (!content.isEmpty()) {
                 BAttributeType bContentType = getContent(element.elementType(), content);
-                String identifier = bContentType.getIdentifier();
-                if (contentTypes.containsKey(identifier) && !contentTypes.get(identifier).getClass().equals(bContentType.getClass())) {
+                if (contentTypes.containsKey(element.elementType()) && !contentTypes.get(element.elementType()).getClass().equals(bContentType.getClass())) {
                     // if there is at least one type mismatch -> fall back to string
                     contentTypes.put(element.elementType(), new BStringAttributeType(element.elementType(), "STRING"));
                 } else {
