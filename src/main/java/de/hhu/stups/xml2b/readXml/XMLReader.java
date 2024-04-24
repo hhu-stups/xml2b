@@ -21,6 +21,7 @@ public class XMLReader extends DefaultHandler {
 	private static class OpenXMLElement {
 		private final int recId, lineNumber, columnNumber;
 		private final Map<String, String> attributes;
+		private String content = "";
 
 		private OpenXMLElement(int recId, int lineNumber, int columnNumber, Map<String, String> attributes) {
 			this.recId = recId;
@@ -29,8 +30,12 @@ public class XMLReader extends DefaultHandler {
 			this.attributes = attributes;
 		}
 
+		private void addContent(final char[] chars) {
+			this.content += new String(chars);
+		}
+
 		private XMLElement getClosedXMLElement(String elementType, int pId, int endLine, int endColumn) {
-			return new XMLElement(elementType, pId, recId, attributes, lineNumber, columnNumber, endLine, endColumn);
+			return new XMLElement(elementType, pId, recId, attributes, content, lineNumber, columnNumber, endLine, endColumn);
 		}
 	}
 
@@ -77,6 +82,17 @@ public class XMLReader extends DefaultHandler {
 			extractedAttributes.put(attributes.getLocalName(i), attributes.getValue(i));
 		}
 		return extractedAttributes;
+	}
+
+	@Override
+	public void characters(char[] ch, int start, int length) {
+		OpenXMLElement node = openXMLElements.peek();
+		if (node != null) {
+			String content = new String(ch, start, length).trim(); // this could break content with surrounding white spaces!
+			if (!content.isEmpty()) { // ignore indents and line breaks
+				node.addContent(content.toCharArray());
+			}
+		}
 	}
 
 	@Override

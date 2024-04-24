@@ -8,14 +8,16 @@ public final class XMLElement {
 	private final int pId;
 	private final int recId;
 	private final Map<String, String> attributes;
+	private final String content;
 	private final int startLine, startColumn, endLine, endColumn;
 
-	public XMLElement(String elementType, int pId, int recId, Map<String, String> attributes,
+	public XMLElement(String elementType, int pId, int recId, Map<String, String> attributes, String content,
 	                  int startLine, int startColumn, int endLine, int endColumn) {
 		this.elementType = elementType;
 		this.pId = pId;
 		this.recId = recId;
 		this.attributes = attributes;
+		this.content = content;
 		this.startLine = startLine;
 		this.startColumn = startColumn;
 		this.endLine = endLine;
@@ -51,6 +53,10 @@ public final class XMLElement {
 		return attributes;
 	}
 
+	public String content() {
+		return content;
+	}
+
 	public int startLine() {
 		return startLine;
 	}
@@ -79,6 +85,7 @@ public final class XMLElement {
 				"pId=" + pId + ", " +
 				"recId=" + recId + ", " +
 				"attributes=" + attributes + ", " +
+				"content=" + content + ", " +
 				"(" + startLine + "," + startColumn + ") -> (" + endLine + "," + endColumn + ")]";
 	}
 }
