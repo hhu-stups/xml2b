@@ -34,6 +34,23 @@ public class StandaloneTranslator extends Translator {
     }
 
     @Override
+    protected void getContentTypes() {
+        for (XMLElement element : xmlElements) {
+            String content = element.content();
+            if (!content.isEmpty()) {
+                BAttributeType bContentType = getContent(element.elementType(), content);
+                String identifier = bContentType.getIdentifier();
+                if (contentTypes.containsKey(identifier) && !contentTypes.get(identifier).getClass().equals(bContentType.getClass())) {
+                    // if there is at least one type mismatch -> fall back to string
+                    contentTypes.put(element.elementType(), new BStringAttributeType(element.elementType(), "STRING"));
+                } else {
+                    contentTypes.put(element.elementType(), bContentType);
+                }
+            }
+        }
+    }
+
+    @Override
     protected List<PSet> getEnumSets(List<String> usedIdentifiers) {
         return new ArrayList<>();
     }
@@ -53,5 +70,22 @@ public class StandaloneTranslator extends Translator {
             }
         }
         return new BStringAttributeType(elementType, attributeName);
+    }
+
+    private BAttributeType getContent(String elementType, String content) {
+        try {
+            Duration.parse(content);
+            return new BRealAttributeType(elementType, "REAL", true);
+        } catch (DateTimeParseException dtpe) {
+            try {
+                Double.parseDouble(content);
+                return new BRealAttributeType(elementType, "REAL");
+            } catch (NumberFormatException nfe) {
+                if (content.equals("true") || content.equals("false")) {
+                    return new BBoolAttributeType(elementType, "BOOL");
+                }
+            }
+        }
+        return new BStringAttributeType(elementType, "STRING");
     }
 }

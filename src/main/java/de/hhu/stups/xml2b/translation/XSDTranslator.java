@@ -44,6 +44,11 @@ public class XSDTranslator extends Translator {
     }
 
     @Override
+    protected void getContentTypes() {
+
+    }
+
+    @Override
     protected List<PSet> getEnumSets(List<String> usedIdentifiers) {
         List<PSet> enumSets = new ArrayList<>();
         for (QName enumSetId : xsdReader.getEnumSets().keySet()) {

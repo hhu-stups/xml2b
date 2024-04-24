@@ -18,11 +18,12 @@ import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.*;
 
 public abstract class Translator {
 
-	public static final String XML_DATA_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES",
+	public static final String XML_DATA_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES", XML_CONTENT_TYPES_NAME = "XML_CONTENT_TYPES",
 			ID_NAME = "id", P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
 	protected Map<String, Map<String, BAttributeType>> attributeTypes = new HashMap<>();
+	protected Map<String, BAttributeType> contentTypes = new HashMap<>();
 	protected final XSDReader xsdReader;
 
 	private final String machineName;
@@ -35,6 +36,7 @@ public abstract class Translator {
 		this.machineName = xmlFile.getName().split("\\.")[0];
 		this.xsdReader = xsdFile != null ? new XSDReader(xsdFile) : null;
 		this.getAttributeTypes();
+		this.getContentTypes();
 	}
 
 	private void handleValidationErrors(File xmlFile, List<XMLReader.ValidationError> errors) throws BCompoundException {
@@ -48,6 +50,8 @@ public abstract class Translator {
 	}
 
 	protected abstract void getAttributeTypes();
+
+	protected abstract void getContentTypes();
 
 	public Start createBAst() {
 		AGeneratedParseUnit aGeneratedParseUnit = new AGeneratedParseUnit();
@@ -180,10 +184,12 @@ public abstract class Translator {
 	}
 
 	private void createFreetypeClause() {
-		List<PFreetypeConstructor> constructors = getConstructorsForAttributes();
-		AFreetype freetype = new AFreetype(new TIdentifierLiteral(XML_FREETYPE_ATTRIBUTES_NAME), new ArrayList<>(), constructors);
-		AFreetypesMachineClause freetypesMachineClause = new AFreetypesMachineClause(Collections.singletonList(freetype));
-		machineClauseList.add(freetypesMachineClause);
+		List<PFreetypeConstructor> contentConstructors = getConstructorsForContents();
+		List<PFreetype> freetypes = new ArrayList<>();
+		freetypes.add(new AFreetype(new TIdentifierLiteral(XML_FREETYPE_ATTRIBUTES_NAME), new ArrayList<>(), getConstructorsForAttributes()));
+		if (!contentConstructors.isEmpty())
+			freetypes.add(new AFreetype(new TIdentifierLiteral(XML_CONTENT_TYPES_NAME), new ArrayList<>(), contentConstructors));
+		machineClauseList.add(new AFreetypesMachineClause(freetypes));
 	}
 
 	private void createSetsClause() {
@@ -224,6 +230,21 @@ public abstract class Translator {
 				new AStringSetExpression()
 		));
 		usedIdentifiers.add(ID_NAME);
+		return freetypeConstructors;
+	}
+
+	private List<PFreetypeConstructor> getConstructorsForContents() {
+		List<PFreetypeConstructor> freetypeConstructors = new ArrayList<>();
+		for (BAttributeType contentType : contentTypes.values()) {
+			String identifier = contentType.getIdentifier();
+			if (!identifier.equals(ID_NAME)) {
+				freetypeConstructors.add(new AConstructorFreetypeConstructor(
+						new TIdentifierLiteral(identifier),
+						contentType.getSetExpression()
+				));
+				usedIdentifiers.add(identifier);
+			}
+		}
 		return freetypeConstructors;
 	}
 }
