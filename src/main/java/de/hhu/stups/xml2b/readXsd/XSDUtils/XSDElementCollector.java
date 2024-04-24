@@ -30,54 +30,53 @@ public class XSDElementCollector {
 		Map<QName, XmlSchemaElement> elements = new HashMap<>();
 		if (type instanceof XmlSchemaComplexType) {
 			XmlSchemaComplexType complex = (XmlSchemaComplexType) type;
-			elements.putAll(collectElementsForParticle(complex.getParticle()));
+			elements.putAll(collectElementsFromParticle(complex.getParticle()));
 			XmlSchemaContentModel content = complex.getContentModel();
+			// xs:restriction complexContent is ignored -- it restricts on existing types and does not introduce new elements
 			if (content != null && content.getContent() instanceof XmlSchemaComplexContentExtension) {
 				XmlSchemaComplexContentExtension extension = (XmlSchemaComplexContentExtension) content.getContent();
-				elements.putAll(collectElementsForParticle(extension.getParticle()));
+				elements.putAll(collectElementsFromParticle(extension.getParticle()));
 			}
 		}
 		elements.putAll(collectElementsFromElements(elements));
 		return elements;
 	}
 
-	private static Map<QName, XmlSchemaElement> collectElementsForParticle(XmlSchemaParticle particle) {
+	private static Map<QName, XmlSchemaElement> collectElementsFromParticle(XmlSchemaParticle particle) {
 		Map<QName, XmlSchemaElement> elements = new HashMap<>();
 		if (particle instanceof XmlSchemaAll) {
 			XmlSchemaAll schemaAll = (XmlSchemaAll) particle;
 			for (XmlSchemaAllMember all : schemaAll.getItems()) {
-				elements.putAll(addElement(all));
+				addElement(elements, all);
 			}
-		} else if (particle instanceof XmlSchemaSequence) {
-			XmlSchemaSequence schemaSequence = (XmlSchemaSequence) particle;
-			for (XmlSchemaSequenceMember sequence : schemaSequence.getItems()) {
-				elements.putAll(addElement(sequence));
-				if (sequence instanceof XmlSchemaChoice) {
-					XmlSchemaChoice schemaChoice = (XmlSchemaChoice) sequence;
-					for (XmlSchemaChoiceMember choice : schemaChoice.getItems()) {
-						elements.putAll(addElement(choice));
-					}
-				}
-			}
+		} else if (particle instanceof XmlSchemaChoice || particle instanceof XmlSchemaSequence) {
+			elements.putAll(collectElementsFromNestedChoicesAndSequences(particle));
 		}
 		return elements;
 	}
 
-	private static Map<QName, XmlSchemaElement> addElement(XmlSchemaObjectBase object) {
-		Map<QName, XmlSchemaElement> elements = new HashMap<>();
+	private static void addElement(Map<QName, XmlSchemaElement> elements, XmlSchemaObjectBase object) {
 		if (object instanceof XmlSchemaElement) {
 			XmlSchemaElement element = (XmlSchemaElement) object;
 			elements.put(element.getQName(), element);
 		}
-		return elements;
 	}
 
-	/*public static Map<QName, XmlSchemaType> collectLocalTypesFromElements(Map<QName, XmlSchemaElement> elementMap) {
-		Map<QName, XmlSchemaType> types = new HashMap<>();
-		for (XmlSchemaElement element : elementMap.values()) {
-			types.put(element.getSchemaTypeName(), element.getSchemaType());
+	private static Map<QName, XmlSchemaElement> collectElementsFromNestedChoicesAndSequences(XmlSchemaObjectBase object) {
+		Map<QName, XmlSchemaElement> elements = new HashMap<>();
+		if (object instanceof XmlSchemaChoice) {
+			XmlSchemaChoice schemaChoice = (XmlSchemaChoice) object;
+			for (XmlSchemaChoiceMember choice : schemaChoice.getItems()) {
+				addElement(elements, choice);
+				elements.putAll(collectElementsFromNestedChoicesAndSequences(choice));
+			}
+		} else if (object instanceof XmlSchemaSequence) {
+			XmlSchemaSequence schemaSequence = (XmlSchemaSequence) object;
+			for (XmlSchemaSequenceMember sequence : schemaSequence.getItems()) {
+				addElement(elements, sequence);
+				elements.putAll(collectElementsFromNestedChoicesAndSequences(sequence));
+			}
 		}
 		return elements;
-	}*/
-
+	}
 }
