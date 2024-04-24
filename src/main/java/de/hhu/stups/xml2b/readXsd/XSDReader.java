@@ -10,9 +10,11 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
+import static de.hhu.stups.xml2b.readXsd.XSDUtils.collectElementsFromGroups;
+
 public class XSDReader {
 	private final Map<QName, XmlSchemaType> types = new HashMap<>();
-	private final Map<QName, XmlSchemaGroup> groups = new HashMap<>();
+	private final Map<QName, XmlSchemaElement> elements = new HashMap<>();
 	private final Map<QName, XmlSchemaAttributeGroup> attributeGroups = new HashMap<>();
 	private final Map<String, Set<XmlSchemaAttribute>> attributesOfElementName = new HashMap<>();
 	private final Map<String, Map<String, BAttributeType>> attributeTypesOfElementName = new HashMap<>();
@@ -32,7 +34,7 @@ public class XSDReader {
 
 	private void collectSchemaTypesAndGroups(XmlSchema schema, List<XmlSchema> visited) {
 		types.putAll(schema.getSchemaTypes());
-		collectGroups(schema.getGroups());
+		elements.putAll(collectElementsFromGroups(schema.getGroups()));
 		collectAttributeGroups(schema.getAttributeGroups());
 		for (XmlSchemaExternal external : schema.getExternals()) {
 			XmlSchema externalSchema = external.getSchema();
@@ -47,43 +49,6 @@ public class XSDReader {
 			types.putAll(externalSchema.getSchemaTypes());
 			collectAttributeGroups(externalSchema.getAttributeGroups());
 		}
-	}
-
-	private void collectGroups(Map<QName, XmlSchemaGroup> schemaGroups) {
-		groups.putAll(schemaGroups);
-		for (XmlSchemaGroup group : schemaGroups.values()) {
-			groups.putAll(collectGroupsForParticle(group.getParticle()));
-		}
-	}
-
-	private Map<QName, XmlSchemaGroup> collectGroupsForParticle(XmlSchemaGroupParticle particle) {
-		Map<QName, XmlSchemaGroup> schemaGroups = new HashMap<>();
-		if (particle instanceof XmlSchemaAll) {
-			XmlSchemaAll schemaAll = (XmlSchemaAll) particle;
-			for (XmlSchemaAllMember all : schemaAll.getItems()) {
-				if (all instanceof XmlSchemaGroup) {
-					XmlSchemaGroup schemaGroup = (XmlSchemaGroup) all;
-					schemaGroups.putAll(collectGroupsForParticle(schemaGroup.getParticle()));
-				}
-			}
-		} else if (particle instanceof XmlSchemaSequence) {
-			XmlSchemaSequence schemaSequence = (XmlSchemaSequence) particle;
-			for (XmlSchemaSequenceMember sequence : schemaSequence.getItems()) {
-				if (sequence instanceof XmlSchemaGroup) {
-					XmlSchemaGroup schemaGroup = (XmlSchemaGroup) sequence;
-					schemaGroups.putAll(collectGroupsForParticle(schemaGroup.getParticle()));
-				}
-			}
-		} else if (particle instanceof XmlSchemaChoice) {
-			XmlSchemaChoice schemaChoice = (XmlSchemaChoice) particle;
-			for (XmlSchemaChoiceMember choice : schemaChoice.getItems()) {
-				if (choice instanceof XmlSchemaGroup) {
-					XmlSchemaGroup schemaGroup = (XmlSchemaGroup) choice;
-					schemaGroups.putAll(collectGroupsForParticle(schemaGroup.getParticle()));
-				}
-			}
-		}
-		return schemaGroups;
 	}
 
 	private void collectAttributeGroups(Map<QName, XmlSchemaAttributeGroup> groups) {
