@@ -1,4 +1,4 @@
-package de.hhu.stups.xml2b.readXsd;
+package de.hhu.stups.xml2b.readXsd.XSDUtils;
 
 import org.apache.ws.commons.schema.*;
 
@@ -6,7 +6,7 @@ import javax.xml.namespace.QName;
 import java.util.HashMap;
 import java.util.Map;
 
-public class XSDUtils {
+public class XSDGroupCollector {
 
 	public static Map<QName, XmlSchemaElement> collectElementsFromGroups(Map<QName, XmlSchemaGroup> groupMap) {
 		Map<QName, XmlSchemaElement> elements = new HashMap<>();
@@ -28,7 +28,7 @@ public class XSDUtils {
 					XmlSchemaElement schemaElement = (XmlSchemaElement) all;
 					groupElements.put(schemaElement.getQName(), schemaElement);
 				}
-				// ignore if: all instanceof XmlSchemaAny | XmlSchemaGroupRef (these do not contain new XmlSchemaElements)
+				// ignore if: all instanceof XmlSchemaGroupRef (these do not contain new XmlSchemaElements)
 			}
 		} else if (particle instanceof XmlSchemaSequence) {
 			XmlSchemaSequence schemaSequence = (XmlSchemaSequence) particle;

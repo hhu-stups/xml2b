@@ -1,6 +1,8 @@
 package de.hhu.stups.xml2b.readXsd;
 
-import de.hhu.stups.xml2b.bTypes.*;
+import de.hhu.stups.xml2b.bTypes.BAttributeType;
+import de.hhu.stups.xml2b.bTypes.BEnumSet;
+import de.hhu.stups.xml2b.bTypes.BEnumSetAttributeType;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.w3c.dom.NodeList;
@@ -10,7 +12,9 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
-import static de.hhu.stups.xml2b.readXsd.XSDUtils.collectElementsFromGroups;
+import static de.hhu.stups.xml2b.readXsd.XSDUtils.XSDElementCollector.collectElementsFromElements;
+import static de.hhu.stups.xml2b.readXsd.XSDUtils.XSDElementCollector.collectElementsFromSchemaTypes;
+import static de.hhu.stups.xml2b.readXsd.XSDUtils.XSDGroupCollector.collectElementsFromGroups;
 
 public class XSDReader {
 	private final Map<QName, XmlSchemaType> types = new HashMap<>();
@@ -34,8 +38,14 @@ public class XSDReader {
 
 	private void collectSchemaTypesAndGroups(XmlSchema schema, List<XmlSchema> visited) {
 		types.putAll(schema.getSchemaTypes());
-		elements.putAll(schema.getElements());
-		elements.putAll(collectElementsFromGroups(schema.getGroups()));
+
+		Map<QName, XmlSchemaElement> needRecursiveSearchElements = new HashMap<>();
+		needRecursiveSearchElements.putAll(schema.getElements());
+		needRecursiveSearchElements.putAll(collectElementsFromGroups(schema.getGroups()));
+		elements.putAll(needRecursiveSearchElements);
+		elements.putAll(collectElementsFromElements(needRecursiveSearchElements));
+		elements.putAll(collectElementsFromSchemaTypes(schema.getSchemaTypes()));
+
 		collectAttributeGroups(schema.getAttributeGroups());
 		for (XmlSchemaExternal external : schema.getExternals()) {
 			XmlSchema externalSchema = external.getSchema();
