@@ -34,6 +34,7 @@ public class XSDReader {
 
 	private void collectSchemaTypesAndGroups(XmlSchema schema, List<XmlSchema> visited) {
 		types.putAll(schema.getSchemaTypes());
+		elements.putAll(schema.getElements());
 		elements.putAll(collectElementsFromGroups(schema.getGroups()));
 		collectAttributeGroups(schema.getAttributeGroups());
 		for (XmlSchemaExternal external : schema.getExternals()) {
