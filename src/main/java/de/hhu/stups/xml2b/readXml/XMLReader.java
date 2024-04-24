@@ -30,8 +30,8 @@ public class XMLReader extends DefaultHandler {
 			this.attributes = attributes;
 		}
 
-		private void addContent(final char[] chars) {
-			this.content += new String(chars);
+		private void addContent(final String content) {
+			this.content += content;
 		}
 
 		private XMLElement getClosedXMLElement(String elementType, int pId, int endLine, int endColumn) {
@@ -90,7 +90,7 @@ public class XMLReader extends DefaultHandler {
 		if (node != null) {
 			String content = new String(ch, start, length).trim(); // this could break content with surrounding white spaces!
 			if (!content.isEmpty()) { // ignore indents and line breaks
-				node.addContent(content.toCharArray());
+				node.addContent(content);
 			}
 		}
 	}
