@@ -41,7 +41,7 @@ public class StandaloneTranslator extends Translator {
                 BAttributeType bContentType = getContent(element.elementType(), content);
                 if (contentTypes.containsKey(element.elementType()) && !contentTypes.get(element.elementType()).getClass().equals(bContentType.getClass())) {
                     // if there is at least one type mismatch -> fall back to string
-                    contentTypes.put(element.elementType(), new BStringAttributeType(element.elementType(), "STRING"));
+                    contentTypes.put(element.elementType(), new BStringAttributeType(element.elementType(), null));
                 } else {
                     contentTypes.put(element.elementType(), bContentType);
                 }
@@ -74,17 +74,17 @@ public class StandaloneTranslator extends Translator {
     private BAttributeType getContent(String elementType, String content) {
         try {
             Duration.parse(content);
-            return new BRealAttributeType(elementType, "REAL", true);
+            return new BRealAttributeType(elementType, null, true);
         } catch (DateTimeParseException dtpe) {
             try {
                 Double.parseDouble(content);
-                return new BRealAttributeType(elementType, "REAL");
+                return new BRealAttributeType(elementType, null);
             } catch (NumberFormatException nfe) {
                 if (content.equals("true") || content.equals("false")) {
-                    return new BBoolAttributeType(elementType, "BOOL");
+                    return new BBoolAttributeType(elementType, null);
                 }
             }
         }
-        return new BStringAttributeType(elementType, "STRING");
+        return new BStringAttributeType(elementType, null);
     }
 }

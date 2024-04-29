@@ -5,13 +5,20 @@ import de.be4.classicalb.core.parser.node.PExpression;
 import static de.hhu.stups.xml2b.translation.Translator.ID_NAME;
 
 public abstract class BAttributeType {
-	protected final String elementType, attributeName, identifier;
+	private static final String CONTENT = "!content";
+
+	protected final String elementType, attributeName;
+	protected String identifier;
 
 	public BAttributeType(final String elementType, final String attributeName) {
 		this.elementType = elementType;
 		this.attributeName = attributeName;
 		// id attribute is XML standard and should not be considered individually for each element type
-		this.identifier = attributeName.equals(ID_NAME) ? attributeName : elementType + "@" + attributeName;
+		if (attributeName == null) {
+			this.identifier = elementType + CONTENT;
+		} else {
+			this.identifier = attributeName.equals(ID_NAME) ? attributeName : elementType + "@" + attributeName;
+		}
 	}
 
 	abstract public PExpression getSetExpression();
@@ -23,6 +30,10 @@ public abstract class BAttributeType {
 
 	public String getAttributeName() {
 		return this.attributeName;
+	}
+
+	public void addSuffixToIdentifier(String suffix) {
+		this.identifier += "#" + suffix;
 	}
 
 	public String getIdentifier() {
