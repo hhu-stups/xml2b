@@ -40,7 +40,9 @@ public class BRealAttributeType extends BAttributeType {
 
 	private static String ensureRealHasDot(String value) {
 		// stricter checks should be done by validation in previous steps (string is assumed to be a number)
-		if (value.contains(".")) {
+		if (value.endsWith(".")) {
+			return value + "0";
+		} else if (value.contains(".")) {
 			return value;
 		} else {
 			return value + ".0";

@@ -69,11 +69,6 @@ public abstract class Translator {
 		createConstantsClause();
 		createPropertyClause();
 
-        /*createVariableClause();
-        createInvariantClause();
-        createInitClause();
-        createOperationsClause();*/
-
 		checkForDuplicateIdentifiers();
 
 		aAbstractMachineParseUnit.setMachineClauses(machineClauseList);
@@ -245,13 +240,11 @@ public abstract class Translator {
 		List<PFreetypeConstructor> freetypeConstructors = new ArrayList<>();
 		for (BAttributeType contentType : contentTypes.values()) {
 			String identifier = contentType.getIdentifier();
-			if (!identifier.equals(ID_NAME)) {
-				freetypeConstructors.add(new AConstructorFreetypeConstructor(
-						new TIdentifierLiteral(identifier),
-						contentType.getSetExpression()
-				));
-				usedIdentifiers.add(identifier);
-			}
+			freetypeConstructors.add(new AConstructorFreetypeConstructor(
+					new TIdentifierLiteral(identifier),
+					contentType.getSetExpression()
+			));
+			usedIdentifiers.add(identifier);
 		}
 		return freetypeConstructors;
 	}
