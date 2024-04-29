@@ -19,7 +19,7 @@ import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.*;
 public abstract class Translator {
 
 	public static final String XML_DATA_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES", XML_CONTENT_TYPES_NAME = "XML_CONTENT_TYPES",
-			ID_NAME = "id", P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
+			ID_NAME = "id", P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", CONTENT_NAME = "content", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
 	protected Map<String, Map<String, BAttributeType>> attributeTypes = new HashMap<>();
@@ -118,8 +118,12 @@ public abstract class Translator {
 				createIdentifier(XML_ELEMENT_TYPES_NAME)
 		));
 		recTypes.add(new ARecEntry(
-				createIdentifier(ATTRIBUTES_NAME),
+				createIdentifier(CONTENT_NAME),
 				new APowSubsetExpression(createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME))
+		));
+		recTypes.add(new ARecEntry(
+				createIdentifier(ATTRIBUTES_NAME),
+				new APartialFunctionExpression(new AStringSetExpression(), new APowSubsetExpression(createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME)))
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(LOCATION_NAME),
@@ -145,6 +149,10 @@ public abstract class Translator {
 			recValues.add(new ARecEntry(
 					createIdentifier(TYPE_NAME),
 					createIdentifier(xmlElement.elementType())
+			));
+			recValues.add(new ARecEntry(
+					createIdentifier(CONTENT_NAME),
+					xmlElement.content().isEmpty() ? new AEmptySetExpression() : new ASetExtensionExpression(Collections.singletonList(new AStringExpression(new TStringLiteral(xmlElement.content()))))
 			));
 			List<PExpression> attributes = new ArrayList<>();
 			Map<String, BAttributeType> currentAttributes = attributeTypes.getOrDefault(xmlElement.elementType(), new HashMap<>());
