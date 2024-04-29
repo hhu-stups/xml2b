@@ -11,7 +11,7 @@ public abstract class BAttributeType {
 		this.elementType = elementType;
 		this.attributeName = attributeName;
 		// id attribute is XML standard and should not be considered individually for each element type
-		this.identifier = attributeName.equals(ID_NAME) ? attributeName : elementType + ":" + attributeName;
+		this.identifier = attributeName.equals(ID_NAME) ? attributeName : elementType + "@" + attributeName;
 	}
 
 	abstract public PExpression getSetExpression();
