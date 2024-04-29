@@ -147,7 +147,7 @@ public abstract class Translator {
 			));
 			recValues.add(new ARecEntry(
 					createIdentifier(CONTENT_NAME),
-					xmlElement.content().isEmpty() ? new AEmptySetExpression() : new ASetExtensionExpression(Collections.singletonList(new AStringExpression(new TStringLiteral(xmlElement.content()))))
+					xmlElement.content().isEmpty() ? new AEmptySetExpression() : new ASetExtensionExpression(Collections.singletonList(contentTypes.get(xmlElement.elementType()).getDataExpression(xmlElement.content())))
 			));
 			List<PExpression> attributes = new ArrayList<>();
 			Map<String, BAttributeType> currentAttributes = attributeTypes.getOrDefault(xmlElement.elementType(), new HashMap<>());
