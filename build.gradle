@@ -40,11 +40,12 @@ application {
     mainClass = "de.hhu.stups.xml2b.cli.XML2BCli"
 }
 
-jar {
+shadowJar {
+    archiveFileName = 'XML2B.jar'
     manifest {
-        attributes([
-                "Main-Class": application.mainClass.get()
-        ])
+        attributes(
+                'Main-Class': application.mainClass.get()
+        )
     }
 }
 
