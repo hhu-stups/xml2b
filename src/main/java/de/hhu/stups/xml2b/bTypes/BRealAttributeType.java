@@ -36,18 +36,7 @@ public class BRealAttributeType extends BAttributeType {
 	public PExpression getDataExpression(String data) {
 		if (isDuration)
 			data = Double.toString((double) Duration.parse(data).withNanos(0).toMillis());
-		PExpression dataExpression = new ARealExpression(new TRealLiteral(ensureRealHasDot(data)));
+		PExpression dataExpression = new ARealExpression(new TRealLiteral(String.valueOf(Double.parseDouble(data))));
 		return new AFunctionExpression(createIdentifier(identifier), Collections.singletonList(dataExpression));
-	}
-
-	private static String ensureRealHasDot(String value) {
-		// stricter checks should be done by validation in previous steps (string is assumed to be a number)
-		if (value.endsWith(".")) {
-			return value + "0";
-		} else if (value.contains(".")) {
-			return value;
-		} else {
-			return value + ".0";
-		}
 	}
 }
