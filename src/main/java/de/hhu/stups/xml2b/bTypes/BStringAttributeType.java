@@ -9,11 +9,12 @@ import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
 public class BStringAttributeType extends BAttributeType {
 	public BStringAttributeType(final String elementType, final String attributeName) {
 		super(elementType, attributeName);
+		this.typeString = "STRING";
 	}
 
 	@Override
 	public String toString() {
-		return "STRING(" + identifier + ")";
+		return this.typeString + "(" + identifier + ")";
 	}
 
 	@Override

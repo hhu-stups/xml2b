@@ -7,8 +7,9 @@ import static de.hhu.stups.xml2b.translation.Translator.ID_NAME;
 public abstract class BAttributeType {
 	private static final String CONTENT = "!content";
 
-	protected final String elementType, attributeName;
-	protected String identifier;
+	protected final String elementType;
+	protected final String attributeName;
+	protected String identifier, typeString;
 
 	public BAttributeType(final String elementType, final String attributeName) {
 		this.elementType = elementType;
@@ -32,8 +33,12 @@ public abstract class BAttributeType {
 		return this.attributeName;
 	}
 
-	public void addSuffixToIdentifier(String suffix) {
-		this.identifier += "#" + suffix;
+	public void addTypeSuffixToIdentifier() {
+		this.identifier += "#" + this.typeString;
+	}
+
+	public String getTypeString() {
+		return this.typeString;
 	}
 
 	public String getIdentifier() {

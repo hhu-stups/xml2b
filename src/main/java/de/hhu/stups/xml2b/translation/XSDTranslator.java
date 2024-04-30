@@ -35,11 +35,13 @@ public class XSDTranslator extends Translator {
                 BAttributeType bAttributeType = new BStringAttributeType(element.elementType(), attribute);
                 attributeTypeMap.put(attribute, bAttributeType);
             }
-            attributeTypes.put(element.elementType(), attributeTypeMap);
+            individualAttributeTypes.put(element.recId(), attributeTypeMap);
             notPresentElements.remove(element.elementType());
         }
+        int recId = -1;
         for (String notPresentElement : notPresentElements) {
-            attributeTypes.put(notPresentElement, types.get(notPresentElement));
+            individualAttributeTypes.put(recId, types.get(notPresentElement));
+            recId--;
         }
     }
 
@@ -53,9 +55,9 @@ public class XSDTranslator extends Translator {
         List<PSet> enumSets = new ArrayList<>();
         for (QName enumSetId : xsdReader.getEnumSets().keySet()) {
             BEnumSet enumSet = xsdReader.getEnumSets().get(enumSetId);
-            enumSets.add(new AEnumeratedSetSet(enumSet.getIdentifier().getIdentifier(),
+            enumSets.add(new AEnumeratedSetSet(enumSet.getIdentifierExpression().getIdentifier(),
                     enumSet.getEnumValues().stream().map(ASTUtils::createIdentifier).collect(Collectors.toList())));
-            usedIdentifiers.add(enumSet.getIdentifier().toString().trim());
+            usedIdentifiers.add(enumSet.getIdentifierExpression().toString().trim());
         }
         return enumSets;
     }

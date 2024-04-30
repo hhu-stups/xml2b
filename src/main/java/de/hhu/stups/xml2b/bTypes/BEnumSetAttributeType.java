@@ -14,6 +14,7 @@ public class BEnumSetAttributeType extends BAttributeType {
 	public BEnumSetAttributeType(final String elementType, final String attributeName, final BEnumSet enumSet) {
 		super(elementType, attributeName);
 		this.enumSet = enumSet;
+		this.typeString = enumSet.getIdentifier();
 	}
 
 	@Override
@@ -23,7 +24,7 @@ public class BEnumSetAttributeType extends BAttributeType {
 
 	@Override
 	public PExpression getSetExpression() {
-		return enumSet.getIdentifier();
+		return enumSet.getIdentifierExpression();
 	}
 
 	@Override

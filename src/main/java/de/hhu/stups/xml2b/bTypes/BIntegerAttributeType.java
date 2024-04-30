@@ -10,11 +10,12 @@ import static de.hhu.stups.xml2b.translation.ASTUtils.createInteger;
 public class BIntegerAttributeType extends BAttributeType {
 	public BIntegerAttributeType(final String elementType, final String attributeName) {
 		super(elementType, attributeName);
+		this.typeString = "INTEGER";
 	}
 
 	@Override
 	public String toString() {
-		return "INTEGER(" + identifier + ")";
+		return this.typeString + "(" + identifier + ")";
 	}
 
 	@Override

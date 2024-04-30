@@ -22,8 +22,12 @@ public abstract class Translator {
 			ID_NAME = "id", P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", CONTENT_NAME = "content", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
-	protected Map<String, Map<String, BAttributeType>> attributeTypes = new HashMap<>();
-	protected Map<String, BAttributeType> contentTypes = new HashMap<>();
+	// individualAttributeTypes: elementRecId -> (attributeName -> bAttributeType)
+	protected Map<Integer, Map<String, BAttributeType>> individualAttributeTypes = new HashMap<>();
+	protected Map<String, BAttributeType> allAttributeTypes = new HashMap<>();
+	// individualContentTypes: elementRecId -> bAttributeType
+	protected Map<Integer, BAttributeType> individualContentTypes = new HashMap<>();
+	protected Map<String, BAttributeType> allContentTypes = new HashMap<>();
 	protected final XSDReader xsdReader;
 
 	private final String machineName;
@@ -114,11 +118,11 @@ public abstract class Translator {
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(CONTENT_NAME),
-				new APowSubsetExpression(createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME))
+				new APowSubsetExpression(createIdentifier(XML_CONTENT_TYPES_NAME))
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(ATTRIBUTES_NAME),
-				new APartialFunctionExpression(new AStringSetExpression(), new APowSubsetExpression(createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME)))
+				new APowSubsetExpression(createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME))
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(LOCATION_NAME),
@@ -147,10 +151,10 @@ public abstract class Translator {
 			));
 			recValues.add(new ARecEntry(
 					createIdentifier(CONTENT_NAME),
-					xmlElement.content().isEmpty() ? new AEmptySetExpression() : new ASetExtensionExpression(Collections.singletonList(contentTypes.get(xmlElement.elementType()).getDataExpression(xmlElement.content())))
+					xmlElement.content().isEmpty() ? new AEmptySetExpression() : new ASetExtensionExpression(Collections.singletonList(individualContentTypes.get(xmlElement.recId()).getDataExpression(xmlElement.content())))
 			));
 			List<PExpression> attributes = new ArrayList<>();
-			Map<String, BAttributeType> currentAttributes = attributeTypes.getOrDefault(xmlElement.elementType(), new HashMap<>());
+			Map<String, BAttributeType> currentAttributes = individualAttributeTypes.getOrDefault(xmlElement.recId(), new HashMap<>());
 			for (String attribute : xmlElement.attributes().keySet()) { // TODO: ignore attributes not present! (otherwise null)
 				attributes.add(currentAttributes.getOrDefault(attribute, new BStringAttributeType(xmlElement.elementType(), attribute))
 						.getDataExpression(xmlElement.attributes().get(attribute)));
@@ -214,17 +218,14 @@ public abstract class Translator {
 
 	private List<PFreetypeConstructor> getConstructorsForAttributes() {
 		List<PFreetypeConstructor> freetypeConstructors = new ArrayList<>();
-		for (Map<String, BAttributeType> attributeTypes : attributeTypes.values()) {
-			for (String attribute : attributeTypes.keySet()) {
-				BAttributeType attributeType = attributeTypes.get(attribute);
-				String identifier = attributeType.getIdentifier();
-				if (!identifier.equals(ID_NAME)) {
-					freetypeConstructors.add(new AConstructorFreetypeConstructor(
-							new TIdentifierLiteral(identifier),
-							attributeType.getSetExpression()
-					));
-					usedIdentifiers.add(identifier);
-				}
+		for (BAttributeType attributeType : allAttributeTypes.values()) {
+			String identifier = attributeType.getIdentifier();
+			if (!identifier.equals(ID_NAME)) {
+				freetypeConstructors.add(new AConstructorFreetypeConstructor(
+						new TIdentifierLiteral(identifier),
+						attributeType.getSetExpression()
+				));
+				usedIdentifiers.add(identifier);
 			}
 		}
 		// add generic ID constructor; TODO: check if this is correct in general
@@ -238,7 +239,7 @@ public abstract class Translator {
 
 	private List<PFreetypeConstructor> getConstructorsForContents() {
 		List<PFreetypeConstructor> freetypeConstructors = new ArrayList<>();
-		for (BAttributeType contentType : contentTypes.values()) {
+		for (BAttributeType contentType : allContentTypes.values()) {
 			String identifier = contentType.getIdentifier();
 			freetypeConstructors.add(new AConstructorFreetypeConstructor(
 					new TIdentifierLiteral(identifier),

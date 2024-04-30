@@ -9,11 +9,12 @@ import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
 public class BBoolAttributeType extends BAttributeType {
 	public BBoolAttributeType(final String elementType, final String attributeName) {
 		super(elementType, attributeName);
+		this.typeString = "BOOL";
 	}
 
 	@Override
 	public String toString() {
-		return "BOOL(" + identifier + ")";
+		return typeString + "(" + identifier + ")";
 	}
 
 	@Override

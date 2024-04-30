@@ -19,17 +19,37 @@ public class StandaloneTranslator extends Translator {
     @Override
     protected void getAttributeTypes() {
         for (XMLElement element : xmlElements) {
-            Map<String, BAttributeType> bAttributeTypesSet = attributeTypes.getOrDefault(element.elementType(), new HashMap<>());
+            Map<String, BAttributeType> bAttributeTypesSet = individualAttributeTypes.getOrDefault(element.recId(), new HashMap<>());
             for (String attribute : element.attributes().keySet()) {
                 BAttributeType bAttributeType = getAttribute(element.elementType(), attribute, element.attributes().get(attribute));
-                if (bAttributeTypesSet.containsKey(attribute) && !bAttributeTypesSet.get(attribute).getClass().equals(bAttributeType.getClass())) {
-                    // if there is at least one type mismatch -> fall back to string
-                    bAttributeTypesSet.put(attribute, new BStringAttributeType(element.elementType(), attribute));
+
+                // TODO: cleanup and simplify
+                String identifier = bAttributeType.getIdentifier();
+                if (!allAttributeTypes.containsKey(identifier)) {
+                    allAttributeTypes.put(identifier, bAttributeType);
                 } else {
-                    bAttributeTypesSet.put(attribute, bAttributeType);
+                    if (allAttributeTypes.get(identifier) instanceof BStringAttributeType && !(bAttributeType instanceof BStringAttributeType)) {
+                        bAttributeType.addTypeSuffixToIdentifier();
+                        allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
+                    } else if (!bAttributeType.getClass().equals(allAttributeTypes.get(identifier).getClass())) {
+                        bAttributeType.addTypeSuffixToIdentifier();
+                        if (!allAttributeTypes.containsKey(bAttributeType.getIdentifier())) {
+                            allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
+                        }
+                        BAttributeType oldType = allAttributeTypes.get(identifier);
+                        if (oldType != null && !(oldType instanceof BStringAttributeType)) {
+                            oldType.addTypeSuffixToIdentifier();
+                            allAttributeTypes.put(oldType.getIdentifier(), oldType);
+                            BAttributeType stringType = new BStringAttributeType(bAttributeType.getElementType(), bAttributeType.getAttributeName());
+                            allAttributeTypes.put(stringType.getIdentifier(), stringType);
+                        }
+
+                    }
                 }
+
+                bAttributeTypesSet.put(attribute, bAttributeType);
             }
-            attributeTypes.put(element.elementType(), bAttributeTypesSet);
+            individualAttributeTypes.put(element.recId(), bAttributeTypesSet);
         }
     }
 
@@ -39,12 +59,33 @@ public class StandaloneTranslator extends Translator {
             String content = element.content();
             if (!content.isEmpty()) {
                 BAttributeType bContentType = getContent(element.elementType(), content);
-                if (contentTypes.containsKey(element.elementType()) && !contentTypes.get(element.elementType()).getClass().equals(bContentType.getClass())) {
-                    // if there is at least one type mismatch -> fall back to string
-                    contentTypes.put(element.elementType(), new BStringAttributeType(element.elementType(), null));
+
+                // TODO: cleanup and simplify
+                String identifier = bContentType.getIdentifier();
+                if (!allContentTypes.containsKey(identifier)) {
+                    allContentTypes.put(identifier, bContentType);
                 } else {
-                    contentTypes.put(element.elementType(), bContentType);
+                    if (allContentTypes.get(identifier) instanceof BStringAttributeType && !(bContentType instanceof BStringAttributeType)) {
+                        bContentType.addTypeSuffixToIdentifier();
+                        allContentTypes.put(bContentType.getIdentifier(), bContentType);
+                    } else if (!bContentType.getClass().equals(allContentTypes.get(identifier).getClass())) {
+                        bContentType.addTypeSuffixToIdentifier();
+                        if (!allContentTypes.containsKey(bContentType.getIdentifier())) {
+                            allContentTypes.put(bContentType.getIdentifier(), bContentType);
+                        }
+                        BAttributeType oldType = allContentTypes.get(identifier);
+                        if (oldType != null && !(oldType instanceof BStringAttributeType)) {
+                            oldType.addTypeSuffixToIdentifier();
+                            allContentTypes.put(oldType.getIdentifier(), oldType);
+                            BAttributeType stringType = new BStringAttributeType(bContentType.getElementType(), bContentType.getAttributeName());
+                            allContentTypes.put(stringType.getIdentifier(), stringType);
+                        }
+
+                    }
                 }
+
+                individualContentTypes.put(element.recId(), bContentType);
+
             }
         }
     }

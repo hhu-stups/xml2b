@@ -6,13 +6,12 @@ import de.hhu.stups.xml2b.translation.ASTUtils;
 import java.util.Set;
 
 public class BEnumSet {
-	private final String prefix;
-	private final AIdentifierExpression identifier;
+	private final String identifier, prefix;
 	private final Set<String> enum_values;
 
 	public BEnumSet(String identifier, Set<String> values) {
 		this.prefix = identifier + "_";
-		this.identifier = ASTUtils.createIdentifier(identifier);
+		this.identifier = identifier;
 		this.enum_values = values;
 	}
 
@@ -23,8 +22,11 @@ public class BEnumSet {
 	public String getPrefix() {
 		return prefix;
 	}
-	public AIdentifierExpression getIdentifier() {
-		return identifier.clone();
+	public String getIdentifier() {
+		return this.identifier;
+	}
+	public AIdentifierExpression getIdentifierExpression() {
+		return ASTUtils.createIdentifier(identifier);
 	}
 	public Set<String> getEnumValues() {
 		return enum_values;
@@ -40,7 +42,7 @@ public class BEnumSet {
 		if (obj instanceof BEnumSet) {
 			BEnumSet enumSet = (BEnumSet) obj;
 			return this.enum_values.containsAll(enumSet.enum_values)
-					&& this.identifier.toString().equals(enumSet.identifier.toString());
+					&& this.identifier.equals(enumSet.identifier);
 		} else {
 			return false;
 		}

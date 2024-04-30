@@ -13,16 +13,18 @@ public class BRealAttributeType extends BAttributeType {
 	public BRealAttributeType(final String elementType, final String attributeName) {
 		super(elementType, attributeName);
 		this.isDuration = false;
+		this.typeString = "REAL";
 	}
 
 	public BRealAttributeType(final String elementType, final String attributeName, final boolean isDuration) {
 		super(elementType, attributeName);
 		this.isDuration = isDuration;
+		this.typeString = "REAL";
 	}
 
 	@Override
 	public String toString() {
-		return "REAL(" + identifier + ")";
+		return this.typeString + "(" + identifier + ")";
 	}
 
 	@Override
