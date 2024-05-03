@@ -22,25 +22,7 @@ public class StandaloneTranslator extends Translator {
             Map<String, BAttributeType> bAttributeTypesSet = individualAttributeTypes.getOrDefault(element.recId(), new HashMap<>());
             for (String attribute : element.attributes().keySet()) {
                 BAttributeType bAttributeType = getAttribute(element.elementType(), attribute, element.attributes().get(attribute));
-
-                // TODO: cleanup and simplify
-                String identifier = bAttributeType.getIdentifier();
-                if (!allAttributeTypes.containsKey(identifier)) {
-                    allAttributeTypes.put(identifier, bAttributeType);
-                } else if (!(bAttributeType instanceof BStringAttributeType) //&& allAttributeTypes.containsKey(identifier)
-                    && !bAttributeType.getClass().equals(allAttributeTypes.get(identifier).getClass())) {
-                    System.out.println(bAttributeType);
-                    BAttributeType oldType = allAttributeTypes.get(identifier);
-                    if (oldType != null && !(oldType instanceof BStringAttributeType)) {
-                        oldType.addTypeSuffixToIdentifier();
-                        allAttributeTypes.put(oldType.getIdentifier(), oldType);
-                    }
-                    bAttributeType.addTypeSuffixToIdentifier();
-                    String suffixIdentifier = bAttributeType.getIdentifier();
-                    allAttributeTypes.put(suffixIdentifier, bAttributeType);
-                    allAttributeTypes.put(identifier, bAttributeType.getStringAttributeType());
-                }
-
+                determineIdentifiers(bAttributeType, allAttributeTypes);
                 bAttributeTypesSet.put(attribute, bAttributeType);
             }
             individualAttributeTypes.put(element.recId(), bAttributeTypesSet);
@@ -53,34 +35,27 @@ public class StandaloneTranslator extends Translator {
             String content = element.content();
             if (!content.isEmpty()) {
                 BAttributeType bContentType = getContent(element.elementType(), content);
-
-                // TODO: cleanup and simplify
-                String identifier = bContentType.getIdentifier();
-                if (!allContentTypes.containsKey(identifier)) {
-                    allContentTypes.put(identifier, bContentType);
-                } else {
-                    if (allContentTypes.get(identifier) instanceof BStringAttributeType && !(bContentType instanceof BStringAttributeType)) {
-                        bContentType.addTypeSuffixToIdentifier();
-                        allContentTypes.put(bContentType.getIdentifier(), bContentType);
-                    } else if (!bContentType.getClass().equals(allContentTypes.get(identifier).getClass())) {
-                        bContentType.addTypeSuffixToIdentifier();
-                        if (!allContentTypes.containsKey(bContentType.getIdentifier())) {
-                            allContentTypes.put(bContentType.getIdentifier(), bContentType);
-                        }
-                        BAttributeType oldType = allContentTypes.get(identifier);
-                        if (oldType != null && !(oldType instanceof BStringAttributeType)) {
-                            oldType.addTypeSuffixToIdentifier();
-                            allContentTypes.put(oldType.getIdentifier(), oldType);
-                            BAttributeType stringType = new BStringAttributeType(bContentType.getElementType(), bContentType.getAttributeName());
-                            allContentTypes.put(stringType.getIdentifier(), stringType);
-                        }
-
-                    }
-                }
-
+                determineIdentifiers(bContentType, allContentTypes);
                 individualContentTypes.put(element.recId(), bContentType);
-
             }
+        }
+    }
+
+    private static void determineIdentifiers(BAttributeType bType, Map<String, BAttributeType> allContentTypes) {
+        String identifier = bType.getIdentifier();
+        if (!allContentTypes.containsKey(identifier)) {
+            allContentTypes.put(identifier, bType);
+        } else if (!bType.getClass().equals(allContentTypes.get(identifier).getClass())) {
+            BAttributeType oldType = allContentTypes.get(identifier);
+            if (oldType != null && !(oldType instanceof BStringAttributeType)) {
+                oldType.addTypeSuffixToIdentifier();
+                allContentTypes.put(oldType.getIdentifier(), oldType);
+            }
+            if (!(bType instanceof BStringAttributeType))
+                bType.addTypeSuffixToIdentifier();
+            String suffixIdentifier = bType.getIdentifier();
+            allContentTypes.put(suffixIdentifier, bType);
+            allContentTypes.put(identifier, bType.getStringAttributeType());
         }
     }
 
