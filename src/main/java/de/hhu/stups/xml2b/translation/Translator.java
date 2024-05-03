@@ -4,6 +4,7 @@ import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.*;
 import de.hhu.stups.xml2b.bTypes.BAttributeType;
+import de.hhu.stups.xml2b.bTypes.BStringAttributeType;
 import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
@@ -22,10 +23,10 @@ public abstract class Translator {
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
 	// individualAttributeTypes: elementRecId -> (attributeName -> bAttributeType)
-	protected Map<Integer, Map<String, BAttributeType>> individualAttributeTypes = new HashMap<>();
+	protected Map<Integer, Map<String, String>> individualAttributeTypes = new HashMap<>();
 	protected Map<String, BAttributeType> allAttributeTypes = new HashMap<>();
 	// individualContentTypes: elementRecId -> bAttributeType
-	protected Map<Integer, BAttributeType> individualContentTypes = new HashMap<>();
+	protected Map<Integer, String> individualContentTypes = new HashMap<>();
 	protected Map<String, BAttributeType> allContentTypes = new HashMap<>();
 	protected final XSDReader xsdReader;
 
@@ -148,15 +149,34 @@ public abstract class Translator {
 					createIdentifier(TYPE_NAME),
 					createIdentifier(xmlElement.elementType())
 			));
+			// Content:
+			PExpression contentExpression;
+			if (xmlElement.content().isEmpty()) {
+				contentExpression = new AEmptySetExpression();
+			} else {
+				BAttributeType defaultType = new BStringAttributeType(xmlElement.elementType(), null);
+				BAttributeType type = allContentTypes.getOrDefault(individualContentTypes.getOrDefault(xmlElement.recId(), defaultType.getIdentifier()), defaultType);
+				List<PExpression> contents = new ArrayList<>();
+				contents.add(type.getDataExpression(xmlElement.content()));
+				if (type.hasTypeSuffix()) {
+					contents.add(type.getStringAttributeType().getDataExpression(xmlElement.content()));
+				}
+				contentExpression = new ASetExtensionExpression(contents);
+			}
 			recValues.add(new ARecEntry(
 					createIdentifier(CONTENT_NAME),
-					xmlElement.content().isEmpty() ? new AEmptySetExpression() : new ASetExtensionExpression(Collections.singletonList(individualContentTypes.get(xmlElement.recId()).getDataExpression(xmlElement.content())))
+					contentExpression
 			));
+			// Attributes:
 			List<PExpression> attributes = new ArrayList<>();
-			Map<String, BAttributeType> currentAttributes = individualAttributeTypes.getOrDefault(xmlElement.recId(), new HashMap<>());
+			Map<String, String> currentAttributes = individualAttributeTypes.getOrDefault(xmlElement.recId(), new HashMap<>());
 			for (String attribute : xmlElement.attributes().keySet()) { // TODO: ignore attributes not present! (otherwise null)
 				if (currentAttributes.containsKey(attribute)) {
-					BAttributeType type = currentAttributes.get(attribute);
+					BAttributeType type = allAttributeTypes.get(currentAttributes.get(attribute));
+					if (type == null) {
+						// should never happen
+						throw new IllegalStateException("identifier of attribute type does not exist");
+					}
 					attributes.add(type.getDataExpression(xmlElement.attributes().get(attribute)));
 					if (type.hasTypeSuffix()) {
 						attributes.add(type.getStringAttributeType().getDataExpression(xmlElement.attributes().get(attribute)));

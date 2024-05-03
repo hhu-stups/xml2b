@@ -19,11 +19,17 @@ public class StandaloneTranslator extends Translator {
     @Override
     protected void getAttributeTypes() {
         for (XMLElement element : xmlElements) {
-            Map<String, BAttributeType> bAttributeTypesSet = individualAttributeTypes.getOrDefault(element.recId(), new HashMap<>());
+            Map<String, String> bAttributeTypesSet = individualAttributeTypes.getOrDefault(element.recId(), new HashMap<>());
             for (String attribute : element.attributes().keySet()) {
-                BAttributeType bAttributeType = getAttribute(element.elementType(), attribute, element.attributes().get(attribute));
-                determineIdentifiers(bAttributeType, allAttributeTypes);
-                bAttributeTypesSet.put(attribute, bAttributeType);
+                if (!attribute.equals(ID_NAME)) {
+                    BAttributeType bAttributeType = getAttribute(element.elementType(), attribute, element.attributes().get(attribute));
+                    determineIdentifiers(bAttributeType, allAttributeTypes);
+                    bAttributeTypesSet.put(attribute, bAttributeType.getIdentifier());
+                } else {
+                    BAttributeType bAttributeType = new BStringAttributeType(element.elementType(), attribute);
+                    allAttributeTypes.put(ID_NAME, bAttributeType);
+                    bAttributeTypesSet.put(attribute, bAttributeType.getIdentifier());
+                }
             }
             individualAttributeTypes.put(element.recId(), bAttributeTypesSet);
         }
@@ -36,7 +42,7 @@ public class StandaloneTranslator extends Translator {
             if (!content.isEmpty()) {
                 BAttributeType bContentType = getContent(element.elementType(), content);
                 determineIdentifiers(bContentType, allContentTypes);
-                individualContentTypes.put(element.recId(), bContentType);
+                individualContentTypes.put(element.recId(), bContentType.getIdentifier());
             }
         }
     }

@@ -25,22 +25,22 @@ public class XSDTranslator extends Translator {
         Set<String> notPresentElements = new HashSet<>(types.keySet());
         for (XMLElement element : xmlElements) {
             presentAttributes.addAll(element.attributes().keySet());
-            Map<String, BAttributeType> attributeTypeMap = new HashMap<>();
+            Map<String, String> attributeTypeMap = new HashMap<>();
             if (types.containsKey(element.elementType())) {
                 Map<String, BAttributeType> attributeTypes = types.get(element.elementType());
-                attributeTypeMap.putAll(attributeTypes);
+                //attributeTypeMap.putAll(attributeTypes);
                 presentAttributes.removeAll(attributeTypes.keySet());
             }
             for (String attribute : presentAttributes) {
                 BAttributeType bAttributeType = new BStringAttributeType(element.elementType(), attribute);
-                attributeTypeMap.put(attribute, bAttributeType);
+                //attributeTypeMap.put(attribute, bAttributeType);
             }
             individualAttributeTypes.put(element.recId(), attributeTypeMap);
             notPresentElements.remove(element.elementType());
         }
         int recId = -1;
         for (String notPresentElement : notPresentElements) {
-            individualAttributeTypes.put(recId, types.get(notPresentElement));
+            //individualAttributeTypes.put(recId, types.get(notPresentElement));
             recId--;
         }
     }
