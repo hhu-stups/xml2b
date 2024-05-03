@@ -11,6 +11,8 @@ public abstract class BAttributeType {
 	protected final String attributeName;
 	protected String identifier, typeString;
 
+	private boolean hasTypeSuffix;
+
 	public BAttributeType(final String elementType, final String attributeName) {
 		this.elementType = elementType;
 		this.attributeName = attributeName;
@@ -20,6 +22,7 @@ public abstract class BAttributeType {
 		} else {
 			this.identifier = attributeName.equals(ID_NAME) ? attributeName : elementType + "@" + attributeName;
 		}
+		this.hasTypeSuffix = false;
 	}
 
 	abstract public PExpression getSetExpression();
@@ -34,7 +37,12 @@ public abstract class BAttributeType {
 	}
 
 	public void addTypeSuffixToIdentifier() {
+		this.hasTypeSuffix = true;
 		this.identifier += "#" + this.typeString;
+	}
+
+	public boolean hasTypeSuffix() {
+		return this.hasTypeSuffix;
 	}
 
 	public String getTypeString() {
@@ -43,6 +51,10 @@ public abstract class BAttributeType {
 
 	public String getIdentifier() {
 		return this.identifier;
+	}
+
+	public BStringAttributeType getStringAttributeType() {
+		return new BStringAttributeType(this.elementType, this.attributeName);
 	}
 
 	@Override

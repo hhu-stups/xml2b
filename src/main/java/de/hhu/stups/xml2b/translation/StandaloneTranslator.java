@@ -27,24 +27,18 @@ public class StandaloneTranslator extends Translator {
                 String identifier = bAttributeType.getIdentifier();
                 if (!allAttributeTypes.containsKey(identifier)) {
                     allAttributeTypes.put(identifier, bAttributeType);
-                } else {
-                    if (allAttributeTypes.get(identifier) instanceof BStringAttributeType && !(bAttributeType instanceof BStringAttributeType)) {
-                        bAttributeType.addTypeSuffixToIdentifier();
-                        allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
-                    } else if (!bAttributeType.getClass().equals(allAttributeTypes.get(identifier).getClass())) {
-                        bAttributeType.addTypeSuffixToIdentifier();
-                        if (!allAttributeTypes.containsKey(bAttributeType.getIdentifier())) {
-                            allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
-                        }
-                        BAttributeType oldType = allAttributeTypes.get(identifier);
-                        if (oldType != null && !(oldType instanceof BStringAttributeType)) {
-                            oldType.addTypeSuffixToIdentifier();
-                            allAttributeTypes.put(oldType.getIdentifier(), oldType);
-                            BAttributeType stringType = new BStringAttributeType(bAttributeType.getElementType(), bAttributeType.getAttributeName());
-                            allAttributeTypes.put(stringType.getIdentifier(), stringType);
-                        }
-
+                } else if (!(bAttributeType instanceof BStringAttributeType) //&& allAttributeTypes.containsKey(identifier)
+                    && !bAttributeType.getClass().equals(allAttributeTypes.get(identifier).getClass())) {
+                    System.out.println(bAttributeType);
+                    BAttributeType oldType = allAttributeTypes.get(identifier);
+                    if (oldType != null && !(oldType instanceof BStringAttributeType)) {
+                        oldType.addTypeSuffixToIdentifier();
+                        allAttributeTypes.put(oldType.getIdentifier(), oldType);
                     }
+                    bAttributeType.addTypeSuffixToIdentifier();
+                    String suffixIdentifier = bAttributeType.getIdentifier();
+                    allAttributeTypes.put(suffixIdentifier, bAttributeType);
+                    allAttributeTypes.put(identifier, bAttributeType.getStringAttributeType());
                 }
 
                 bAttributeTypesSet.put(attribute, bAttributeType);

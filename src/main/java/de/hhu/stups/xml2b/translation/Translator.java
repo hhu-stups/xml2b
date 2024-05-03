@@ -4,7 +4,6 @@ import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.*;
 import de.hhu.stups.xml2b.bTypes.BAttributeType;
-import de.hhu.stups.xml2b.bTypes.BStringAttributeType;
 import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
@@ -156,8 +155,13 @@ public abstract class Translator {
 			List<PExpression> attributes = new ArrayList<>();
 			Map<String, BAttributeType> currentAttributes = individualAttributeTypes.getOrDefault(xmlElement.recId(), new HashMap<>());
 			for (String attribute : xmlElement.attributes().keySet()) { // TODO: ignore attributes not present! (otherwise null)
-				attributes.add(currentAttributes.getOrDefault(attribute, new BStringAttributeType(xmlElement.elementType(), attribute))
-						.getDataExpression(xmlElement.attributes().get(attribute)));
+				if (currentAttributes.containsKey(attribute)) {
+					BAttributeType type = currentAttributes.get(attribute);
+					attributes.add(type.getDataExpression(xmlElement.attributes().get(attribute)));
+					if (type.hasTypeSuffix()) {
+						attributes.add(type.getStringAttributeType().getDataExpression(xmlElement.attributes().get(attribute)));
+					}
+				}
 			}
 			recValues.add(new ARecEntry(
 					createIdentifier(ATTRIBUTES_NAME),
