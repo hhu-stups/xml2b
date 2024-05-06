@@ -15,6 +15,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class XMLReader extends DefaultHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(XMLReader.class);
@@ -34,8 +35,8 @@ public class XMLReader extends DefaultHandler {
 			this.content += content;
 		}
 
-		private XMLElement getClosedXMLElement(String elementType, int pId, int endLine, int endColumn) {
-			return new XMLElement(elementType, pId, recId, attributes, content, lineNumber, columnNumber, endLine, endColumn);
+		private XMLElement getClosedXMLElement(String elementType, List<Integer> pIds, int endLine, int endColumn) {
+			return new XMLElement(elementType, pIds, recId, attributes, content, lineNumber, columnNumber, endLine, endColumn);
 		}
 	}
 
@@ -98,13 +99,11 @@ public class XMLReader extends DefaultHandler {
 	@Override
 	public void endElement(String uri, String localName, String qName) {
 		OpenXMLElement currentNode = openXMLElements.pop();
-		if (!openXMLElements.isEmpty()) {
-			OpenXMLElement parentNode = openXMLElements.peek();
-			if (parentNode != null) {
-				closedXMLElements.add(currentNode.getClosedXMLElement(qName, parentNode.recId, locator.getLineNumber(), locator.getColumnNumber()));
-			}
+		List<Integer> pIds = openXMLElements.stream().map(o -> o.recId).collect(Collectors.toList());
+		if (!pIds.isEmpty()) {
+			closedXMLElements.add(currentNode.getClosedXMLElement(qName, pIds, locator.getLineNumber(), locator.getColumnNumber()));
 		} else {
-			closedXMLElements.add(currentNode.getClosedXMLElement(qName, 0, locator.getLineNumber(), locator.getColumnNumber()));
+			closedXMLElements.add(currentNode.getClosedXMLElement(qName, Collections.singletonList(0), locator.getLineNumber(), locator.getColumnNumber()));
 		}
 	}
 

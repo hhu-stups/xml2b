@@ -1,20 +1,21 @@
 package de.hhu.stups.xml2b.readXml;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public final class XMLElement {
 	private final String elementType;
-	private final int pId;
+	private final List<Integer> pIds;
 	private final int recId;
 	private final Map<String, String> attributes;
 	private final String content;
 	private final int startLine, startColumn, endLine, endColumn;
 
-	public XMLElement(String elementType, int pId, int recId, Map<String, String> attributes, String content,
+	public XMLElement(String elementType, List<Integer> pIds, int recId, Map<String, String> attributes, String content,
 	                  int startLine, int startColumn, int endLine, int endColumn) {
 		this.elementType = elementType;
-		this.pId = pId;
+		this.pIds = pIds;
 		this.recId = recId;
 		this.attributes = attributes;
 		this.content = content;
@@ -29,7 +30,7 @@ public final class XMLElement {
 		if (obj instanceof XMLElement) {
 			XMLElement xmlElement = (XMLElement) obj;
 			return elementType.equals(xmlElement.elementType())
-					&& pId == xmlElement.pId()
+					&& pIds.equals(xmlElement.pIds())
 					&& recId == xmlElement.recId()
 					&& attributes.equals(xmlElement.attributes());
 		} else {
@@ -41,8 +42,8 @@ public final class XMLElement {
 		return elementType;
 	}
 
-	public int pId() {
-		return pId;
+	public List<Integer> pIds() {
+		return pIds;
 	}
 
 	public int recId() {
@@ -75,14 +76,14 @@ public final class XMLElement {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(elementType, pId, recId, attributes);
+		return Objects.hash(elementType, pIds, recId, attributes);
 	}
 
 	@Override
 	public String toString() {
 		return "XMLElement[" +
 				"elementType=" + elementType + ", " +
-				"pId=" + pId + ", " +
+				"pIds=" + pIds + ", " +
 				"recId=" + recId + ", " +
 				"attributes=" + attributes + ", " +
 				"content=" + content + ", " +

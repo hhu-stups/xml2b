@@ -19,7 +19,7 @@ import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.*;
 public abstract class Translator {
 
 	public static final String XML_DATA_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES", XML_CONTENT_TYPES_NAME = "XML_CONTENT_TYPES",
-			ID_NAME = "id", P_ID_NAME = "pId", REC_ID_NAME = "recId", TYPE_NAME = "type", CONTENT_NAME = "content", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
+			ID_NAME = "id", P_ID_NAME = "pIds", REC_ID_NAME = "recId", TYPE_NAME = "type", CONTENT_NAME = "content", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
 	// individualAttributeTypes: elementRecId -> (attributeName -> bAttributeType)
@@ -106,7 +106,7 @@ public abstract class Translator {
 		List<PRecEntry> recTypes = new ArrayList<>();
 		recTypes.add(new ARecEntry(
 				createIdentifier(P_ID_NAME),
-				new ANaturalSetExpression()
+				new ASeq1Expression(new ANaturalSetExpression())
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(REC_ID_NAME),
@@ -139,7 +139,7 @@ public abstract class Translator {
 			List<PRecEntry> recValues = new ArrayList<>();
 			recValues.add(new ARecEntry(
 					createIdentifier(P_ID_NAME),
-					createInteger(xmlElement.pId())
+					new ASequenceExtensionExpression(xmlElement.pIds().stream().map(ASTUtils::createInteger).collect(Collectors.toList()))
 			));
 			recValues.add(new ARecEntry(
 					createIdentifier(REC_ID_NAME),

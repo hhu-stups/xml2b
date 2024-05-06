@@ -101,7 +101,7 @@ public class AbstractConstantsProvider {
 				)
 		));
 
-		// XML_getChilds = %(e).(e : ran(XML_DATA) | { c | c : ran(XML_DATA) & c'pId = e'recId })
+		// XML_getChilds = %(e).(e : ran(XML_DATA) | { c | c : ran(XML_DATA) & e'recId : ran(c'pIds) })
 		AEqualPredicate getChilds = new AEqualPredicate();
 		getChilds.setLeft(createIdentifier(XML_GET_CHILDS_NAME));
 		getChilds.setRight(new ALambdaExpression(
@@ -117,21 +117,23 @@ public class AbstractConstantsProvider {
 										createIdentifier("c"),
 										new ARangeExpression(createIdentifier(XML_DATA_NAME))
 								),
-								new AEqualPredicate(
-										new ARecordFieldExpression(
-												createIdentifier("c"),
-												createIdentifier(P_ID_NAME)
-										),
+								new AMemberPredicate(
 										new ARecordFieldExpression(
 												createIdentifier("e"),
 												createIdentifier(REC_ID_NAME)
+										),
+										new ARangeExpression(
+											new ARecordFieldExpression(
+													createIdentifier("c"),
+													createIdentifier(P_ID_NAME)
+											)
 										)
 								)
 						)
 				)
 		));
 
-		// XML_getChildsOfType = %(e,t).(e : ran(XML_DATA) & t : XML_ELEMENT_TYPES | { c | c : ran(XML_DATA) & c'pId = e'recId & c'type = t })
+		// XML_getChildsOfType = %(e,t).(e : ran(XML_DATA) & t : XML_ELEMENT_TYPES | { c | c : ran(XML_DATA) & e'recId : ran(c'pIds) & c'type = t })
 		AEqualPredicate getChildsOfType = new AEqualPredicate();
 		getChildsOfType.setLeft(createIdentifier(XML_GET_CHILDS_OF_TYPE_NAME));
 		getChildsOfType.setRight(new ALambdaExpression(
@@ -154,14 +156,16 @@ public class AbstractConstantsProvider {
 										new ARangeExpression(createIdentifier(XML_DATA_NAME))
 								),
 								new AConjunctPredicate(
-										new AEqualPredicate(
-												new ARecordFieldExpression(
-														createIdentifier("c"),
-														createIdentifier(P_ID_NAME)
-												),
+										new AMemberPredicate(
 												new ARecordFieldExpression(
 														createIdentifier("e"),
 														createIdentifier(REC_ID_NAME)
+												),
+												new ARangeExpression(
+														new ARecordFieldExpression(
+																createIdentifier("c"),
+																createIdentifier(P_ID_NAME)
+														)
 												)
 										),
 										new AEqualPredicate(
