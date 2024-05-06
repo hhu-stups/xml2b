@@ -34,7 +34,7 @@ public class AbstractConstantsProvider {
 		List<PExpression> identifiers = createIdentifierList(XML_GET_ELEMENTS_OF_TYPE_NAME, XML_GET_ELEMENT_OF_ID_NAME, XML_GET_CHILDS_NAME, XML_GET_CHILDS_OF_TYPE_NAME,
 				XML_GET_ID_OF_ELEMENT_NAME, XML_ALL_IDS_OF_TYPE_NAME);
 		// activate memoization for all abstract constants
-		identifiers = identifiers.stream().map(identifier -> new ADescriptionExpression(new TPragmaFreeText("memo"), identifier)).collect(Collectors.toList());
+		//identifiers = identifiers.stream().map(identifier -> new ADescriptionExpression(new TPragmaFreeText("memo"), identifier)).collect(Collectors.toList());
 		return new AAbstractConstantsMachineClause(identifiers);
 	}
 

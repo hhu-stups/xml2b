@@ -106,11 +106,11 @@ public abstract class Translator {
 		List<PRecEntry> recTypes = new ArrayList<>();
 		recTypes.add(new ARecEntry(
 				createIdentifier(P_ID_NAME),
-				new ASeq1Expression(new ANaturalSetExpression())
+				new ASeq1Expression(new AIntegerSetExpression())
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(REC_ID_NAME),
-				new ANatural1SetExpression()
+				new AIntegerSetExpression()
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(TYPE_NAME),
@@ -126,7 +126,7 @@ public abstract class Translator {
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(LOCATION_NAME),
-				new ACartesianProductExpression(new ACartesianProductExpression(new ANatural1SetExpression(), new ANatural1SetExpression()), new ACartesianProductExpression(new ANatural1SetExpression(), new ANatural1SetExpression()))
+				new ACartesianProductExpression(new ACartesianProductExpression(new AIntegerSetExpression(), new AIntegerSetExpression()), new ACartesianProductExpression(new AIntegerSetExpression(), new AIntegerSetExpression()))
 		));
 		typification.setRight(new ASeqExpression(new AStructExpression(recTypes)));
 
