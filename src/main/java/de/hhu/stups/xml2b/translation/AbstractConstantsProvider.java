@@ -39,14 +39,14 @@ public class AbstractConstantsProvider {
 	}
 
 	public static PPredicate createAbstractConstantsProperties() {
-		// XML_getElementsOfType = %t.(t : XML_ELEMENT_TYPES | { e | e : ran(XML_DATA) & e'elementType = t })
+		// XML_getElementsOfType = %t.(t : STRING | { e | e : ran(XML_DATA) & e'elementType = t })
 		AEqualPredicate getElementsOfType = new AEqualPredicate();
 		getElementsOfType.setLeft(createIdentifier(XML_GET_ELEMENTS_OF_TYPE_NAME));
 		getElementsOfType.setRight(new ALambdaExpression(
 				createIdentifierList("t"),
 				new AMemberPredicate(
 						createIdentifier("t"),
-						createIdentifier(XML_ELEMENT_TYPES_NAME)
+						new AStringSetExpression()
 				),
 				new AComprehensionSetExpression(
 						createIdentifierList("e"),
@@ -133,7 +133,7 @@ public class AbstractConstantsProvider {
 				)
 		));
 
-		// XML_getChildsOfType = %(e,t).(e : ran(XML_DATA) & t : XML_ELEMENT_TYPES | { c | c : ran(XML_DATA) & e'recId : ran(c'pIds) & c'type = t })
+		// XML_getChildsOfType = %(e,t).(e : ran(XML_DATA) & t : STRING | { c | c : ran(XML_DATA) & e'recId : ran(c'pIds) & c'type = t })
 		AEqualPredicate getChildsOfType = new AEqualPredicate();
 		getChildsOfType.setLeft(createIdentifier(XML_GET_CHILDS_OF_TYPE_NAME));
 		getChildsOfType.setRight(new ALambdaExpression(
@@ -145,7 +145,7 @@ public class AbstractConstantsProvider {
 						),
 						new AMemberPredicate(
 								createIdentifier("t"),
-								createIdentifier(XML_ELEMENT_TYPES_NAME)
+								new AStringSetExpression()
 						)
 				),
 				new AComprehensionSetExpression(
@@ -210,14 +210,14 @@ public class AbstractConstantsProvider {
 				)
 		));
 
-		// XML_allIdsOfType = %(t).(t : XML_ELEMENT_TYPES | dom({ i,e | e : ran(XML_DATA) & e'type = t & `id`(i) : e'attributes }))
+		// XML_allIdsOfType = %(t).(t : STRING | dom({ i,e | e : ran(XML_DATA) & e'type = t & `id`(i) : e'attributes }))
 		AEqualPredicate allIdsOfType = new AEqualPredicate();
 		allIdsOfType.setLeft(createIdentifier(XML_ALL_IDS_OF_TYPE_NAME));
 		allIdsOfType.setRight(new ALambdaExpression(
 				createIdentifierList("t"),
 				new AMemberPredicate(
 						createIdentifier("t"),
-						createIdentifier(XML_ELEMENT_TYPES_NAME)
+						new AStringSetExpression()
 				),
 				new ADomainExpression(
 						new AComprehensionSetExpression(

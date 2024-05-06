@@ -114,7 +114,7 @@ public abstract class Translator {
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(TYPE_NAME),
-				createIdentifier(XML_ELEMENT_TYPES_NAME)
+				new AStringSetExpression()
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(CONTENT_NAME),
@@ -147,7 +147,7 @@ public abstract class Translator {
 			));
 			recValues.add(new ARecEntry(
 					createIdentifier(TYPE_NAME),
-					createIdentifier(xmlElement.elementType())
+					new AStringExpression(new TStringLiteral(xmlElement.elementType()))
 			));
 			// Content:
 			PExpression contentExpression;
@@ -224,18 +224,18 @@ public abstract class Translator {
 	}
 
 	private void createSetsClause() {
-		Set<String> elementTypes = new HashSet<>();
+		/*Set<String> elementTypes = new HashSet<>();
 		for (XMLElement xmlElement : xmlElements) {
 			elementTypes.add(xmlElement.elementType());
 		}
-		usedIdentifiers.addAll(elementTypes);
-		PSet typeSet = new AEnumeratedSetSet(ASTUtils.createTIdentifierLiteral(XML_ELEMENT_TYPES_NAME),
-				elementTypes.stream().map(ASTUtils::createIdentifier).collect(Collectors.toList()));
+		usedIdentifiers.addAll(elementTypes);*/
+		/*PSet typeSet = new AEnumeratedSetSet(ASTUtils.createTIdentifierLiteral(XML_ELEMENT_TYPES_NAME),
+				elementTypes.stream().map(ASTUtils::createIdentifier).collect(Collectors.toList()));*/
 		List<PSet> enumSets = getEnumSets(usedIdentifiers);
 		List<PSet> sets = new ArrayList<>();
-		sets.add(typeSet);
+		//sets.add(typeSet);
 		sets.addAll(enumSets);
-		machineClauseList.add(new ASetsMachineClause(sets));
+		if (!sets.isEmpty()) machineClauseList.add(new ASetsMachineClause(sets));
 	}
 
 	protected abstract List<PSet> getEnumSets(List<String> usedIdentifiers);
