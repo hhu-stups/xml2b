@@ -3,6 +3,7 @@ package de.hhu.stups.xml2b.cli;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.Start;
+import de.be4.classicalb.core.parser.util.BasePrettyPrinter;
 import de.be4.classicalb.core.parser.util.PrettyPrinter;
 import de.hhu.stups.xml2b.XML2B;
 import org.apache.commons.cli.*;
@@ -77,18 +78,21 @@ public class XML2BCli {
 	}
 
 	public void createMachine(Start start) {
-		PrettyPrinter prettyPrinter = new PrettyPrinter();
-		start.apply(prettyPrinter);
-		String machineContent = prettyPrinter.getPrettyPrint();
 		if (outputMch != null) {
 			try (final Writer writer = Files.newBufferedWriter(outputMch.toPath())) {
-				writer.write(machineContent);
+				BasePrettyPrinter prettyPrinter = new BasePrettyPrinter(writer);
+				prettyPrinter.setUseIndentation(true);
+				start.apply(prettyPrinter);
+				prettyPrinter.flush();
 			} catch (IOException e) {
 				LOGGER.error("error creating machine file", e);
 			}
 		} else {
 			LOGGER.info("no output path provided, print machine");
-			System.out.println(machineContent);
+			PrettyPrinter prettyPrinter = new PrettyPrinter();
+			prettyPrinter.setUseIndentation(true);
+			start.apply(prettyPrinter);
+			System.out.println(prettyPrinter.getPrettyPrint());
 		}
 	}
 
