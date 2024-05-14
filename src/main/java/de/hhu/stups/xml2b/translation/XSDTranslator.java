@@ -48,15 +48,8 @@ public class XSDTranslator extends Translator {
             notPresentElements.remove(element.elementType());
         }
 
-        int recId = -1;
         for (String notPresentElement : notPresentElements) {
-            Map<String, String> identifierMap = new HashMap<>();
-            types.get(notPresentElement).forEach((name, type) -> {
-                identifierMap.put(name, type.getIdentifier());
-                allAttributeTypes.put(type.getIdentifier(), type);
-            });
-            individualAttributeTypes.put(recId, identifierMap);
-            recId--;
+            types.get(notPresentElement).forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
         }
     }
 
