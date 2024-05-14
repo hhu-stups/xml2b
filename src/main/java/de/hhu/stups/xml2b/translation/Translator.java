@@ -228,7 +228,7 @@ public abstract class Translator {
 	private void createSetsClause() {
 		List<PSet> enumSets = getEnumSets(usedIdentifiers);
 		if (!enumSets.isEmpty())
-			machineClauseList.add(new ASetsMachineClause(getEnumSets(usedIdentifiers)));
+			machineClauseList.add(new ASetsMachineClause(enumSets));
 	}
 
 	protected abstract List<PSet> getEnumSets(List<String> usedIdentifiers);
