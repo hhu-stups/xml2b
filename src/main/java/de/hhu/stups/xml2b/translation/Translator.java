@@ -226,18 +226,9 @@ public abstract class Translator {
 	}
 
 	private void createSetsClause() {
-		/*Set<String> elementTypes = new HashSet<>();
-		for (XMLElement xmlElement : xmlElements) {
-			elementTypes.add(xmlElement.elementType());
-		}
-		usedIdentifiers.addAll(elementTypes);*/
-		/*PSet typeSet = new AEnumeratedSetSet(ASTUtils.createTIdentifierLiteral(XML_ELEMENT_TYPES_NAME),
-				elementTypes.stream().map(ASTUtils::createIdentifier).collect(Collectors.toList()));*/
 		List<PSet> enumSets = getEnumSets(usedIdentifiers);
-		List<PSet> sets = new ArrayList<>();
-		//sets.add(typeSet);
-		sets.addAll(enumSets);
-		if (!sets.isEmpty()) machineClauseList.add(new ASetsMachineClause(sets));
+		if (!enumSets.isEmpty())
+			machineClauseList.add(new ASetsMachineClause(getEnumSets(usedIdentifiers)));
 	}
 
 	protected abstract List<PSet> getEnumSets(List<String> usedIdentifiers);
