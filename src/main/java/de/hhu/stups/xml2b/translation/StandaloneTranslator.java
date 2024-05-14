@@ -47,21 +47,21 @@ public class StandaloneTranslator extends Translator {
         }
     }
 
-    private static void determineIdentifiers(BAttributeType bType, Map<String, BAttributeType> allContentTypes) {
+    protected static void determineIdentifiers(BAttributeType bType, Map<String, BAttributeType> allTypes) {
         String identifier = bType.getIdentifier();
-        if (!allContentTypes.containsKey(identifier)) {
-            allContentTypes.put(identifier, bType);
-        } else if (!bType.getClass().equals(allContentTypes.get(identifier).getClass())) {
-            BAttributeType oldType = allContentTypes.get(identifier);
+        if (!allTypes.containsKey(identifier)) {
+            allTypes.put(identifier, bType);
+        } else if (!bType.getClass().equals(allTypes.get(identifier).getClass())) {
+            BAttributeType oldType = allTypes.get(identifier);
             if (oldType != null && !(oldType instanceof BStringAttributeType)) {
                 oldType.addTypeSuffixToIdentifier();
-                allContentTypes.put(oldType.getIdentifier(), oldType);
+                allTypes.put(oldType.getIdentifier(), oldType);
             }
             if (!(bType instanceof BStringAttributeType))
                 bType.addTypeSuffixToIdentifier();
             String suffixIdentifier = bType.getIdentifier();
-            allContentTypes.put(suffixIdentifier, bType);
-            allContentTypes.put(identifier, bType.getStringAttributeType());
+            allTypes.put(suffixIdentifier, bType);
+            allTypes.put(identifier, bType.getStringAttributeType());
         }
     }
 
