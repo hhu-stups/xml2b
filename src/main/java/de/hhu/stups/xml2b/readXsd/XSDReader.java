@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
+import static de.hhu.stups.xml2b.readXsd.TypeUtils.qNameToString;
 import static de.hhu.stups.xml2b.readXsd.XSDUtils.XSDElementCollector.collectElementsFromElements;
 import static de.hhu.stups.xml2b.readXsd.XSDUtils.XSDElementCollector.collectElementsFromSchemaTypes;
 import static de.hhu.stups.xml2b.readXsd.XSDUtils.XSDGroupCollector.collectElementsFromGroups;
@@ -117,7 +118,7 @@ public class XSDReader {
 		if (object instanceof XmlSchemaElement) {
 			XmlSchemaElement element = (XmlSchemaElement) object;
 			Set<XmlSchemaAttribute> attributes = collectSchemaAttributes(element);
-			attributesOfElementName.put(element.getName(), attributes);
+			attributesOfElementName.put(qNameToString(element.getQName()), attributes);
 		}
 	}
 
@@ -205,7 +206,7 @@ public class XSDReader {
 		for (String elementType : attributesOfElementName.keySet()) {
 			Map<String, BAttributeType> attributeTypes = new HashMap<>();
 			for (XmlSchemaAttribute attribute : attributesOfElementName.get(elementType)) {
-				String attributeName = attribute.getName();
+				String attributeName = qNameToString(attribute.getQName());
 				attributeTypes.put(attributeName, extractAttributeType(attribute.getSchemaTypeName(), elementType, attributeName));
 			}
 			attributeTypesOfElementName.put(elementType, attributeTypes);
