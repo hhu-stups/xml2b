@@ -25,22 +25,37 @@ public class XSDTranslator extends Translator {
         Set<String> notPresentElements = new HashSet<>(types.keySet());
         for (XMLElement element : xmlElements) {
             presentAttributes.addAll(element.attributes().keySet());
-            Map<String, String> attributeTypeMap = new HashMap<>();
+            Map<String, String> attributeIdentifierMap = new HashMap<>();
             if (types.containsKey(element.elementType())) {
+                // TODO: same attribute for same element in same namespace: can this happen ? handle possible different types
                 Map<String, BAttributeType> attributeTypes = types.get(element.elementType());
-                //attributeTypeMap.putAll(attributeTypes);
+                Map<String, String> attributeIdentifiers = new HashMap<>();
+
+                attributeTypes.forEach((name, type) -> {
+                    attributeIdentifiers.put(name, type.getIdentifier());
+                    allAttributeTypes.put(type.getIdentifier(), type);
+                });
+
+                attributeIdentifierMap.putAll(attributeIdentifiers);
                 presentAttributes.removeAll(attributeTypes.keySet());
             }
             for (String attribute : presentAttributes) {
                 BAttributeType bAttributeType = new BStringAttributeType(element.elementType(), attribute);
-                //attributeTypeMap.put(attribute, bAttributeType);
+                attributeIdentifierMap.put(attribute, bAttributeType.getIdentifier());
+                allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
             }
-            individualAttributeTypes.put(element.recId(), attributeTypeMap);
+            individualAttributeTypes.put(element.recId(), attributeIdentifierMap);
             notPresentElements.remove(element.elementType());
         }
+
         int recId = -1;
         for (String notPresentElement : notPresentElements) {
-            //individualAttributeTypes.put(recId, types.get(notPresentElement));
+            Map<String, String> identifierMap = new HashMap<>();
+            types.get(notPresentElement).forEach((name, type) -> {
+                identifierMap.put(name, type.getIdentifier());
+                allAttributeTypes.put(type.getIdentifier(), type);
+            });
+            individualAttributeTypes.put(recId, identifierMap);
             recId--;
         }
     }
