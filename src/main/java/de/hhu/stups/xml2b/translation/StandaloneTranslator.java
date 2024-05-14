@@ -21,15 +21,15 @@ public class StandaloneTranslator extends Translator {
         for (XMLElement element : xmlElements) {
             Map<String, String> bAttributeTypesSet = individualAttributeTypes.getOrDefault(element.recId(), new HashMap<>());
             for (String attribute : element.attributes().keySet()) {
-                if (!attribute.equals(ID_NAME)) {
-                    BAttributeType bAttributeType = getAttribute(element.elementType(), attribute, element.attributes().get(attribute));
+	            BAttributeType bAttributeType;
+	            if (!attribute.equals(ID_NAME)) {
+		            bAttributeType = getAttribute(element.elementType(), attribute, element.attributes().get(attribute));
                     determineIdentifiers(bAttributeType, allAttributeTypes);
-                    bAttributeTypesSet.put(attribute, bAttributeType.getIdentifier());
-                } else {
-                    BAttributeType bAttributeType = new BStringAttributeType(element.elementType(), attribute);
+	            } else {
+		            bAttributeType = new BStringAttributeType(element.elementType(), attribute);
                     allAttributeTypes.put(ID_NAME, bAttributeType);
-                    bAttributeTypesSet.put(attribute, bAttributeType.getIdentifier());
-                }
+	            }
+	            bAttributeTypesSet.put(attribute, bAttributeType.getIdentifier());
             }
             individualAttributeTypes.put(element.recId(), bAttributeTypesSet);
         }

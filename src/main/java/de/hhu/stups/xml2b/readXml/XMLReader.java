@@ -80,7 +80,7 @@ public class XMLReader extends DefaultHandler {
 	private static Map<String, String> extractAttributes(Attributes attributes) {
 		Map<String, String> extractedAttributes = new HashMap<>();
 		for (int i = 0; i < attributes.getLength(); i++) {
-			extractedAttributes.put(attributes.getLocalName(i), attributes.getValue(i));
+			extractedAttributes.put(attributes.getQName(i), attributes.getValue(i));
 		}
 		return extractedAttributes;
 	}
