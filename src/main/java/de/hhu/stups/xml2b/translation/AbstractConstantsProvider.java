@@ -4,7 +4,6 @@ import de.be4.classicalb.core.parser.node.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
 import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifierList;
@@ -58,7 +57,7 @@ public class AbstractConstantsProvider {
 								new AEqualPredicate(
 										new ARecordFieldExpression(
 												createIdentifier("e"),
-												createIdentifier(TYPE_NAME)
+												createIdentifier(ELEMENT_NAME)
 										),
 										createIdentifier("t")
 								)
@@ -125,7 +124,7 @@ public class AbstractConstantsProvider {
 										new ARangeExpression(
 											new ARecordFieldExpression(
 													createIdentifier("c"),
-													createIdentifier(P_ID_NAME)
+													createIdentifier(P_IDS_NAME)
 											)
 										)
 								)
@@ -164,14 +163,14 @@ public class AbstractConstantsProvider {
 												new ARangeExpression(
 														new ARecordFieldExpression(
 																createIdentifier("c"),
-																createIdentifier(P_ID_NAME)
+																createIdentifier(P_IDS_NAME)
 														)
 												)
 										),
 										new AEqualPredicate(
 												new ARecordFieldExpression(
 														createIdentifier("c"),
-														createIdentifier(TYPE_NAME)
+														createIdentifier(ELEMENT_NAME)
 												),
 												createIdentifier("t")
 										)
@@ -231,7 +230,7 @@ public class AbstractConstantsProvider {
 												new AEqualPredicate(
 														new ARecordFieldExpression(
 																createIdentifier("e"),
-																createIdentifier(TYPE_NAME)
+																createIdentifier(ELEMENT_NAME)
 														),
 														createIdentifier("t")
 												),

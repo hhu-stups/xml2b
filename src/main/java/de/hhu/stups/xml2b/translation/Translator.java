@@ -19,13 +19,15 @@ import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.*;
 public abstract class Translator {
 
 	public static final String XML_DATA_NAME = "XML_DATA", XML_ELEMENT_TYPES_NAME = "XML_ELEMENT_TYPES", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES", XML_CONTENT_TYPES_NAME = "XML_CONTENT_TYPES",
-			ID_NAME = "id", P_ID_NAME = "pIds", REC_ID_NAME = "recId", TYPE_NAME = "type", CONTENT_NAME = "content", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
+			ID_NAME = "id", P_IDS_NAME = "pIds", REC_ID_NAME = "recId", ELEMENT_NAME = "element", CONTENT_NAME = "content", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
-	// individualAttributeTypes: elementRecId -> (attributeName -> bAttributeType)
+	// individualAttributeTypes: elementRecId -> (attributeName -> attributeIdentifier)
+	// allAttributeTypes: attributeIdentifier -> bAttributeType
 	protected Map<Integer, Map<String, String>> individualAttributeTypes = new HashMap<>();
 	protected Map<String, BAttributeType> allAttributeTypes = new HashMap<>();
-	// individualContentTypes: elementRecId -> bAttributeType
+	// individualContentTypes: elementRecId -> contentIdentifier
+	// allContentTypes: contentIdentifier -> bAttributeType
 	protected Map<Integer, String> individualContentTypes = new HashMap<>();
 	protected Map<String, BAttributeType> allContentTypes = new HashMap<>();
 	protected final XSDReader xsdReader;
@@ -105,7 +107,7 @@ public abstract class Translator {
 		typification.setLeft(createIdentifier(XML_DATA_NAME));
 		List<PRecEntry> recTypes = new ArrayList<>();
 		recTypes.add(new ARecEntry(
-				createIdentifier(P_ID_NAME),
+				createIdentifier(P_IDS_NAME),
 				new ASeq1Expression(new AIntegerSetExpression())
 		));
 		recTypes.add(new ARecEntry(
@@ -113,7 +115,7 @@ public abstract class Translator {
 				new AIntegerSetExpression()
 		));
 		recTypes.add(new ARecEntry(
-				createIdentifier(TYPE_NAME),
+				createIdentifier(ELEMENT_NAME),
 				new AStringSetExpression()
 		));
 		recTypes.add(new ARecEntry(
@@ -138,7 +140,7 @@ public abstract class Translator {
 		for (XMLElement xmlElement : xmlElements) {
 			List<PRecEntry> recValues = new ArrayList<>();
 			recValues.add(new ARecEntry(
-					createIdentifier(P_ID_NAME),
+					createIdentifier(P_IDS_NAME),
 					new ASequenceExtensionExpression(xmlElement.pIds().stream().map(ASTUtils::createInteger).collect(Collectors.toList()))
 			));
 			recValues.add(new ARecEntry(
@@ -146,7 +148,7 @@ public abstract class Translator {
 					createInteger(xmlElement.recId())
 			));
 			recValues.add(new ARecEntry(
-					createIdentifier(TYPE_NAME),
+					createIdentifier(ELEMENT_NAME),
 					new AStringExpression(new TStringLiteral(xmlElement.elementType()))
 			));
 			// Content:
