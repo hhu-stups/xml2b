@@ -3,6 +3,7 @@ package de.hhu.stups.xml2b.readXsd;
 import de.hhu.stups.xml2b.bTypes.BAttributeType;
 import de.hhu.stups.xml2b.bTypes.BEnumSet;
 import de.hhu.stups.xml2b.bTypes.BEnumSetAttributeType;
+import de.hhu.stups.xml2b.bTypes.BStringAttributeType;
 import org.apache.ws.commons.schema.*;
 import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
 import org.w3c.dom.NodeList;
@@ -12,6 +13,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
+import static de.hhu.stups.xml2b.readXsd.TypeUtils.isConvertibleType;
 import static de.hhu.stups.xml2b.readXsd.TypeUtils.qNameToString;
 import static de.hhu.stups.xml2b.readXsd.XSDUtils.XSDElementCollector.collectElementsFromElements;
 import static de.hhu.stups.xml2b.readXsd.XSDUtils.XSDElementCollector.collectElementsFromSchemaTypes;
@@ -21,8 +23,9 @@ public class XSDReader {
 	private final Map<QName, XmlSchemaType> types = new HashMap<>();
 	private final Map<QName, XmlSchemaElement> elements = new HashMap<>();
 	private final Map<QName, XmlSchemaAttributeGroup> attributeGroups = new HashMap<>();
-	private final Map<String, Set<XmlSchemaAttribute>> attributesOfElementName = new HashMap<>();
-	private final Map<String, Map<String, BAttributeType>> attributeTypesOfElementName = new HashMap<>();
+	private final Map<String, Set<XmlSchemaAttribute>> attributesOfElement = new HashMap<>(); // keys are qNameAsString
+	private final Map<String, BAttributeType> contentOfElement = new HashMap<>();
+	private final Map<String, Map<String, BAttributeType>> attributeTypesOfElement = new HashMap<>(); // keys are qNameAsString
 	private final Map<QName, BEnumSet> enumSets = new HashMap<>();
 
 	// TODO: Attribute Freetypes identifier müssen aus element:attribut bestehen. Aber deren Typen müssen global sein, z.B: applicationDirection
@@ -117,21 +120,41 @@ public class XSDReader {
 	private void addElement(XmlSchemaObjectBase object) {
 		if (object instanceof XmlSchemaElement) {
 			XmlSchemaElement element = (XmlSchemaElement) object;
-			Set<XmlSchemaAttribute> attributes = collectSchemaAttributes(element);
-			attributesOfElementName.put(qNameToString(element.getQName()), attributes);
+			Set<XmlSchemaAttribute> attributes = collectSchemaAttributesAndContents(element);
+			attributesOfElement.put(qNameToString(element.getQName()), attributes);
 		}
 	}
 
-	private Set<XmlSchemaAttribute> collectSchemaAttributes(XmlSchemaElement element) {
+	private Set<XmlSchemaAttribute> collectSchemaAttributesAndContents(XmlSchemaElement element) {
 		Set<XmlSchemaAttribute> attributes = new HashSet<>();
-		if (types.getOrDefault(element.getSchemaTypeName(), null) instanceof XmlSchemaComplexType) {
-			XmlSchemaComplexType complexType = (XmlSchemaComplexType) types.getOrDefault(element.getSchemaTypeName(), null);
-			attributes.addAll(collectSchemaAttributesForType(complexType));
+		XmlSchemaType schemaType = element.getSchemaType();
+		if (schemaType instanceof XmlSchemaSimpleType) {
+			XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType) schemaType;
+			collectContentForSimpleType(simpleType, qNameToString(element.getQName()));
+		} else if (schemaType instanceof XmlSchemaComplexType) {
+			XmlSchemaComplexType complexType = (XmlSchemaComplexType) schemaType;
+			attributes.addAll(collectSchemaAttributesForComplexType(complexType));
 		}
 		return attributes;
 	}
 
-	private Set<XmlSchemaAttribute> collectSchemaAttributesForType(XmlSchemaComplexType complexType) {
+	private void collectContentForSimpleType(XmlSchemaSimpleType simpleType, String qNameOfElement) {
+		BAttributeType type;
+		if (isConvertibleType(simpleType.getQName())) {
+			type = extractAttributeType(simpleType.getQName(), qNameOfElement,null);
+		} else {
+			XmlSchemaSimpleTypeContent content = simpleType.getContent();
+			if (content instanceof XmlSchemaSimpleTypeRestriction) {
+				XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) content;
+				type = extractAttributeType(restriction.getBaseTypeName(), qNameOfElement,null);
+			} else {
+				type = new BStringAttributeType(qNameOfElement, null);
+			}
+		}
+		contentOfElement.put(qNameOfElement, type);
+	}
+
+	private Set<XmlSchemaAttribute> collectSchemaAttributesForComplexType(XmlSchemaComplexType complexType) {
 		Set<XmlSchemaAttribute> collectedAttributes = extractAttributesFromXmlSchemaAttributeOrGroupRef(complexType.getAttributes());
 		XmlSchemaContentModel content = complexType.getContentModel();
 		if (content != null && content.getContent() instanceof XmlSchemaComplexContentExtension) {
@@ -140,7 +163,7 @@ public class XSDReader {
 			if (types.getOrDefault(extension.getBaseTypeName(), null) instanceof XmlSchemaComplexType) {
 				XmlSchemaComplexType baseType = (XmlSchemaComplexType) types.getOrDefault(extension.getBaseTypeName(), null);
 				// collect attributes of all base types
-				collectedAttributes.addAll(collectSchemaAttributesForType(baseType));
+				collectedAttributes.addAll(collectSchemaAttributesForComplexType(baseType));
 			}
 		}
 		return collectedAttributes;
@@ -203,13 +226,13 @@ public class XSDReader {
 	}
 
 	public void collectAttributeTypes() {
-		for (String elementType : attributesOfElementName.keySet()) {
+		for (String elementType : attributesOfElement.keySet()) {
 			Map<String, BAttributeType> attributeTypes = new HashMap<>();
-			for (XmlSchemaAttribute attribute : attributesOfElementName.get(elementType)) {
+			for (XmlSchemaAttribute attribute : attributesOfElement.get(elementType)) {
 				String attributeName = qNameToString(attribute.getQName());
 				attributeTypes.put(attributeName, extractAttributeType(attribute.getSchemaTypeName(), elementType, attributeName));
 			}
-			attributeTypesOfElementName.put(elementType, attributeTypes);
+			attributeTypesOfElement.put(elementType, attributeTypes);
 		}
 	}
 
@@ -252,8 +275,12 @@ public class XSDReader {
 		return types;
 	}
 
-	public Map<String, Map<String, BAttributeType>> getAttributeTypesOfElementName() {
-		return attributeTypesOfElementName;
+	public Map<String, Map<String, BAttributeType>> getAttributeTypesOfElement() {
+		return attributeTypesOfElement;
+	}
+
+	public Map<String, BAttributeType> getContentOfElement() {
+		return contentOfElement;
 	}
 
 	public Map<QName, BEnumSet> getEnumSets() {

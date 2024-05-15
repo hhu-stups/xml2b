@@ -176,6 +176,10 @@ public class TypeUtils {
 		xsdTypesToJava.put("untypedAtomic", string);
 	}
 
+	public static boolean isConvertibleType(final QName qName) {
+		return xsdTypesToJava.containsKey(qNameToString(qName));
+	}
+
 	public static BAttributeType getBAttributeType(QName xsdTypeQ, String elementType, String attributeName) {
 		switch (getJavaType(xsdTypeQ)) {
 			case "BigDecimal":

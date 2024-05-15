@@ -21,7 +21,7 @@ public class XSDTranslator extends Translator {
     protected void getAttributeTypes() {
         // TODO: allow enum set extensions with other: (tOtherEnumerationValue)
         Set<String> presentAttributes = new HashSet<>();
-        Map<String, Map<String, BAttributeType>> types = xsdReader.getAttributeTypesOfElementName();
+        Map<String, Map<String, BAttributeType>> types = xsdReader.getAttributeTypesOfElement();
         Set<String> notPresentElements = new HashSet<>(types.keySet());
         for (XMLElement element : xmlElements) {
             presentAttributes.addAll(element.attributes().keySet());
