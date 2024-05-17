@@ -35,22 +35,6 @@ public class CustomXSDVisitor implements XmlSchemaVisitor {
 			return new XSDElement(qName, parents, contentType, attributeTypes);
 		}
 
-		public void addAttributeType(final String name, final BAttributeType attributeType) {
-			this.attributeTypes.put(name, attributeType);
-		}
-
-		public QName getQName() {
-			return qName;
-		}
-
-		public BAttributeType getContentType() {
-			return contentType;
-		}
-
-		public Map<String, BAttributeType> getAttributeTypes() {
-			return attributeTypes;
-		}
-
 		@Override
 		public boolean equals(Object obj) {
 			return obj instanceof XSDType && this.qName.equals(((XSDType) obj).qName);
@@ -78,21 +62,12 @@ public class CustomXSDVisitor implements XmlSchemaVisitor {
 		for (XmlSchemaElement element : schema.getElements().values()) {
 			walker.walk(element);
 		}
-		//this.getElements().values().forEach(e -> System.out.println(e));
-		//System.out.println(visitedTypes.keySet());
-		//this.attributeMapping.values().forEach(e -> System.out.println(e));
+		this.getElements().values().forEach(e -> System.out.println(e));
 	}
 
 	public Map<List<String>, XSDElement> getElements() {
 		HashMap<List<String>, XSDElement> elements = new HashMap<>();
-		elementMapping.forEach((element, xsdElement) -> {
-			elements.put(xsdElement.getParentsWithThis(), xsdElement);
-			/*Set<BAttributeType> attributeTypes = attributeMapping.get(element);
-			if (attributeTypes != null)
-				attributeTypes.forEach(a -> {
-					xsdElement.addAttributeType(a.getAttributeName(), a);
-				});*/
-		});
+		elementMapping.forEach((element, xsdElement) -> elements.put(xsdElement.getParentsWithThis(), xsdElement));
 		return elements;
 	}
 
@@ -168,24 +143,18 @@ public class CustomXSDVisitor implements XmlSchemaVisitor {
 	@Override
 	public void onEnterElement(XmlSchemaElement xmlSchemaElement, XmlSchemaTypeInfo xmlSchemaTypeInfo, boolean b) {
 		this.openElements.push(qNameToString(xmlSchemaElement.getQName()));
-		//walkExtensions(xmlSchemaElement.getSchemaType());
-		//System.out.println(xmlSchemaElement.getSchemaType());
-		//System.out.println(xmlSchemaTypeInfo.getFacets());
-		//if (xmlSchemaElement.getName().equals("elementA"))
-		//	throw new RuntimeException();
 	}
 
 	@Override
 	public void onExitElement(XmlSchemaElement xmlSchemaElement, XmlSchemaTypeInfo xmlSchemaTypeInfo, boolean b) {
-		/*String elementName = qNameToString(xmlSchemaElement.getQName());
+		String elementName = qNameToString(xmlSchemaElement.getQName());
 		BAttributeType contentType = null;
 		if (xmlSchemaTypeInfo.getBaseType() != null && xmlSchemaTypeInfo.getBaseType() != ANYTYPE) {
 			contentType = extractAttributeType(xmlSchemaTypeInfo.getBaseType().getQName(), elementName, null);
 		}
 		QName typeName = xmlSchemaElement.getSchemaTypeName();
 		XSDType xsdType;
-		if (!b) {
-			//System.out.println(typeName +  " -> " + attributeMapping.get(typeName));
+		if (!visitedTypes.containsKey(typeName)) {
 			Map<String, BAttributeType> attributeTypes = attributeMapping.get(typeName);
 			if (attributeTypes != null) {
 				xsdType = new XSDType(typeName, contentType, attributeTypes);
@@ -195,32 +164,20 @@ public class CustomXSDVisitor implements XmlSchemaVisitor {
 			visitedTypes.put(typeName, xsdType);
 		} else {
 			xsdType = visitedTypes.get(typeName);
-		}*/
-		//System.out.println(elementName + ": " + xsdType.attributeTypes);
-		// TODO: onEndAttributes does not work -> skips visited types
+		}
+
+		XSDElement xsdElement = xsdType.createXSDElement(elementName, new ArrayList<>(openElements));
+		this.elementMapping.put(xmlSchemaElement, xsdElement);
 		this.openElements.pop();
-		//XSDElement xsdElement = xsdType.createXSDElement(elementName, new ArrayList<>(openElements));
-		//this.elements.put(elementName, xsdElement);
-		//this.elementMapping.put(xmlSchemaElement, xsdElement);
 	}
 
 	@Override
 	public void onVisitAttribute(XmlSchemaElement xmlSchemaElement, XmlSchemaAttrInfo xmlSchemaAttrInfo) {
 		String attributeName = qNameToString(xmlSchemaAttrInfo.getAttribute().getQName());
 		BAttributeType attributeType = extractAttributeType(xmlSchemaAttrInfo.getAttribute().getSchemaTypeName(),
-				qNameToString(xmlSchemaElement.getQName()),
+				qNameToString(xmlSchemaElement.getSchemaTypeName()),
 				attributeName);
-		//QName typeName = xmlSchemaElement.getSchemaTypeName();
 		currentAttributes.put(attributeName,attributeType);
-		//System.out.println(attributeType + " " + xmlSchemaAttrInfo.getAttribute().g);
-		//System.out.println(xmlSchemaElement.getQName() + " -> " + attributeType);
-		/*if (attributeMapping.containsKey(typeName)) {
-			attributeMapping.get(typeName).put(attributeType.getIdentifier(), attributeType);
-		} else {
-			Map<String, BAttributeType> attributes = new HashMap<>();
-			attributes.put(attributeType.getIdentifier(), attributeType);
-			attributeMapping.put(typeName, attributes);
-		}*/
 	}
 
 	@Override
@@ -231,39 +188,12 @@ public class CustomXSDVisitor implements XmlSchemaVisitor {
 		} else {
 			attributeMapping.put(typeName, new HashMap<>(currentAttributes));
 		}
-		System.out.println(typeName + " -> " + currentAttributes);
-
-		String elementName = qNameToString(xmlSchemaElement.getQName());
-		BAttributeType contentType = null;
-		if (xmlSchemaTypeInfo.getBaseType() != null && xmlSchemaTypeInfo.getBaseType() != ANYTYPE) {
-			contentType = extractAttributeType(xmlSchemaTypeInfo.getBaseType().getQName(), elementName, null);
-		}
-		XSDType xsdType;
-		if (!visitedTypes.containsKey(typeName)) {
-			//System.out.println(typeName +  " -> " + attributeMapping.get(typeName));
-			Map<String, BAttributeType> attributeTypes = new HashMap<>(currentAttributes); //attributeMapping.get(typeName);
-			if (attributeTypes != null) {
-				xsdType = new XSDType(typeName, contentType, attributeTypes);
-			} else {
-				xsdType = new XSDType(typeName, contentType, new HashMap<>());
-			}
-			visitedTypes.put(typeName, xsdType);
-		} else {
-			xsdType = visitedTypes.get(typeName);
-		}
-		//System.out.println(elementName + ": " + xsdType.attributeTypes);
-
-		XSDElement xsdElement = xsdType.createXSDElement(elementName, new ArrayList<>(openElements));
-		//this.elements.put(elementName, xsdElement);
-		this.elementMapping.put(xmlSchemaElement, xsdElement);
-
 		currentAttributes.clear();
 	}
 
 	@Override
 	public void onEnterSubstitutionGroup(XmlSchemaElement xmlSchemaElement) {
-		//XmlSchemaWalker walker = new XmlSchemaWalker(new XmlSchemaCollection(), this);
-		//walker.walk(xmlSchemaElement);
+
 	}
 
 	@Override
@@ -273,12 +203,7 @@ public class CustomXSDVisitor implements XmlSchemaVisitor {
 
 	@Override
 	public void onEnterAllGroup(XmlSchemaAll xmlSchemaAll) {
-		//XmlSchemaWalker walker = new XmlSchemaWalker(new XmlSchemaCollection(), this);
-		for (XmlSchemaAllMember member : xmlSchemaAll.getItems()) {
-			if (member instanceof XmlSchemaElement) {
-				//walker.walk((XmlSchemaElement) member);
-			}
-		}
+
 	}
 
 	@Override
@@ -288,12 +213,7 @@ public class CustomXSDVisitor implements XmlSchemaVisitor {
 
 	@Override
 	public void onEnterChoiceGroup(XmlSchemaChoice xmlSchemaChoice) {
-		//XmlSchemaWalker walker = new XmlSchemaWalker(new XmlSchemaCollection(), this);
-		for (XmlSchemaChoiceMember member : xmlSchemaChoice.getItems()) {
-			if (member instanceof XmlSchemaElement) {
-				//walker.walk((XmlSchemaElement) member);
-			}
-		}
+
 	}
 
 	@Override
@@ -303,12 +223,7 @@ public class CustomXSDVisitor implements XmlSchemaVisitor {
 
 	@Override
 	public void onEnterSequenceGroup(XmlSchemaSequence xmlSchemaSequence) {
-		//XmlSchemaWalker walker = new XmlSchemaWalker(new XmlSchemaCollection(), this);
-		for (XmlSchemaSequenceMember member : xmlSchemaSequence.getItems()) {
-			if (member instanceof XmlSchemaElement) {
-				//walker.walk((XmlSchemaElement) member);
-			}
-		}
+
 	}
 
 	@Override
