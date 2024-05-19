@@ -7,15 +7,17 @@ import java.util.Objects;
 public final class XMLElement {
 	private final String elementType;
 	private final List<Integer> pIds;
+	private final List<String> pNames;
 	private final int recId;
 	private final Map<String, String> attributes;
 	private final String content;
 	private final int startLine, startColumn, endLine, endColumn;
 
-	public XMLElement(String elementType, List<Integer> pIds, int recId, Map<String, String> attributes, String content,
-	                  int startLine, int startColumn, int endLine, int endColumn) {
+	public XMLElement(String elementType, List<Integer> pIds, List<String> pNames, int recId, Map<String, String> attributes,
+	                  String content, int startLine, int startColumn, int endLine, int endColumn) {
 		this.elementType = elementType;
 		this.pIds = pIds;
+		this.pNames = pNames;
 		this.recId = recId;
 		this.attributes = attributes;
 		this.content = content;
@@ -44,6 +46,10 @@ public final class XMLElement {
 
 	public List<Integer> pIds() {
 		return pIds;
+	}
+
+	public List<String> pNames() {
+		return pNames;
 	}
 
 	public int recId() {
@@ -84,6 +90,7 @@ public final class XMLElement {
 		return "XMLElement[" +
 				"elementType=" + elementType + ", " +
 				"pIds=" + pIds + ", " +
+				"pNames=" + pNames + ", " +
 				"recId=" + recId + ", " +
 				"attributes=" + attributes + ", " +
 				"content=" + content + ", " +

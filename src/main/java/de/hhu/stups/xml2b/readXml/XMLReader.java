@@ -35,12 +35,13 @@ public class XMLReader extends DefaultHandler {
 			this.content += content;
 		}
 
-		private XMLElement getClosedXMLElement(String elementType, List<Integer> pIds, int endLine, int endColumn) {
-			return new XMLElement(elementType, pIds, recId, attributes, content, lineNumber, columnNumber, endLine, endColumn);
+		private XMLElement getClosedXMLElement(String elementType, List<Integer> pIds, List<String> pNames, int endLine, int endColumn) {
+			return new XMLElement(elementType, pIds, pNames, recId, attributes, content, lineNumber, columnNumber, endLine, endColumn);
 		}
 	}
 
 	private final Stack<OpenXMLElement> openXMLElements = new Stack<>();
+	private final Stack<String> openXMLElementNames = new Stack<>();
 	private final List<XMLElement> closedXMLElements = new ArrayList<>();
 	private Locator locator;
 	private int recId = 1;
@@ -74,6 +75,7 @@ public class XMLReader extends DefaultHandler {
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		OpenXMLElement newNode = new OpenXMLElement(recId, locator.getLineNumber(), locator.getColumnNumber(), extractAttributes(attributes));
 		openXMLElements.push(newNode);
+		openXMLElementNames.push(qName);
 		recId++;
 	}
 
@@ -99,11 +101,15 @@ public class XMLReader extends DefaultHandler {
 	@Override
 	public void endElement(String uri, String localName, String qName) {
 		OpenXMLElement currentNode = openXMLElements.pop();
+		openXMLElementNames.pop();
 		List<Integer> pIds = openXMLElements.stream().map(o -> o.recId).collect(Collectors.toList());
+		List<String> pNames = new ArrayList<>(openXMLElementNames);
 		if (!pIds.isEmpty()) {
-			closedXMLElements.add(currentNode.getClosedXMLElement(qName, pIds, locator.getLineNumber(), locator.getColumnNumber()));
+			closedXMLElements.add(currentNode.getClosedXMLElement(qName, pIds, pNames,
+					locator.getLineNumber(), locator.getColumnNumber()));
 		} else {
-			closedXMLElements.add(currentNode.getClosedXMLElement(qName, Collections.singletonList(0), locator.getLineNumber(), locator.getColumnNumber()));
+			closedXMLElements.add(currentNode.getClosedXMLElement(qName, Collections.singletonList(0), pNames,
+					locator.getLineNumber(), locator.getColumnNumber()));
 		}
 	}
 
