@@ -43,7 +43,7 @@ public class CustomXSDVisitor implements XmlSchemaVisitor {
 
 	private final Stack<String> openElements = new Stack<>();
 	private final Map<QName, XSDType> visitedTypes = new HashMap<>();
-	private final Map<XmlSchemaElement, XSDElement> elementMapping = new HashMap<>();
+	private final Map<List<String>, XSDElement> elements = new HashMap<>();
 	private final Map<String, BAttributeType> currentAttributes = new HashMap<>();
 	private final Map<QName, Map<String, BAttributeType>> attributeMapping = new HashMap<>();
 
@@ -61,13 +61,12 @@ public class CustomXSDVisitor implements XmlSchemaVisitor {
 		walker.setUserRecognizedTypes(types.keySet());
 		for (XmlSchemaElement element : schema.getElements().values()) {
 			walker.walk(element);
+			walker.clear();
 		}
 		this.getElements().values().forEach(e -> System.out.println(e));
 	}
 
 	public Map<List<String>, XSDElement> getElements() {
-		HashMap<List<String>, XSDElement> elements = new HashMap<>();
-		elementMapping.forEach((element, xsdElement) -> elements.put(xsdElement.getParentsWithThis(), xsdElement));
 		return elements;
 	}
 
@@ -167,7 +166,7 @@ public class CustomXSDVisitor implements XmlSchemaVisitor {
 		}
 
 		XSDElement xsdElement = xsdType.createXSDElement(elementName, new ArrayList<>(openElements));
-		this.elementMapping.put(xmlSchemaElement, xsdElement);
+		this.elements.put(xsdElement.getParentsWithThis(), xsdElement);
 		this.openElements.pop();
 	}
 
