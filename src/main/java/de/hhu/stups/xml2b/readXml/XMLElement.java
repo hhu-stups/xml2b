@@ -1,5 +1,6 @@
 package de.hhu.stups.xml2b.readXml;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -50,6 +51,12 @@ public final class XMLElement {
 
 	public List<String> pNames() {
 		return pNames;
+	}
+
+	public List<String> pNamesWithThis() {
+		List<String> parentsWithThis = new ArrayList<>(this.pNames);
+		parentsWithThis.add(this.elementType);
+		return parentsWithThis;
 	}
 
 	public int recId() {
