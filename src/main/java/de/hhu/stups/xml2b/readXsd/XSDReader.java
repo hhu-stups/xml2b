@@ -3,54 +3,97 @@ package de.hhu.stups.xml2b.readXsd;
 import de.hhu.stups.xml2b.bTypes.BAttributeType;
 import de.hhu.stups.xml2b.bTypes.BEnumSet;
 import de.hhu.stups.xml2b.bTypes.BEnumSetAttributeType;
-import de.hhu.stups.xml2b.bTypes.BStringAttributeType;
 import org.apache.ws.commons.schema.*;
-import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
-import org.w3c.dom.NodeList;
+import org.apache.ws.commons.schema.walker.XmlSchemaAttrInfo;
+import org.apache.ws.commons.schema.walker.XmlSchemaTypeInfo;
+import org.apache.ws.commons.schema.walker.XmlSchemaVisitor;
+import org.apache.ws.commons.schema.walker.XmlSchemaWalker;
 import org.xml.sax.InputSource;
 
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
-import static de.hhu.stups.xml2b.readXsd.TypeUtils.isConvertibleType;
 import static de.hhu.stups.xml2b.readXsd.TypeUtils.qNameToString;
-import static de.hhu.stups.xml2b.readXsd.XSDUtils.XSDElementCollector.collectElementsFromElements;
-import static de.hhu.stups.xml2b.readXsd.XSDUtils.XSDElementCollector.collectElementsFromSchemaTypes;
-import static de.hhu.stups.xml2b.readXsd.XSDUtils.XSDGroupCollector.collectElementsFromGroups;
+import static org.apache.ws.commons.schema.walker.XmlSchemaBaseSimpleType.ANYTYPE;
 
-public class XSDReader {
+public class XSDReader implements XmlSchemaVisitor {
+
+	public static class XSDType {
+
+		private final QName qName;
+		private final BAttributeType contentType;
+		private final Map<String, BAttributeType> attributeTypes;
+
+		public XSDType(QName qName, BAttributeType contentType, Map<String, BAttributeType> attributeTypes) {
+			this.qName = qName;
+			this.contentType = contentType;
+			this.attributeTypes = attributeTypes;
+		}
+
+		public XSDElement createXSDElement(final String qName, final List<String> parents) {
+			return new XSDElement(qName, parents, contentType, attributeTypes);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return obj instanceof XSDType && this.qName.equals(((XSDType) obj).qName);
+		}
+	}
+
+	private final Stack<String> openElements = new Stack<>();
+	private final Map<QName, XSDType> visitedTypes = new HashMap<>();
+	private final Map<List<String>, XSDElement> elements = new HashMap<>();
+	private final Map<String, BAttributeType> currentAttributes = new HashMap<>();
+	private final Map<QName, Map<String, BAttributeType>> attributeMapping = new HashMap<>();
+
 	private final Map<QName, XmlSchemaType> types = new HashMap<>();
-	private final Map<QName, XmlSchemaElement> elements = new HashMap<>();
-	private final Map<QName, XmlSchemaAttributeGroup> attributeGroups = new HashMap<>();
-	private final Map<String, Set<XmlSchemaAttribute>> attributesOfElement = new HashMap<>(); // keys are qNameAsString
-	private final Map<String, BAttributeType> contentOfElement = new HashMap<>();
-	private final Map<String, Map<String, BAttributeType>> attributeTypesOfElement = new HashMap<>(); // keys are qNameAsString
 	private final Map<QName, BEnumSet> enumSets = new HashMap<>();
 
-	// TODO: Attribute Freetypes identifier müssen aus element:attribut bestehen. Aber deren Typen müssen global sein, z.B: applicationDirection
-	// gehe einfach einmal über alle SimpleTypes und extrahiere die enumSets. Wenn Attribut mit so einem Typ kommt: nehmen.
-	// Einschränkung: zwei gleich benannte Elemente mit gleich benanntem Attribut aber unterschiedlichen Typen (sehr selten?)
 	public XSDReader(final File xsdSchema) {
 		System.setProperty("javax.xml.accessExternalDTD", "all");
-		XmlSchema schema = new XmlSchemaCollection().read(new InputSource(xsdSchema.toURI().toString()));
+		XmlSchemaCollection collection = new XmlSchemaCollection();
+		XmlSchema schema = collection.read(new InputSource(xsdSchema.toURI().toString()));
 		this.collectSchemaTypesAndGroups(schema, new ArrayList<>());
-		this.collectSchemaElements();
 		this.collectEnumSets(types.keySet());
-		this.collectAttributeTypes();
+
+		XmlSchemaWalker walker = new XmlSchemaWalker(collection, this);
+		walker.setUserRecognizedTypes(types.keySet());
+		for (XmlSchemaElement element : schema.getElements().values()) {
+			walker.walk(element);
+			walker.clear();
+		}
+		//this.getElements().values().forEach(e -> System.out.println(e));
+	}
+
+	public Map<List<String>, XSDElement> getElements() {
+		return elements;
+	}
+
+	public Map<QName, BEnumSet> getEnumSets() {
+		return enumSets;
+	}
+
+	private BAttributeType extractAttributeType(QName typeName, String elementType, String attributeName) {
+		XmlSchemaType type = types.getOrDefault(typeName, null);
+		if (enumSets.containsKey(typeName)) {
+			return new BEnumSetAttributeType(elementType, attributeName, enumSets.get(typeName));
+		} else if (type instanceof XmlSchemaSimpleType
+				&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
+			XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
+			QName baseName = restriction.getBaseTypeName();
+			if (types.containsKey(baseName)) {
+				return extractAttributeType(baseName, elementType, attributeName);
+			} else {
+				return TypeUtils.getBAttributeType(baseName, elementType, attributeName);
+			}
+		} else {
+			return TypeUtils.getBAttributeType(typeName, elementType, attributeName);
+		}
 	}
 
 	private void collectSchemaTypesAndGroups(XmlSchema schema, List<XmlSchema> visited) {
 		types.putAll(schema.getSchemaTypes());
-
-		Map<QName, XmlSchemaElement> needRecursiveSearchElements = new HashMap<>();
-		needRecursiveSearchElements.putAll(schema.getElements());
-		needRecursiveSearchElements.putAll(collectElementsFromGroups(schema.getGroups()));
-		elements.putAll(needRecursiveSearchElements);
-		elements.putAll(collectElementsFromElements(needRecursiveSearchElements));
-		elements.putAll(collectElementsFromSchemaTypes(schema.getSchemaTypes()));
-
-		collectAttributeGroups(schema.getAttributeGroups());
 		for (XmlSchemaExternal external : schema.getExternals()) {
 			XmlSchema externalSchema = external.getSchema();
 			for (XmlSchemaExternal furtherExternal : externalSchema.getExternals()) {
@@ -62,132 +105,7 @@ public class XSDReader {
 				}
 			}
 			types.putAll(externalSchema.getSchemaTypes());
-			collectAttributeGroups(externalSchema.getAttributeGroups());
 		}
-	}
-
-	private void collectAttributeGroups(Map<QName, XmlSchemaAttributeGroup> groups) {
-		attributeGroups.putAll(groups);
-		Map<QName, XmlSchemaAttributeGroup> innerGroups = new HashMap<>();
-		for (XmlSchemaAttributeGroup group : groups.values()) {
-			for (XmlSchemaAttributeGroupMember member : group.getAttributes()) {
-				if (member instanceof XmlSchemaAttributeGroup) {
-					XmlSchemaAttributeGroup innerGroup = (XmlSchemaAttributeGroup) member;
-					innerGroups.put(innerGroup.getQName(), innerGroup);
-				}
-			}
-		}
-		attributeGroups.putAll(innerGroups);
-		if (!innerGroups.isEmpty()) {
-			collectAttributeGroups(innerGroups);
-		}
-	}
-
-	private void collectSchemaElements() {
-		for (XmlSchemaType type : types.values()) {
-			if (type instanceof XmlSchemaComplexType) {
-				XmlSchemaComplexType complex = (XmlSchemaComplexType) type;
-				collectElementsForParticle(complex.getParticle());
-				XmlSchemaContentModel content = complex.getContentModel();
-				if (content != null && content.getContent() instanceof XmlSchemaComplexContentExtension) {
-					XmlSchemaComplexContentExtension extension = (XmlSchemaComplexContentExtension) content.getContent();
-					collectElementsForParticle(extension.getParticle());
-				}
-			}
-		}
-	}
-
-	private void collectElementsForParticle(XmlSchemaParticle particle) {
-		if (particle instanceof XmlSchemaAll) {
-			XmlSchemaAll schemaAll = (XmlSchemaAll) particle;
-			for (XmlSchemaAllMember all : schemaAll.getItems()) {
-				addElement(all);
-			}
-		} else if (particle instanceof XmlSchemaSequence) {
-			XmlSchemaSequence schemaSequence = (XmlSchemaSequence) particle;
-			for (XmlSchemaSequenceMember sequence : schemaSequence.getItems()) {
-				addElement(sequence);
-				if (sequence instanceof XmlSchemaChoice) {
-					XmlSchemaChoice schemaChoice = (XmlSchemaChoice) sequence;
-					for (XmlSchemaChoiceMember choice : schemaChoice.getItems()) {
-						addElement(choice);
-					}
-				}
-			}
-		}
-	}
-
-	private void addElement(XmlSchemaObjectBase object) {
-		if (object instanceof XmlSchemaElement) {
-			XmlSchemaElement element = (XmlSchemaElement) object;
-			Set<XmlSchemaAttribute> attributes = collectSchemaAttributesAndContents(element);
-			attributesOfElement.put(qNameToString(element.getQName()), attributes);
-		}
-	}
-
-	private Set<XmlSchemaAttribute> collectSchemaAttributesAndContents(XmlSchemaElement element) {
-		Set<XmlSchemaAttribute> attributes = new HashSet<>();
-		XmlSchemaType schemaType = element.getSchemaType();
-		if (schemaType instanceof XmlSchemaSimpleType) {
-			XmlSchemaSimpleType simpleType = (XmlSchemaSimpleType) schemaType;
-			collectContentForSimpleType(simpleType, qNameToString(element.getQName()));
-		} else if (schemaType instanceof XmlSchemaComplexType) {
-			XmlSchemaComplexType complexType = (XmlSchemaComplexType) schemaType;
-			attributes.addAll(collectSchemaAttributesForComplexType(complexType));
-		}
-		return attributes;
-	}
-
-	private void collectContentForSimpleType(XmlSchemaSimpleType simpleType, String qNameOfElement) {
-		BAttributeType type;
-		if (isConvertibleType(simpleType.getQName())) {
-			type = extractAttributeType(simpleType.getQName(), qNameOfElement,null);
-		} else {
-			XmlSchemaSimpleTypeContent content = simpleType.getContent();
-			if (content instanceof XmlSchemaSimpleTypeRestriction) {
-				XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) content;
-				type = extractAttributeType(restriction.getBaseTypeName(), qNameOfElement,null);
-			} else {
-				type = new BStringAttributeType(qNameOfElement, null);
-			}
-		}
-		contentOfElement.put(qNameOfElement, type);
-	}
-
-	private Set<XmlSchemaAttribute> collectSchemaAttributesForComplexType(XmlSchemaComplexType complexType) {
-		Set<XmlSchemaAttribute> collectedAttributes = extractAttributesFromXmlSchemaAttributeOrGroupRef(complexType.getAttributes());
-		XmlSchemaContentModel content = complexType.getContentModel();
-		if (content != null && content.getContent() instanceof XmlSchemaComplexContentExtension) {
-			XmlSchemaComplexContentExtension extension = (XmlSchemaComplexContentExtension) content.getContent();
-			collectedAttributes.addAll(extractAttributesFromXmlSchemaAttributeOrGroupRef(extension.getAttributes()));
-			if (types.getOrDefault(extension.getBaseTypeName(), null) instanceof XmlSchemaComplexType) {
-				XmlSchemaComplexType baseType = (XmlSchemaComplexType) types.getOrDefault(extension.getBaseTypeName(), null);
-				// collect attributes of all base types
-				collectedAttributes.addAll(collectSchemaAttributesForComplexType(baseType));
-			}
-		}
-		return collectedAttributes;
-	}
-
-	private Set<XmlSchemaAttribute> extractAttributesFromXmlSchemaAttributeOrGroupRef(List<XmlSchemaAttributeOrGroupRef> attributes) {
-		Set<XmlSchemaAttribute> collectedAttributes = new HashSet<>();
-		for (XmlSchemaAttributeOrGroupRef attribute : attributes) {
-			if (attribute instanceof XmlSchemaAttribute) {
-				XmlSchemaAttribute attr = (XmlSchemaAttribute) attribute;
-				collectedAttributes.add(attr);
-			} else if (attribute instanceof XmlSchemaAttributeGroupRef) {
-				XmlSchemaAttributeGroup group = attributeGroups.get(((XmlSchemaAttributeGroupRef) attribute).getTargetQName());
-				if (group != null) {
-					for (XmlSchemaAttributeGroupMember member : group.getAttributes()) {
-						if (member instanceof XmlSchemaAttribute) {
-							XmlSchemaAttribute attr = (XmlSchemaAttribute) member;
-							collectedAttributes.add(attr);
-						}
-					}
-				}
-			}
-		}
-		return collectedAttributes;
 	}
 
 	private void collectEnumSets(Set<QName> typeNames) {
@@ -225,65 +143,104 @@ public class XSDReader {
 		return enum_values;
 	}
 
-	public void collectAttributeTypes() {
-		for (String elementType : attributesOfElement.keySet()) {
-			Map<String, BAttributeType> attributeTypes = new HashMap<>();
-			for (XmlSchemaAttribute attribute : attributesOfElement.get(elementType)) {
-				String attributeName = qNameToString(attribute.getQName());
-				attributeTypes.put(attributeName, extractAttributeType(attribute.getSchemaTypeName(), elementType, attributeName));
-			}
-			attributeTypesOfElement.put(elementType, attributeTypes);
-		}
+	@Override
+	public void onEnterElement(XmlSchemaElement xmlSchemaElement, XmlSchemaTypeInfo xmlSchemaTypeInfo, boolean b) {
+		this.openElements.push(qNameToString(xmlSchemaElement.getQName()));
 	}
 
-	private BAttributeType extractAttributeType(QName typeName, String elementType, String attributeName) {
-		XmlSchemaType type = types.getOrDefault(typeName, null);
-		if (enumSets.containsKey(typeName)) {
-			return new BEnumSetAttributeType(elementType, attributeName, enumSets.get(typeName));
-		} else if (type instanceof XmlSchemaSimpleType
-				&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
-			XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
-			QName baseName = restriction.getBaseTypeName();
-			if (types.containsKey(baseName)) {
-				return extractAttributeType(baseName, elementType, attributeName);
+	@Override
+	public void onExitElement(XmlSchemaElement xmlSchemaElement, XmlSchemaTypeInfo xmlSchemaTypeInfo, boolean b) {
+		BAttributeType contentType = null;
+		if (xmlSchemaTypeInfo.getBaseType() != null && xmlSchemaTypeInfo.getBaseType() != ANYTYPE) {
+			QName baseTypeName = xmlSchemaTypeInfo.getBaseType().getQName();
+			contentType = extractAttributeType(baseTypeName, qNameToString(baseTypeName), null);
+		}
+		QName typeName = xmlSchemaElement.getSchemaTypeName();
+		XSDType xsdType;
+		if (!visitedTypes.containsKey(typeName)) {
+			Map<String, BAttributeType> attributeTypes = attributeMapping.get(typeName);
+			if (attributeTypes != null) {
+				xsdType = new XSDType(typeName, contentType, attributeTypes);
 			} else {
-				return TypeUtils.getBAttributeType(baseName, elementType, attributeName);
+				xsdType = new XSDType(typeName, contentType, new HashMap<>());
 			}
+			visitedTypes.put(typeName, xsdType);
 		} else {
-			return TypeUtils.getBAttributeType(typeName, elementType, attributeName);
+			xsdType = visitedTypes.get(typeName);
 		}
+
+		XSDElement xsdElement = xsdType.createXSDElement(qNameToString(xmlSchemaElement.getQName()), new ArrayList<>(openElements));
+		this.elements.put(xsdElement.getParentsWithThis(), xsdElement);
+		this.openElements.pop();
 	}
 
-	private static void getDocumentationOfAttribute(XmlSchemaAttribute attr) {
-		if (attr.getAnnotation() != null) {
-			List<XmlSchemaAnnotationItem> items = attr.getAnnotation().getItems();
-			for(XmlSchemaAnnotationItem item : items) {
-				if (item instanceof XmlSchemaDocumentation) {
-					XmlSchemaDocumentation docu = (XmlSchemaDocumentation) item;
-					NodeList markup = docu.getMarkup();
-					StringBuilder sb = new StringBuilder();
-					for (int i = 0; i < markup.getLength(); i++) {
-						sb.append(markup.item(i).getTextContent());
-					}
-					//System.out.println(sb);
-				}
-			}
+	@Override
+	public void onVisitAttribute(XmlSchemaElement xmlSchemaElement, XmlSchemaAttrInfo xmlSchemaAttrInfo) {
+		String attributeName = qNameToString(xmlSchemaAttrInfo.getAttribute().getQName());
+		BAttributeType attributeType = extractAttributeType(xmlSchemaAttrInfo.getAttribute().getSchemaTypeName(),
+				qNameToString(xmlSchemaElement.getSchemaTypeName()),
+				attributeName);
+		currentAttributes.put(attributeName,attributeType);
+	}
+
+	@Override
+	public void onEndAttributes(XmlSchemaElement xmlSchemaElement, XmlSchemaTypeInfo xmlSchemaTypeInfo) {
+		QName typeName = xmlSchemaElement.getSchemaTypeName();
+		if (attributeMapping.containsKey(typeName)) {
+			attributeMapping.get(typeName).putAll(currentAttributes);
+		} else {
+			attributeMapping.put(typeName, new HashMap<>(currentAttributes));
 		}
+		currentAttributes.clear();
 	}
 
-	public Map<QName, XmlSchemaType> getTypes() {
-		return types;
+	@Override
+	public void onEnterSubstitutionGroup(XmlSchemaElement xmlSchemaElement) {
+
 	}
 
-	public Map<String, Map<String, BAttributeType>> getAttributeTypesOfElement() {
-		return attributeTypesOfElement;
+	@Override
+	public void onExitSubstitutionGroup(XmlSchemaElement xmlSchemaElement) {
+
 	}
 
-	public Map<String, BAttributeType> getContentOfElement() {
-		return contentOfElement;
+	@Override
+	public void onEnterAllGroup(XmlSchemaAll xmlSchemaAll) {
+
 	}
 
-	public Map<QName, BEnumSet> getEnumSets() {
-		return enumSets;
+	@Override
+	public void onExitAllGroup(XmlSchemaAll xmlSchemaAll) {
+
+	}
+
+	@Override
+	public void onEnterChoiceGroup(XmlSchemaChoice xmlSchemaChoice) {
+
+	}
+
+	@Override
+	public void onExitChoiceGroup(XmlSchemaChoice xmlSchemaChoice) {
+
+	}
+
+	@Override
+	public void onEnterSequenceGroup(XmlSchemaSequence xmlSchemaSequence) {
+
+	}
+
+	@Override
+	public void onExitSequenceGroup(XmlSchemaSequence xmlSchemaSequence) {
+
+	}
+
+	@Override
+	public void onVisitAny(XmlSchemaAny xmlSchemaAny) {
+
+	}
+
+	@Override
+	public void onVisitAnyAttribute(XmlSchemaElement xmlSchemaElement, XmlSchemaAnyAttribute xmlSchemaAnyAttribute) {
+
 	}
 }

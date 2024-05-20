@@ -5,6 +5,7 @@ import de.be4.classicalb.core.parser.node.AEnumeratedSetSet;
 import de.be4.classicalb.core.parser.node.PSet;
 import de.hhu.stups.xml2b.bTypes.*;
 import de.hhu.stups.xml2b.readXml.XMLElement;
+import de.hhu.stups.xml2b.readXsd.XSDElement;
 
 import javax.xml.namespace.QName;
 import java.io.File;
@@ -21,14 +22,14 @@ public class XSDTranslator extends Translator {
     protected void getAttributeTypes() {
         // TODO: allow enum set extensions with other: (tOtherEnumerationValue)
         Set<String> presentAttributes = new HashSet<>();
-        Map<String, Map<String, BAttributeType>> types = xsdReader.getAttributeTypesOfElement();
-        Set<String> notPresentElements = new HashSet<>(types.keySet());
+        Map<List<String>, XSDElement> types = xsdReader.getElements();
+        Set<List<String>> notPresentElements = new HashSet<>(types.keySet());
         for (XMLElement element : xmlElements) {
             presentAttributes.addAll(element.attributes().keySet());
             Map<String, String> attributeIdentifierMap = new HashMap<>();
-            if (types.containsKey(element.elementType())) {
+            if (types.containsKey(element.pNamesWithThis())) {
                 // TODO: same attribute for same element in same namespace: can this happen ? handle possible different types
-                Map<String, BAttributeType> attributeTypes = types.get(element.elementType());
+                Map<String, BAttributeType> attributeTypes = types.get(element.pNamesWithThis()).getAttributeTypes();
                 Map<String, String> attributeIdentifiers = new HashMap<>();
 
                 attributeTypes.forEach((name, type) -> {
@@ -45,17 +46,18 @@ public class XSDTranslator extends Translator {
                 allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
             }
             individualAttributeTypes.put(element.recId(), attributeIdentifierMap);
-            notPresentElements.remove(element.elementType());
+            notPresentElements.remove(element.pNamesWithThis());
         }
 
-        for (String notPresentElement : notPresentElements) {
-            types.get(notPresentElement).forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
+        for (List<String> notPresentElement : notPresentElements) {
+            types.get(notPresentElement).getAttributeTypes().forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
         }
     }
 
     @Override
     protected void getContentTypes() {
-
+       // xsdReader.getContentOfElement().forEach((element, type) -> allContentTypes.put(type.getIdentifier(), type));
+       // System.out.println(xsdReader.getContentOfElement());
     }
 
     @Override
