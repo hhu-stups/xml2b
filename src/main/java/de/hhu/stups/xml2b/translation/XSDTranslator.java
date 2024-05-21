@@ -34,6 +34,7 @@ public class XSDTranslator extends Translator {
                 attributeTypes.forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
                 presentAttributes.removeAll(attributeTypes.keySet());
             } else {
+                // TODO: if there is content, add type!
                 xsdElement = new XSDElement(xmlElement.elementType(), xmlElement.pNames(), null, new HashMap<>());
             }
             for (String attribute : presentAttributes) {

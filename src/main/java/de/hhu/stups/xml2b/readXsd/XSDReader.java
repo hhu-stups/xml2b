@@ -55,7 +55,7 @@ public class XSDReader implements XmlSchemaVisitor {
 		System.setProperty("javax.xml.accessExternalDTD", "all");
 		XmlSchemaCollection collection = new XmlSchemaCollection();
 		XmlSchema schema = collection.read(new InputSource(xsdSchema.toURI().toString()));
-		this.collectSchemaTypesAndGroups(schema, new ArrayList<>());
+		this.collectSchemaTypes(schema, new ArrayList<>());
 		this.collectEnumSets(types.keySet());
 
 		XmlSchemaWalker walker = new XmlSchemaWalker(collection, this);
@@ -70,12 +70,12 @@ public class XSDReader implements XmlSchemaVisitor {
 			for (List<String> actualOpenElements : actualVisitLater.keySet()) {
 				this.openElements.clear();
 				this.openElements.addAll(actualOpenElements);
+				// remove the currently walked element:
 				this.openElements.pop();
 				walker.walk(actualVisitLater.get(actualOpenElements));
 				walker.clear();
 			}
 		}
-		//this.getElements().values().forEach(e -> System.out.println(e));
 	}
 
 	public Map<List<String>, XSDElement> getElements() {
@@ -104,7 +104,7 @@ public class XSDReader implements XmlSchemaVisitor {
 		}
 	}
 
-	private void collectSchemaTypesAndGroups(XmlSchema schema, List<XmlSchema> visited) {
+	private void collectSchemaTypes(XmlSchema schema, List<XmlSchema> visited) {
 		types.putAll(schema.getSchemaTypes());
 		for (XmlSchemaExternal external : schema.getExternals()) {
 			XmlSchema externalSchema = external.getSchema();
@@ -113,7 +113,7 @@ public class XSDReader implements XmlSchemaVisitor {
 				// prevent from looping in references
 				if (!visited.contains(furtherExternalSchema)) {
 					visited.add(furtherExternalSchema);
-					collectSchemaTypesAndGroups(furtherExternal.getSchema(), visited);
+					collectSchemaTypes(furtherExternal.getSchema(), visited);
 				}
 			}
 			types.putAll(externalSchema.getSchemaTypes());
@@ -138,6 +138,7 @@ public class XSDReader implements XmlSchemaVisitor {
 					&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeUnion) {
 				// <xs:union memberTypes="rail3:tBaliseGroupType rail3:tOtherEnumerationValue"/>
 				// TODO: this solution does not work for multiple memberTypes that are already enum sets!
+				// if union (or other type): new enum set with another prefix. for arbitrary value: add when translated (flag)
 				XmlSchemaSimpleTypeUnion union = (XmlSchemaSimpleTypeUnion) ((XmlSchemaSimpleType) type).getContent();
 				collectEnumSets(new HashSet<>(Arrays.asList(union.getMemberTypesQNames())));
 			}
@@ -166,7 +167,7 @@ public class XSDReader implements XmlSchemaVisitor {
 		BAttributeType contentType = null;
 		if (xmlSchemaTypeInfo.getBaseType() != null && xmlSchemaTypeInfo.getBaseType() != ANYTYPE) {
 			QName baseTypeName = xmlSchemaTypeInfo.getBaseType().getQName();
-			contentType = extractAttributeType(baseTypeName, elementQName, null);
+			contentType = extractAttributeType(baseTypeName, qNameToString(xmlSchemaElement.getSchemaTypeName()), null);
 		}
 		QName typeName = xmlSchemaElement.getSchemaTypeName();
 		XSDType xsdType;

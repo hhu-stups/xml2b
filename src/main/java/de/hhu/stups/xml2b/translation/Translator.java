@@ -153,13 +153,13 @@ public abstract class Translator {
 			if (xmlElement.content().isEmpty()) {
 				contentExpression = new AEmptySetExpression();
 			} else {
-				BAttributeType defaultType = new BStringAttributeType(xmlElement.elementType(), null);
-				BAttributeType type = allContentTypes.getOrDefault(individualContentTypes.getOrDefault(xmlElement.recId(), defaultType.getIdentifier()), defaultType);
+				//BAttributeType defaultType = new BStringAttributeType(xmlElement.elementType(), null);
+				BAttributeType type = xmlElement.typeInformation().getContentType(); //allContentTypes.getOrDefault(individualContentTypes.getOrDefault(xmlElement.recId(), defaultType.getIdentifier()), defaultType);
 				List<PExpression> contents = new ArrayList<>();
 				contents.add(type.getDataExpression(xmlElement.content()));
-				if (type.hasTypeSuffix()) {
-					contents.add(type.getStringAttributeType().getDataExpression(xmlElement.content()));
-				}
+				//if (type.hasTypeSuffix()) {
+				//	contents.add(type.getStringAttributeType().getDataExpression(xmlElement.content()));
+				//}
 				contentExpression = new ASetExtensionExpression(contents);
 			}
 			recValues.add(new ARecEntry(
