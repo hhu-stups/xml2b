@@ -19,45 +19,45 @@ public class XSDTranslator extends Translator {
     }
 
     @Override
-    protected void getAttributeTypes() {
+    protected void getTypes() {
         // TODO: allow enum set extensions with other: (tOtherEnumerationValue)
         Set<String> presentAttributes = new HashSet<>();
         Map<List<String>, XSDElement> types = xsdReader.getElements();
         Set<List<String>> notPresentElements = new HashSet<>(types.keySet());
-        for (XMLElement element : xmlElements) {
-            presentAttributes.addAll(element.attributes().keySet());
-            Map<String, String> attributeIdentifierMap = new HashMap<>();
-            if (types.containsKey(element.pNamesWithThis())) {
-                // TODO: same attribute for same element in same namespace: can this happen ? handle possible different types
-                Map<String, BAttributeType> attributeTypes = types.get(element.pNamesWithThis()).getAttributeTypes();
-                Map<String, String> attributeIdentifiers = new HashMap<>();
-
-                attributeTypes.forEach((name, type) -> {
-                    attributeIdentifiers.put(name, type.getIdentifier());
-                    allAttributeTypes.put(type.getIdentifier(), type);
-                });
-
-                attributeIdentifierMap.putAll(attributeIdentifiers);
+        for (XMLElement xmlElement : xmlElements) {
+            presentAttributes.addAll(xmlElement.attributes().keySet());
+	        XSDElement xsdElement;
+            if (types.containsKey(xmlElement.pNamesWithThis())) {
+                // TODO: same attribute for same xmlElement in same namespace: can this happen ? handle possible different types
+                xsdElement = types.get(xmlElement.pNamesWithThis());
+                Map<String, BAttributeType> attributeTypes = xsdElement.getAttributeTypes();
+                attributeTypes.forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
                 presentAttributes.removeAll(attributeTypes.keySet());
+            } else {
+                xsdElement = new XSDElement(xmlElement.elementType(), xmlElement.pNames(), null, new HashMap<>());
             }
             for (String attribute : presentAttributes) {
-                BAttributeType bAttributeType = new BStringAttributeType(element.elementType(), attribute);
-                attributeIdentifierMap.put(attribute, bAttributeType.getIdentifier());
+                BAttributeType bAttributeType = new BStringAttributeType(xsdElement.getQName(), attribute);
+                xsdElement.addAttributeType(attribute, bAttributeType);
                 allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
             }
-            individualAttributeTypes.put(element.recId(), attributeIdentifierMap);
-            notPresentElements.remove(element.pNamesWithThis());
+            BAttributeType contentType = xsdElement.getContentType();
+            if (contentType != null) {
+                allContentTypes.put(contentType.getIdentifier(), contentType);
+            }
+            // IMPORTANT: ensure that for each xmlElement type info is added!
+            xmlElement.addTypeInformation(xsdElement);
+            notPresentElements.remove(xmlElement.pNamesWithThis());
         }
 
         for (List<String> notPresentElement : notPresentElements) {
-            types.get(notPresentElement).getAttributeTypes().forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
+            XSDElement xsdElement = types.get(notPresentElement);
+            xsdElement.getAttributeTypes().forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
+            BAttributeType contentType = xsdElement.getContentType();
+            if (contentType != null) {
+                allContentTypes.put(contentType.getIdentifier(), contentType);
+            }
         }
-    }
-
-    @Override
-    protected void getContentTypes() {
-       // xsdReader.getContentOfElement().forEach((element, type) -> allContentTypes.put(type.getIdentifier(), type));
-       // System.out.println(xsdReader.getContentOfElement());
     }
 
     @Override

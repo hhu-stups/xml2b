@@ -17,7 +17,8 @@ public class StandaloneTranslator extends Translator {
     }
 
     @Override
-    protected void getAttributeTypes() {
+    protected void getTypes() {
+        // TODO: create XSDElements here
         for (XMLElement element : xmlElements) {
             Map<String, String> bAttributeTypesSet = individualAttributeTypes.getOrDefault(element.recId(), new HashMap<>());
             for (String attribute : element.attributes().keySet()) {
@@ -33,10 +34,6 @@ public class StandaloneTranslator extends Translator {
             }
             individualAttributeTypes.put(element.recId(), bAttributeTypesSet);
         }
-    }
-
-    @Override
-    protected void getContentTypes() {
         for (XMLElement element : xmlElements) {
             String content = element.content();
             if (!content.isEmpty()) {

@@ -41,8 +41,7 @@ public abstract class Translator {
 		this.handleValidationErrors(xmlFile, xmlReader.getErrors());
 		this.machineName = xmlFile.getName().split("\\.")[0];
 		this.xsdReader = xsdFile != null ? new XSDReader(xsdFile) : null;
-		this.getAttributeTypes();
-		this.getContentTypes();
+		this.getTypes();
 	}
 
 	private void handleValidationErrors(File xmlFile, List<XMLReader.ValidationError> errors) throws BCompoundException {
@@ -55,9 +54,7 @@ public abstract class Translator {
 		}
 	}
 
-	protected abstract void getAttributeTypes();
-
-	protected abstract void getContentTypes();
+	protected abstract void getTypes();
 
 	public Start createBAst() {
 		AGeneratedParseUnit aGeneratedParseUnit = new AGeneratedParseUnit();
@@ -171,18 +168,19 @@ public abstract class Translator {
 			));
 			// Attributes:
 			List<PExpression> attributes = new ArrayList<>();
-			Map<String, String> currentAttributes = individualAttributeTypes.getOrDefault(xmlElement.recId(), new HashMap<>());
+			//Map<String, String> currentAttributes = individualAttributeTypes.getOrDefault(xmlElement.recId(), new HashMap<>());
 			for (String attribute : xmlElement.attributes().keySet()) { // TODO: ignore attributes not present! (otherwise null)
-				if (currentAttributes.containsKey(attribute)) {
-					BAttributeType type = allAttributeTypes.get(currentAttributes.get(attribute));
+				Map<String, BAttributeType> attributeTypes = xmlElement.typeInformation().getAttributeTypes();
+				if (attributeTypes.containsKey(attribute)) {
+					BAttributeType type = attributeTypes.get(attribute);
 					if (type == null) {
 						// should never happen
 						throw new IllegalStateException("identifier of attribute type does not exist");
 					}
 					attributes.add(type.getDataExpression(xmlElement.attributes().get(attribute)));
-					if (type.hasTypeSuffix()) {
-						attributes.add(type.getStringAttributeType().getDataExpression(xmlElement.attributes().get(attribute)));
-					}
+					//if (type.hasTypeSuffix()) {
+					//	attributes.add(type.getStringAttributeType().getDataExpression(xmlElement.attributes().get(attribute)));
+					//}
 				}
 			}
 			recValues.add(new ARecEntry(
