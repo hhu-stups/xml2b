@@ -43,6 +43,7 @@ public class XSDReader implements XmlSchemaVisitor {
 
 	private final Stack<String> openElements = new Stack<>();
 	private final Map<QName, XSDType> visitedTypes = new HashMap<>();
+	private final Map<List<String>, XmlSchemaElement> visitLater = new HashMap<>();
 	private final Map<List<String>, XSDElement> elements = new HashMap<>();
 	private final Map<String, BAttributeType> currentAttributes = new HashMap<>();
 	private final Map<QName, Map<String, BAttributeType>> attributeMapping = new HashMap<>();
@@ -62,6 +63,17 @@ public class XSDReader implements XmlSchemaVisitor {
 		for (XmlSchemaElement element : schema.getElements().values()) {
 			walker.walk(element);
 			walker.clear();
+		}
+		while (!visitLater.isEmpty()) {
+			Map<List<String>, XmlSchemaElement> actualVisitLater = new HashMap<>(visitLater);
+			visitLater.clear();
+			for (List<String> actualOpenElements : actualVisitLater.keySet()) {
+				this.openElements.clear();
+				this.openElements.addAll(actualOpenElements);
+				this.openElements.pop();
+				walker.walk(actualVisitLater.get(actualOpenElements));
+				walker.clear();
+			}
 		}
 		//this.getElements().values().forEach(e -> System.out.println(e));
 	}
@@ -153,7 +165,7 @@ public class XSDReader implements XmlSchemaVisitor {
 		BAttributeType contentType = null;
 		if (xmlSchemaTypeInfo.getBaseType() != null && xmlSchemaTypeInfo.getBaseType() != ANYTYPE) {
 			QName baseTypeName = xmlSchemaTypeInfo.getBaseType().getQName();
-			contentType = extractAttributeType(baseTypeName, qNameToString(baseTypeName), null);
+			contentType = extractAttributeType(baseTypeName, qNameToString(xmlSchemaElement.getQName()), null);
 		}
 		QName typeName = xmlSchemaElement.getSchemaTypeName();
 		XSDType xsdType;
@@ -167,6 +179,9 @@ public class XSDReader implements XmlSchemaVisitor {
 			visitedTypes.put(typeName, xsdType);
 		} else {
 			xsdType = visitedTypes.get(typeName);
+		}
+		if (b) {
+		    visitLater.put(new ArrayList<>(openElements), xmlSchemaElement);
 		}
 		this.openElements.pop();
 		XSDElement xsdElement = xsdType.createXSDElement(qNameToString(xmlSchemaElement.getQName()), new ArrayList<>(openElements));
