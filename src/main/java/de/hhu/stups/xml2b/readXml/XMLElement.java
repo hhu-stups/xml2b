@@ -1,5 +1,7 @@
 package de.hhu.stups.xml2b.readXml;
 
+import de.hhu.stups.xml2b.readXsd.XSDElement;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +15,8 @@ public final class XMLElement {
 	private final Map<String, String> attributes;
 	private final String content;
 	private final int startLine, startColumn, endLine, endColumn;
+
+	private XSDElement typeInformation = null;
 
 	public XMLElement(String elementType, List<Integer> pIds, List<String> pNames, int recId, Map<String, String> attributes,
 	                  String content, int startLine, int startColumn, int endLine, int endColumn) {
@@ -39,6 +43,10 @@ public final class XMLElement {
 		} else {
 			return false;
 		}
+	}
+
+	public void addTypeInformation(final XSDElement typeInformation) {
+		this.typeInformation = typeInformation;
 	}
 
 	public String elementType() {
@@ -69,6 +77,10 @@ public final class XMLElement {
 
 	public String content() {
 		return content;
+	}
+
+	public XSDElement typeInformation() {
+		return this.typeInformation;
 	}
 
 	public int startLine() {
