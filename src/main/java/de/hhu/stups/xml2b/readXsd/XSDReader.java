@@ -168,10 +168,9 @@ public class XSDReader implements XmlSchemaVisitor {
 		} else {
 			xsdType = visitedTypes.get(typeName);
 		}
-
+		this.openElements.pop();
 		XSDElement xsdElement = xsdType.createXSDElement(qNameToString(xmlSchemaElement.getQName()), new ArrayList<>(openElements));
 		this.elements.put(xsdElement.getParentsWithThis(), xsdElement);
-		this.openElements.pop();
 	}
 
 	@Override
@@ -180,7 +179,7 @@ public class XSDReader implements XmlSchemaVisitor {
 		BAttributeType attributeType = extractAttributeType(xmlSchemaAttrInfo.getAttribute().getSchemaTypeName(),
 				qNameToString(xmlSchemaElement.getSchemaTypeName()),
 				attributeName);
-		currentAttributes.put(attributeName,attributeType);
+		currentAttributes.put(xmlSchemaAttrInfo.getAttribute().getName(),attributeType); // put local name as key for later combination with read XMLElements
 	}
 
 	@Override
