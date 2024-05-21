@@ -162,29 +162,25 @@ public class XSDReader implements XmlSchemaVisitor {
 
 	@Override
 	public void onExitElement(XmlSchemaElement xmlSchemaElement, XmlSchemaTypeInfo xmlSchemaTypeInfo, boolean b) {
+		String elementQName = qNameToString(xmlSchemaElement.getQName());
 		BAttributeType contentType = null;
 		if (xmlSchemaTypeInfo.getBaseType() != null && xmlSchemaTypeInfo.getBaseType() != ANYTYPE) {
 			QName baseTypeName = xmlSchemaTypeInfo.getBaseType().getQName();
-			contentType = extractAttributeType(baseTypeName, qNameToString(xmlSchemaElement.getQName()), null);
+			contentType = extractAttributeType(baseTypeName, elementQName, null);
 		}
 		QName typeName = xmlSchemaElement.getSchemaTypeName();
 		XSDType xsdType;
 		if (!visitedTypes.containsKey(typeName)) {
-			Map<String, BAttributeType> attributeTypes = attributeMapping.get(typeName);
-			if (attributeTypes != null) {
-				xsdType = new XSDType(typeName, contentType, attributeTypes);
-			} else {
-				xsdType = new XSDType(typeName, contentType, new HashMap<>());
-			}
+			Map<String, BAttributeType> attributeTypes = attributeMapping.getOrDefault(typeName, new HashMap<>());
+			xsdType = new XSDType(typeName, contentType, attributeTypes);
 			visitedTypes.put(typeName, xsdType);
 		} else {
 			xsdType = visitedTypes.get(typeName);
 		}
-		if (b) {
-		    visitLater.put(new ArrayList<>(openElements), xmlSchemaElement);
-		}
+		if (b)
+			visitLater.put(new ArrayList<>(openElements), xmlSchemaElement);
 		this.openElements.pop();
-		XSDElement xsdElement = xsdType.createXSDElement(qNameToString(xmlSchemaElement.getQName()), new ArrayList<>(openElements));
+		XSDElement xsdElement = xsdType.createXSDElement(elementQName, new ArrayList<>(openElements));
 		this.elements.put(xsdElement.getParentsWithThis(), xsdElement);
 	}
 
@@ -194,7 +190,8 @@ public class XSDReader implements XmlSchemaVisitor {
 		BAttributeType attributeType = extractAttributeType(xmlSchemaAttrInfo.getAttribute().getSchemaTypeName(),
 				qNameToString(xmlSchemaElement.getSchemaTypeName()),
 				attributeName);
-		currentAttributes.put(xmlSchemaAttrInfo.getAttribute().getName(),attributeType); // put local name as key for later combination with read XMLElements
+		// put local name as key for later combination with read XMLElements
+		currentAttributes.put(xmlSchemaAttrInfo.getAttribute().getName(),attributeType);
 	}
 
 	@Override
