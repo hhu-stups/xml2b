@@ -104,13 +104,10 @@ public class XMLReader extends DefaultHandler {
 		openXMLElementNames.pop();
 		List<Integer> pIds = openXMLElements.stream().map(o -> o.recId).collect(Collectors.toList());
 		List<String> pNames = new ArrayList<>(openXMLElementNames);
-		if (!pIds.isEmpty()) {
-			closedXMLElements.add(currentNode.getClosedXMLElement(qName, pIds, pNames,
+		if (pIds.isEmpty())
+			pIds = Collections.singletonList(0);
+		closedXMLElements.add(currentNode.getClosedXMLElement(qName, pIds, pNames,
 					locator.getLineNumber(), locator.getColumnNumber()));
-		} else {
-			closedXMLElements.add(currentNode.getClosedXMLElement(qName, Collections.singletonList(0), pNames,
-					locator.getLineNumber(), locator.getColumnNumber()));
-		}
 	}
 
 	public static class ValidationError {
