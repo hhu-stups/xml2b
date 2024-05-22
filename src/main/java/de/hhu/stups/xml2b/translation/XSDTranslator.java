@@ -38,13 +38,13 @@ public class XSDTranslator extends Translator {
                 xsdElement = new XSDElement(xmlElement.elementType(), xmlElement.pNames(), null, new HashMap<>());
             }
             for (String attribute : presentAttributes) {
-                BAttributeType bAttributeType = new BStringAttributeType(xsdElement.getQName(), attribute);
+                BAttributeType bAttributeType = new BStringAttributeType(attribute);
                 xsdElement.addAttributeType(attribute, bAttributeType);
                 allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
             }
             BAttributeType contentType = xsdElement.getContentType();
             if (contentType != null) {
-                allContentTypes.put(contentType.getIdentifier(), contentType);
+                allAttributeTypes.put(contentType.getIdentifier(), contentType);
             }
             // IMPORTANT: ensure that for each xmlElement type info is added!
             xmlElement.addTypeInformation(xsdElement);
@@ -56,7 +56,7 @@ public class XSDTranslator extends Translator {
             xsdElement.getAttributeTypes().forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
             BAttributeType contentType = xsdElement.getContentType();
             if (contentType != null) {
-                allContentTypes.put(contentType.getIdentifier(), contentType);
+                allAttributeTypes.put(contentType.getIdentifier(), contentType);
             }
         }
     }

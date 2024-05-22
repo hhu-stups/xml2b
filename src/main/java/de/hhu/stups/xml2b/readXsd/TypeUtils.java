@@ -180,23 +180,23 @@ public class TypeUtils {
 		return xsdTypesToJava.containsKey(qNameToString(qName));
 	}
 
-	public static BAttributeType getBAttributeType(QName xsdTypeQ, String elementType, String attributeName) {
+	public static BAttributeType getBAttributeType(QName xsdTypeQ, String attributeName) {
 		switch (getJavaType(xsdTypeQ)) {
 			case "BigDecimal":
 			case "Double":
 			case "Float":
-				return new BRealAttributeType(elementType, attributeName);
+				return new BRealAttributeType(attributeName);
 			case "BigInteger":
 			case "Integer":
 			case "Short":
 			case "Long":
-				return new BIntegerAttributeType(elementType, attributeName);
+				return new BIntegerAttributeType(attributeName);
 			case "Duration":
-				return new BRealAttributeType(elementType, attributeName, true);
+				return new BRealAttributeType(attributeName, true);
 			case "Boolean":
-				return new BBoolAttributeType(elementType, attributeName);
+				return new BBoolAttributeType(attributeName);
 			default:
-				return new BStringAttributeType(elementType, attributeName);
+				return new BStringAttributeType(attributeName);
 		}
 	}
 

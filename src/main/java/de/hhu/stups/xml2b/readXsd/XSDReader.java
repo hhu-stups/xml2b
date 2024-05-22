@@ -86,21 +86,21 @@ public class XSDReader implements XmlSchemaVisitor {
 		return enumSets;
 	}
 
-	private BAttributeType extractAttributeType(QName typeName, String elementType, String attributeName) {
+	private BAttributeType extractAttributeType(QName typeName, String attributeName) {
 		XmlSchemaType type = types.getOrDefault(typeName, null);
 		if (enumSets.containsKey(typeName)) {
-			return new BEnumSetAttributeType(elementType, attributeName, enumSets.get(typeName));
+			return new BEnumSetAttributeType(attributeName, enumSets.get(typeName));
 		} else if (type instanceof XmlSchemaSimpleType
 				&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
 			XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
 			QName baseName = restriction.getBaseTypeName();
 			if (types.containsKey(baseName)) {
-				return extractAttributeType(baseName, elementType, attributeName);
+				return extractAttributeType(baseName, attributeName);
 			} else {
-				return TypeUtils.getBAttributeType(baseName, elementType, attributeName);
+				return TypeUtils.getBAttributeType(baseName, attributeName);
 			}
 		} else {
-			return TypeUtils.getBAttributeType(typeName, elementType, attributeName);
+			return TypeUtils.getBAttributeType(typeName, attributeName);
 		}
 	}
 
@@ -167,7 +167,7 @@ public class XSDReader implements XmlSchemaVisitor {
 		BAttributeType contentType = null;
 		if (xmlSchemaTypeInfo.getBaseType() != null && xmlSchemaTypeInfo.getBaseType() != ANYTYPE) {
 			QName baseTypeName = xmlSchemaTypeInfo.getBaseType().getQName();
-			contentType = extractAttributeType(baseTypeName, qNameToString(xmlSchemaElement.getSchemaTypeName()), null);
+			contentType = extractAttributeType(baseTypeName, null);
 		}
 		QName typeName = xmlSchemaElement.getSchemaTypeName();
 		XSDType xsdType;
@@ -188,9 +188,7 @@ public class XSDReader implements XmlSchemaVisitor {
 	@Override
 	public void onVisitAttribute(XmlSchemaElement xmlSchemaElement, XmlSchemaAttrInfo xmlSchemaAttrInfo) {
 		String attributeName = qNameToString(xmlSchemaAttrInfo.getAttribute().getQName());
-		BAttributeType attributeType = extractAttributeType(xmlSchemaAttrInfo.getAttribute().getSchemaTypeName(),
-				qNameToString(xmlSchemaElement.getSchemaTypeName()),
-				attributeName);
+		BAttributeType attributeType = extractAttributeType(xmlSchemaAttrInfo.getAttribute().getSchemaTypeName(), attributeName);
 		// put local name as key for later combination with read XMLElements
 		currentAttributes.put(xmlSchemaAttrInfo.getAttribute().getName(),attributeType);
 	}

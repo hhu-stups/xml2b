@@ -24,10 +24,10 @@ public class StandaloneTranslator extends Translator {
             for (String attribute : element.attributes().keySet()) {
 	            BAttributeType bAttributeType;
 	            if (!attribute.equals(ID_NAME)) {
-		            bAttributeType = getAttribute(element.elementType(), attribute, element.attributes().get(attribute));
+		            bAttributeType = getAttribute(attribute, element.attributes().get(attribute));
                     determineIdentifiers(bAttributeType, allAttributeTypes);
 	            } else {
-		            bAttributeType = new BStringAttributeType(element.elementType(), attribute);
+		            bAttributeType = new BStringAttributeType(attribute);
                     allAttributeTypes.put(ID_NAME, bAttributeType);
 	            }
 	            bAttributeTypesSet.put(attribute, bAttributeType.getIdentifier());
@@ -38,7 +38,7 @@ public class StandaloneTranslator extends Translator {
             String content = element.content();
             if (!content.isEmpty()) {
                 BAttributeType bContentType = getContent(element.elementType(), content);
-                determineIdentifiers(bContentType, allContentTypes);
+                determineIdentifiers(bContentType, allAttributeTypes);
                 individualContentTypes.put(element.recId(), bContentType.getIdentifier());
             }
         }
@@ -50,12 +50,12 @@ public class StandaloneTranslator extends Translator {
             allTypes.put(identifier, bType);
         } else if (!bType.getClass().equals(allTypes.get(identifier).getClass())) {
             BAttributeType oldType = allTypes.get(identifier);
-            if (oldType != null && !(oldType instanceof BStringAttributeType)) {
+            /*if (oldType != null && !(oldType instanceof BStringAttributeType)) {
                 oldType.addTypeSuffixToIdentifier();
                 allTypes.put(oldType.getIdentifier(), oldType);
             }
             if (!(bType instanceof BStringAttributeType))
-                bType.addTypeSuffixToIdentifier();
+                bType.addTypeSuffixToIdentifier();*/
             String suffixIdentifier = bType.getIdentifier();
             allTypes.put(suffixIdentifier, bType);
             allTypes.put(identifier, bType.getStringAttributeType());
@@ -67,37 +67,37 @@ public class StandaloneTranslator extends Translator {
         return new ArrayList<>();
     }
 
-    private BAttributeType getAttribute(String elementType, String attributeName, String attributeValue) {
+    private BAttributeType getAttribute(String attributeName, String attributeValue) {
         try {
             Duration.parse(attributeValue);
-            return new BRealAttributeType(elementType, attributeName, true);
+            return new BRealAttributeType(attributeName, true);
         } catch (DateTimeParseException dtpe) {
             try {
                 Double.parseDouble(attributeValue);
-                return new BRealAttributeType(elementType, attributeName);
+                return new BRealAttributeType(attributeName);
             } catch (NumberFormatException nfe) {
                 if (attributeValue.equals("true") || attributeValue.equals("false")) {
-                    return new BBoolAttributeType(elementType, attributeName);
+                    return new BBoolAttributeType(attributeName);
                 }
             }
         }
-        return new BStringAttributeType(elementType, attributeName);
+        return new BStringAttributeType(attributeName);
     }
 
     private BAttributeType getContent(String elementType, String content) {
         try {
             Duration.parse(content);
-            return new BRealAttributeType(elementType, null, true);
+            return new BRealAttributeType(null, true);
         } catch (DateTimeParseException dtpe) {
             try {
                 Double.parseDouble(content);
-                return new BRealAttributeType(elementType, null);
+                return new BRealAttributeType(null);
             } catch (NumberFormatException nfe) {
                 if (content.equals("true") || content.equals("false")) {
-                    return new BBoolAttributeType(elementType, null);
+                    return new BBoolAttributeType(null);
                 }
             }
         }
-        return new BStringAttributeType(elementType, null);
+        return new BStringAttributeType(null);
     }
 }

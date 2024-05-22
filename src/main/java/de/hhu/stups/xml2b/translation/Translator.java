@@ -29,7 +29,6 @@ public abstract class Translator {
 	// individualContentTypes: elementRecId -> contentIdentifier
 	// allContentTypes: contentIdentifier -> bAttributeType
 	protected Map<Integer, String> individualContentTypes = new HashMap<>();
-	protected Map<String, BAttributeType> allContentTypes = new HashMap<>();
 	protected final XSDReader xsdReader;
 
 	private final String machineName;
@@ -146,7 +145,7 @@ public abstract class Translator {
 			));
 			recValues.add(new ARecEntry(
 					createIdentifier(ELEMENT_NAME),
-					new AStringExpression(new TStringLiteral(xmlElement.elementType()))
+					createString(xmlElement.elementType())
 			));
 			// Content:
 			PExpression contentExpression;
@@ -155,6 +154,9 @@ public abstract class Translator {
 			} else {
 				//BAttributeType defaultType = new BStringAttributeType(xmlElement.elementType(), null);
 				BAttributeType type = xmlElement.typeInformation().getContentType(); //allContentTypes.getOrDefault(individualContentTypes.getOrDefault(xmlElement.recId(), defaultType.getIdentifier()), defaultType);
+				if (type == null) {
+					type = new BStringAttributeType(null);
+				}
 				List<PExpression> contents = new ArrayList<>();
 				contents.add(type.getDataExpression(xmlElement.content()));
 				//if (type.hasTypeSuffix()) {
@@ -215,12 +217,8 @@ public abstract class Translator {
 	}
 
 	private void createFreetypeClause() {
-		List<PFreetypeConstructor> contentConstructors = getConstructorsForContents();
-		List<PFreetype> freetypes = new ArrayList<>();
-		freetypes.add(new AFreetype(new TIdentifierLiteral(XML_FREETYPE_ATTRIBUTES_NAME), new ArrayList<>(), getConstructorsForAttributes()));
-		if (!contentConstructors.isEmpty())
-			freetypes.add(new AFreetype(new TIdentifierLiteral(XML_CONTENT_TYPES_NAME), new ArrayList<>(), contentConstructors));
-		machineClauseList.add(new AFreetypesMachineClause(freetypes));
+		machineClauseList.add(new AFreetypesMachineClause(Collections.singletonList(
+				new AFreetype(new TIdentifierLiteral(XML_FREETYPE_ATTRIBUTES_NAME), new ArrayList<>(), getConstructorsForAttributes()))));
 	}
 
 	private void createSetsClause() {
@@ -235,30 +233,9 @@ public abstract class Translator {
 		List<PFreetypeConstructor> freetypeConstructors = new ArrayList<>();
 		for (BAttributeType attributeType : allAttributeTypes.values()) {
 			String identifier = attributeType.getIdentifier();
-			if (!identifier.equals(ID_NAME)) {
-				freetypeConstructors.add(new AConstructorFreetypeConstructor(
-						new TIdentifierLiteral(identifier),
-						attributeType.getSetExpression()
-				));
-				usedIdentifiers.add(identifier);
-			}
-		}
-		// add generic ID constructor; TODO: check if this is correct in general
-		freetypeConstructors.add(new AConstructorFreetypeConstructor(
-				new TIdentifierLiteral(ID_NAME),
-				new AStringSetExpression()
-		));
-		usedIdentifiers.add(ID_NAME);
-		return freetypeConstructors;
-	}
-
-	private List<PFreetypeConstructor> getConstructorsForContents() {
-		List<PFreetypeConstructor> freetypeConstructors = new ArrayList<>();
-		for (BAttributeType contentType : allContentTypes.values()) {
-			String identifier = contentType.getIdentifier();
 			freetypeConstructors.add(new AConstructorFreetypeConstructor(
 					new TIdentifierLiteral(identifier),
-					contentType.getSetExpression()
+					attributeType.getSetExpression()
 			));
 			usedIdentifiers.add(identifier);
 		}

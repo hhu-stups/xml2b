@@ -1,48 +1,40 @@
 package de.hhu.stups.xml2b.bTypes;
 
+import de.be4.classicalb.core.parser.node.ACoupleExpression;
+import de.be4.classicalb.core.parser.node.AStringExpression;
 import de.be4.classicalb.core.parser.node.PExpression;
+import de.be4.classicalb.core.parser.node.TStringLiteral;
 
-import static de.hhu.stups.xml2b.translation.Translator.ID_NAME;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static de.hhu.stups.xml2b.translation.ASTUtils.createString;
 
 public abstract class BAttributeType {
-	private static final String CONTENT = "!content";
+	protected static final String SUFFIX = "__VALUE";
 
-	protected final String elementType;
-	protected final String attributeName;
-	protected String identifier, typeString;
+	private final String attributeName, identifier, typeString;
+	private final boolean isContent;
 
-	private boolean hasTypeSuffix;
-
-	public BAttributeType(final String elementType, final String attributeName) {
-		this.elementType = elementType;
+	public BAttributeType(final String attributeName, final String typeString) {
 		this.attributeName = attributeName;
-		// id attribute is XML standard and should not be considered individually for each element type
-		if (attributeName == null) {
-			this.identifier = elementType + CONTENT;
-		} else {
-			this.identifier = attributeName.equals(ID_NAME) ? attributeName : elementType + "@" + attributeName;
-		}
-		this.hasTypeSuffix = false;
+		this.isContent = attributeName == null;
+		this.typeString = typeString;
+		this.identifier = typeString + SUFFIX;
 	}
 
 	abstract public PExpression getSetExpression();
-	abstract public PExpression getDataExpression(String data);
+	abstract protected PExpression getFunctionExpression(final String data);
 
-	public String getElementType() {
-		return this.elementType;
+	public PExpression getDataExpression(final String data) {
+		PExpression functionExpression = this.getFunctionExpression(data);
+		if (this.isContent)
+			return functionExpression;
+		return new ACoupleExpression(Arrays.asList(createString(this.getAttributeName()), functionExpression));
 	}
 
 	public String getAttributeName() {
 		return this.attributeName;
-	}
-
-	public void addTypeSuffixToIdentifier() {
-		this.hasTypeSuffix = true;
-		this.identifier += "#" + this.typeString;
-	}
-
-	public boolean hasTypeSuffix() {
-		return this.hasTypeSuffix;
 	}
 
 	public String getTypeString() {
@@ -54,11 +46,6 @@ public abstract class BAttributeType {
 	}
 
 	public BStringAttributeType getStringAttributeType() {
-		return new BStringAttributeType(this.elementType, this.attributeName);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		return obj instanceof BAttributeType && this.identifier.equals(((BAttributeType) obj).identifier);
+		return new BStringAttributeType(this.attributeName);
 	}
 }

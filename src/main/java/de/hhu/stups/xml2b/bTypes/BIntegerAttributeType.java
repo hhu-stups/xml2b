@@ -8,14 +8,13 @@ import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
 import static de.hhu.stups.xml2b.translation.ASTUtils.createInteger;
 
 public class BIntegerAttributeType extends BAttributeType {
-	public BIntegerAttributeType(final String elementType, final String attributeName) {
-		super(elementType, attributeName);
-		this.typeString = "INTEGER";
+	public BIntegerAttributeType(final String attributeName) {
+		super(attributeName, "INTEGER");
 	}
 
 	@Override
 	public String toString() {
-		return this.typeString + "(" + identifier + ")";
+		return this.getTypeString() + "(" + this.getIdentifier() + ")";
 	}
 
 	@Override
@@ -24,8 +23,7 @@ public class BIntegerAttributeType extends BAttributeType {
 	}
 
 	@Override
-	public PExpression getDataExpression(String data) {
-		PExpression dataExpression = createInteger(data);
-		return new AFunctionExpression(createIdentifier(identifier), Collections.singletonList(dataExpression));
+	public PExpression getFunctionExpression(String data) {
+		return new AFunctionExpression(createIdentifier(this.getIdentifier()), Collections.singletonList(createInteger(data)));
 	}
 }

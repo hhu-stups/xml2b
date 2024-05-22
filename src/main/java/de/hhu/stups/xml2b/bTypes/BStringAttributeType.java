@@ -5,16 +5,16 @@ import de.be4.classicalb.core.parser.node.*;
 import java.util.Collections;
 
 import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
+import static de.hhu.stups.xml2b.translation.ASTUtils.createString;
 
 public class BStringAttributeType extends BAttributeType {
-	public BStringAttributeType(final String elementType, final String attributeName) {
-		super(elementType, attributeName);
-		this.typeString = "STRING";
+	public BStringAttributeType(final String attributeName) {
+		super(attributeName, "STRING");
 	}
 
 	@Override
 	public String toString() {
-		return this.typeString + "(" + identifier + ")";
+		return this.getTypeString() + "(" + this.getIdentifier() + ")";
 	}
 
 	@Override
@@ -23,8 +23,7 @@ public class BStringAttributeType extends BAttributeType {
 	}
 
 	@Override
-	public PExpression getDataExpression(String data) {
-		PExpression dataExpression = new AStringExpression(new TStringLiteral(data));
-		return new AFunctionExpression(createIdentifier(identifier), Collections.singletonList(dataExpression));
+	public PExpression getFunctionExpression(String data) {
+		return new AFunctionExpression(createIdentifier(this.getIdentifier()), Collections.singletonList(createString(data)));
 	}
 }
