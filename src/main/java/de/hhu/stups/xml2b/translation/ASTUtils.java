@@ -34,4 +34,8 @@ public class ASTUtils {
 		list.add(tid);
 		return list;
 	}
+
+	public static AStringExpression createString(String name) {
+		return new AStringExpression(new TStringLiteral(name));
+	}
 }
