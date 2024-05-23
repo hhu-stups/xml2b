@@ -22,13 +22,7 @@ public abstract class Translator {
 			ID_NAME = "id", P_IDS_NAME = "pIds", REC_ID_NAME = "recId", ELEMENT_NAME = "element", CONTENT_NAME = "content", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
-	// individualAttributeTypes: elementRecId -> (attributeName -> attributeIdentifier)
-	// allAttributeTypes: attributeIdentifier -> bAttributeType
-	protected Map<Integer, Map<String, String>> individualAttributeTypes = new HashMap<>();
 	protected Map<String, BAttributeType> allAttributeTypes = new HashMap<>();
-	// individualContentTypes: elementRecId -> contentIdentifier
-	// allContentTypes: contentIdentifier -> bAttributeType
-	protected Map<Integer, String> individualContentTypes = new HashMap<>();
 	protected final XSDReader xsdReader;
 
 	private final String machineName;
@@ -116,11 +110,11 @@ public abstract class Translator {
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(CONTENT_NAME),
-				new APowSubsetExpression(createIdentifier(XML_CONTENT_TYPES_NAME))
+				new APowSubsetExpression(createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME))
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(ATTRIBUTES_NAME),
-				new APowSubsetExpression(createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME))
+				new APartialFunctionExpression(new AStringSetExpression(), createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME))
 		));
 		recTypes.add(new ARecEntry(
 				createIdentifier(LOCATION_NAME),
@@ -152,7 +146,7 @@ public abstract class Translator {
 			if (xmlElement.content().isEmpty()) {
 				contentExpression = new AEmptySetExpression();
 			} else {
-				BAttributeType type = xmlElement.typeInformation().getContentType(); //allContentTypes.getOrDefault(individualContentTypes.getOrDefault(xmlElement.recId(), defaultType.getIdentifier()), defaultType);
+				BAttributeType type = xmlElement.typeInformation().getContentType();
 				if (type == null) {
 					type = new BStringAttributeType(null);
 				}

@@ -19,7 +19,6 @@ public class StandaloneTranslator extends Translator {
 
     @Override
     protected void getTypes() {
-        // TODO: create XSDElements here
         for (XMLElement element : xmlElements) {
             BAttributeType bContentType = null;
             Map<String, BAttributeType> bAttributeTypesSet = new HashMap<>();
