@@ -17,7 +17,7 @@ public class BEnumSetAttributeType extends BAttributeType {
 
 	@Override
 	public String toString() {
-		return this.getIdentifier() + "[" + enumSet.toString() + "]";
+		return this.getIdentifier() + "(" + enumSet.toString() + ")";
 	}
 
 	@Override

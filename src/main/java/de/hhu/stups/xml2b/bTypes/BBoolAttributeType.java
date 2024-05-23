@@ -13,7 +13,7 @@ public class BBoolAttributeType extends BAttributeType {
 
 	@Override
 	public String toString() {
-		return this.getTypeString() + "(" + this.getIdentifier() + ")";
+		return this.getIdentifier() + "(" + this.getTypeString() + ")";
 	}
 
 	@Override
