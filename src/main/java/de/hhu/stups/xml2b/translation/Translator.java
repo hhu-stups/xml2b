@@ -152,16 +152,12 @@ public abstract class Translator {
 			if (xmlElement.content().isEmpty()) {
 				contentExpression = new AEmptySetExpression();
 			} else {
-				//BAttributeType defaultType = new BStringAttributeType(xmlElement.elementType(), null);
 				BAttributeType type = xmlElement.typeInformation().getContentType(); //allContentTypes.getOrDefault(individualContentTypes.getOrDefault(xmlElement.recId(), defaultType.getIdentifier()), defaultType);
 				if (type == null) {
 					type = new BStringAttributeType(null);
 				}
 				List<PExpression> contents = new ArrayList<>();
 				contents.add(type.getDataExpression(xmlElement.content()));
-				//if (type.hasTypeSuffix()) {
-				//	contents.add(type.getStringAttributeType().getDataExpression(xmlElement.content()));
-				//}
 				contentExpression = new ASetExtensionExpression(contents);
 			}
 			recValues.add(new ARecEntry(
@@ -170,9 +166,8 @@ public abstract class Translator {
 			));
 			// Attributes:
 			List<PExpression> attributes = new ArrayList<>();
-			//Map<String, String> currentAttributes = individualAttributeTypes.getOrDefault(xmlElement.recId(), new HashMap<>());
+			Map<String, BAttributeType> attributeTypes = xmlElement.typeInformation().getAttributeTypes();
 			for (String attribute : xmlElement.attributes().keySet()) { // TODO: ignore attributes not present! (otherwise null)
-				Map<String, BAttributeType> attributeTypes = xmlElement.typeInformation().getAttributeTypes();
 				if (attributeTypes.containsKey(attribute)) {
 					BAttributeType type = attributeTypes.get(attribute);
 					if (type == null) {
@@ -180,9 +175,6 @@ public abstract class Translator {
 						throw new IllegalStateException("identifier of attribute type does not exist");
 					}
 					attributes.add(type.getDataExpression(xmlElement.attributes().get(attribute)));
-					//if (type.hasTypeSuffix()) {
-					//	attributes.add(type.getStringAttributeType().getDataExpression(xmlElement.attributes().get(attribute)));
-					//}
 				}
 			}
 			recValues.add(new ARecEntry(
