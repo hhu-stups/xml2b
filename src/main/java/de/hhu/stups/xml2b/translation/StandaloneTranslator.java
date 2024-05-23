@@ -4,6 +4,7 @@ import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.PSet;
 import de.hhu.stups.xml2b.bTypes.*;
 import de.hhu.stups.xml2b.readXml.XMLElement;
+import de.hhu.stups.xml2b.readXsd.XSDElement;
 
 import java.io.File;
 import java.time.Duration;
@@ -20,45 +21,21 @@ public class StandaloneTranslator extends Translator {
     protected void getTypes() {
         // TODO: create XSDElements here
         for (XMLElement element : xmlElements) {
-            Map<String, String> bAttributeTypesSet = individualAttributeTypes.getOrDefault(element.recId(), new HashMap<>());
+            BAttributeType bContentType = null;
+            Map<String, BAttributeType> bAttributeTypesSet = new HashMap<>();
             for (String attribute : element.attributes().keySet()) {
-	            BAttributeType bAttributeType;
-	            if (!attribute.equals(ID_NAME)) {
-		            bAttributeType = getAttribute(attribute, element.attributes().get(attribute));
-                    determineIdentifiers(bAttributeType, allAttributeTypes);
-	            } else {
-		            bAttributeType = new BStringAttributeType(attribute);
-                    allAttributeTypes.put(ID_NAME, bAttributeType);
-	            }
-	            bAttributeTypesSet.put(attribute, bAttributeType.getIdentifier());
-            }
-            individualAttributeTypes.put(element.recId(), bAttributeTypesSet);
-        }
-        for (XMLElement element : xmlElements) {
-            String content = element.content();
-            if (!content.isEmpty()) {
-                BAttributeType bContentType = getContent(element.elementType(), content);
-                determineIdentifiers(bContentType, allAttributeTypes);
-                individualContentTypes.put(element.recId(), bContentType.getIdentifier());
-            }
-        }
-    }
+	            BAttributeType bAttributeType = getAttribute(attribute, element.attributes().get(attribute));
+                bAttributeTypesSet.put(attribute, bAttributeType);
+                allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
 
-    protected static void determineIdentifiers(BAttributeType bType, Map<String, BAttributeType> allTypes) {
-        String identifier = bType.getIdentifier();
-        if (!allTypes.containsKey(identifier)) {
-            allTypes.put(identifier, bType);
-        } else if (!bType.getClass().equals(allTypes.get(identifier).getClass())) {
-            BAttributeType oldType = allTypes.get(identifier);
-            /*if (oldType != null && !(oldType instanceof BStringAttributeType)) {
-                oldType.addTypeSuffixToIdentifier();
-                allTypes.put(oldType.getIdentifier(), oldType);
+                String content = element.content();
+                if (!content.isEmpty()) {
+                    bContentType = getAttribute(null, content);
+                    allAttributeTypes.put(bContentType.getIdentifier(), bContentType);
+                }
             }
-            if (!(bType instanceof BStringAttributeType))
-                bType.addTypeSuffixToIdentifier();*/
-            String suffixIdentifier = bType.getIdentifier();
-            allTypes.put(suffixIdentifier, bType);
-            allTypes.put(identifier, bType.getStringAttributeType());
+            XSDElement xsdElement = new XSDElement(element.elementType(), element.pNames(), bContentType, bAttributeTypesSet);
+            element.addTypeInformation(xsdElement);
         }
     }
 
@@ -82,22 +59,5 @@ public class StandaloneTranslator extends Translator {
             }
         }
         return new BStringAttributeType(attributeName);
-    }
-
-    private BAttributeType getContent(String elementType, String content) {
-        try {
-            Duration.parse(content);
-            return new BRealAttributeType(null, true);
-        } catch (DateTimeParseException dtpe) {
-            try {
-                Double.parseDouble(content);
-                return new BRealAttributeType(null);
-            } catch (NumberFormatException nfe) {
-                if (content.equals("true") || content.equals("false")) {
-                    return new BBoolAttributeType(null);
-                }
-            }
-        }
-        return new BStringAttributeType(null);
     }
 }
