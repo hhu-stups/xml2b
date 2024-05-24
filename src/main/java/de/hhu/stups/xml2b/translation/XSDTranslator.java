@@ -34,8 +34,8 @@ public class XSDTranslator extends Translator {
                 attributeTypes.forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
                 presentAttributes.removeAll(attributeTypes.keySet());
             } else {
-                // TODO: if there is content, add type!
-                xsdElement = new XSDElement(xmlElement.elementType(), xmlElement.pNames(), null, new HashMap<>());
+                // type is not provided by XSD, do standalone translation for this element
+                xsdElement = StandaloneTranslator.getXsdElement(xmlElement, allAttributeTypes);
             }
             for (String attribute : presentAttributes) {
                 BAttributeType bAttributeType = new BStringAttributeType(attribute);

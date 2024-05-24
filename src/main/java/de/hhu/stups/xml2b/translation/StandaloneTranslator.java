@@ -20,22 +20,25 @@ public class StandaloneTranslator extends Translator {
     @Override
     protected void getTypes() {
         for (XMLElement element : xmlElements) {
-            BAttributeType bContentType = null;
-            Map<String, BAttributeType> bAttributeTypesSet = new HashMap<>();
-            for (String attribute : element.attributes().keySet()) {
-	            BAttributeType bAttributeType = getAttribute(attribute, element.attributes().get(attribute));
-                bAttributeTypesSet.put(attribute, bAttributeType);
-                allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
-
-                String content = element.content();
-                if (!content.isEmpty()) {
-                    bContentType = getAttribute(null, content);
-                    allAttributeTypes.put(bContentType.getIdentifier(), bContentType);
-                }
-            }
-            XSDElement xsdElement = new XSDElement(element.elementType(), element.pNames(), bContentType, bAttributeTypesSet);
-            element.addTypeInformation(xsdElement);
+            element.addTypeInformation(getXsdElement(element, allAttributeTypes));
         }
+    }
+
+    protected static XSDElement getXsdElement(XMLElement element, Map<String, BAttributeType> allAttributeTypes) {
+        BAttributeType bContentType = null;
+        Map<String, BAttributeType> bAttributeTypesSet = new HashMap<>();
+        for (String attribute : element.attributes().keySet()) {
+            BAttributeType bAttributeType = getAttribute(attribute, element.attributes().get(attribute));
+            bAttributeTypesSet.put(attribute, bAttributeType);
+            allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
+
+            String content = element.content();
+            if (!content.isEmpty()) {
+                bContentType = getAttribute(null, content);
+                allAttributeTypes.put(bContentType.getIdentifier(), bContentType);
+            }
+        }
+	    return new XSDElement(element.elementType(), element.pNames(), bContentType, bAttributeTypesSet);
     }
 
     @Override
@@ -43,7 +46,7 @@ public class StandaloneTranslator extends Translator {
         return new ArrayList<>();
     }
 
-    private BAttributeType getAttribute(String attributeName, String attributeValue) {
+    private static BAttributeType getAttribute(String attributeName, String attributeValue) {
         try {
             Duration.parse(attributeValue);
             return new BRealAttributeType(attributeName, true);
