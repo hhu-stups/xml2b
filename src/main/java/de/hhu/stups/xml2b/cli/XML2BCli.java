@@ -59,7 +59,13 @@ public class XML2BCli {
 		xml2BCli.handleParameter(args);
 
 		try {
-			XML2B xml2B = new XML2B(xml2BCli.xmlFile, xml2BCli.xsdFile);
+			XML2B xml2B;
+			if (xml2BCli.xsdFile != null) {
+				xml2B = new XML2B(xml2BCli.xmlFile, xml2BCli.xsdFile);
+			} else {
+				xml2B = new XML2B(xml2BCli.xmlFile);
+			}
+
 			Start start = xml2B.translate();
 			if (xml2BCli.xsdFile != null) {
 				LOGGER.info("{} is valid according to {}", xml2BCli.xmlFile.getName(), xml2BCli.xsdFile.getName());

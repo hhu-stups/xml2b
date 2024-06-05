@@ -8,6 +8,7 @@ import de.hhu.stups.xml2b.translation.XSDTranslator;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Properties;
 
 public class XML2B {
@@ -33,16 +34,22 @@ public class XML2B {
     }
 
     private final Translator translator;
+    private final Path directory;
+    private final String modelName;
 
-    public XML2B(File xmlFile, File xsdFile) throws BCompoundException {
-        if (xsdFile != null) {
-            this.translator = new XSDTranslator(xmlFile, xsdFile);
+    public XML2B(File... files) throws BCompoundException {
+        if (files.length == 1) {
+            this.translator = new StandaloneTranslator(files[0]);
+        } else if (files.length == 2) {
+            this.translator = new XSDTranslator(files[0], files[1]);
         } else {
-            this.translator = new StandaloneTranslator(xmlFile);
+            throw new IllegalArgumentException("expected 1 or 2 files, got " + files.length);
         }
+        this.directory = files[0].getAbsoluteFile().getParentFile().toPath();
+        this.modelName = files[0].getName();
     }
 
     public Start translate() {
-        return translator.createBAst();
+        return translator.createBAst(new File(String.valueOf(directory.resolve(modelName + ".probdata"))));
     }
 }

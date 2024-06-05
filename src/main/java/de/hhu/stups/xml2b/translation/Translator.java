@@ -10,6 +10,8 @@ import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,7 +51,7 @@ public abstract class Translator {
 
 	protected abstract void getTypes();
 
-	public Start createBAst() {
+	public Start createBAst(final File dataValuePrologFile) {
 		AGeneratedParseUnit aGeneratedParseUnit = new AGeneratedParseUnit();
 		AAbstractMachineParseUnit aAbstractMachineParseUnit = new AAbstractMachineParseUnit();
 		aAbstractMachineParseUnit.setVariant(new AMachineMachineVariant());
@@ -63,9 +65,16 @@ public abstract class Translator {
 		machineClauseList.add(createAbstractConstantsClause());
 		usedIdentifiers.addAll(getIdentifiers());
 		createConstantsClause();
-		createPropertyClause();
+		PExpression dataValues = createPropertyClause();
 
 		checkForDuplicateIdentifiers();
+
+		try (PrintWriter out = new PrintWriter(dataValuePrologFile)) {
+			PrologPrinter prologPrinter = new PrologPrinter(out);
+			prologPrinter.print(dataValues);
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		}
 
 		aAbstractMachineParseUnit.setMachineClauses(machineClauseList);
 		aGeneratedParseUnit.setParseUnit(aAbstractMachineParseUnit);
@@ -91,7 +100,7 @@ public abstract class Translator {
 		usedIdentifiers.add(XML_DATA_NAME);
 	}
 
-	private void createPropertyClause() {
+	private PExpression createPropertyClause() {
 		// TYPE:
 		AMemberPredicate typification = new AMemberPredicate();
 		typification.setLeft(createIdentifier(XML_DATA_NAME));
@@ -195,11 +204,13 @@ public abstract class Translator {
 			couple.add(rec);
 			sequenceOfRecords.add(new ACoupleExpression(couple));
 		}
-		value.setRight(!sequenceOfRecords.isEmpty() ? new ASetExtensionExpression(sequenceOfRecords) : new AEmptySetExpression());
+		PExpression right = !sequenceOfRecords.isEmpty() ? new ASetExtensionExpression(sequenceOfRecords) : new AEmptySetExpression();
+		value.setRight(right);
 
 		PPredicate abstractConstants = createAbstractConstantsProperties();
 		APropertiesMachineClause propertiesClause = new APropertiesMachineClause(new AConjunctPredicate(abstractConstants, new AConjunctPredicate(typification, value)));
 		machineClauseList.add(propertiesClause);
+		return right;
 	}
 
 	private void createFreetypeClause() {
