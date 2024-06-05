@@ -60,12 +60,14 @@ public abstract class Translator {
 		machineHeader.setName(headerName);
 		aAbstractMachineParseUnit.setHeader(machineHeader);
 
+		AFileDefinitionDefinition probLibDefinition = new AFileDefinitionDefinition(new TStringLiteral("LibraryProB.def"));
+		machineClauseList.add(new ADefinitionsMachineClause(List.of(probLibDefinition)));
 		createFreetypeClause();
 		createSetsClause();
 		machineClauseList.add(createAbstractConstantsClause());
 		usedIdentifiers.addAll(getIdentifiers());
 		createConstantsClause();
-		PExpression dataValues = createPropertyClause();
+		PExpression dataValues = createPropertyClause(dataValuePrologFile);
 
 		checkForDuplicateIdentifiers();
 
@@ -100,7 +102,7 @@ public abstract class Translator {
 		usedIdentifiers.add(XML_DATA_NAME);
 	}
 
-	private PExpression createPropertyClause() {
+	private PExpression createPropertyClause(final File dataValuePrologFile) {
 		// TYPE:
 		AMemberPredicate typification = new AMemberPredicate();
 		typification.setLeft(createIdentifier(XML_DATA_NAME));
@@ -133,7 +135,8 @@ public abstract class Translator {
 				createIdentifier(LOCATION_NAME),
 				new ACartesianProductExpression(new ACartesianProductExpression(new AIntegerSetExpression(), new AIntegerSetExpression()), new ACartesianProductExpression(new AIntegerSetExpression(), new AIntegerSetExpression()))
 		));
-		typification.setRight(new ASeqExpression(new AStructExpression(recTypes)));
+		PExpression typeExpression = new ASeqExpression(new AStructExpression(recTypes));
+		typification.setRight(typeExpression);
 
 		// VALUE:
 		AEqualPredicate value = new AEqualPredicate();
@@ -216,7 +219,16 @@ public abstract class Translator {
 		value.setRight(right);
 
 		PPredicate abstractConstants = createAbstractConstantsProperties();
-		APropertiesMachineClause propertiesClause = new APropertiesMachineClause(new AConjunctPredicate(abstractConstants, new AConjunctPredicate(typification, value)));
+		ADefinitionExpression readProbData = new ADefinitionExpression();
+		readProbData.setDefLiteral(new TIdentifierLiteral("READ_PROB_DATA_FILE"));
+		readProbData.setParameters(List.of(typeExpression, createString(dataValuePrologFile.getName())));
+		APropertiesMachineClause propertiesClause = new APropertiesMachineClause(
+				new AEqualPredicate(
+						createIdentifier(XML_DATA_NAME),
+						readProbData
+				)
+		);
+				//new AConjunctPredicate(new ATruthPredicate(), new AConjunctPredicate(typification, value)));
 		machineClauseList.add(propertiesClause);
 		return right;
 	}
