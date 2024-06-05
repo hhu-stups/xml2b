@@ -151,7 +151,7 @@ public abstract class Translator {
 			));
 			recValues.add(new ARecEntry(
 					createIdentifier(P_ID_NAME),
-					createInteger(xmlElement.pIds().getLast())
+					createInteger(xmlElement.pIds().get(xmlElement.pIds().size() - 1))
 			));
 			recValues.add(new ARecEntry(
 					createIdentifier(REC_ID_NAME),
