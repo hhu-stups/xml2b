@@ -61,7 +61,7 @@ public abstract class Translator {
 		aAbstractMachineParseUnit.setHeader(machineHeader);
 
 		AFileDefinitionDefinition probLibDefinition = new AFileDefinitionDefinition(new TStringLiteral("LibraryProB.def"));
-		machineClauseList.add(new ADefinitionsMachineClause(List.of(probLibDefinition)));
+		machineClauseList.add(new ADefinitionsMachineClause(Collections.singletonList(probLibDefinition)));
 		createFreetypeClause();
 		createSetsClause();
 		machineClauseList.add(createAbstractConstantsClause());
@@ -219,7 +219,7 @@ public abstract class Translator {
 		value.setRight(right);
 
 		PPredicate abstractConstants = createAbstractConstantsProperties();
-		
+
 		ADefinitionExpression readProbData = new ADefinitionExpression();
 		readProbData.setDefLiteral(new TIdentifierLiteral("READ_PROB_DATA_FILE"));
 		List<PExpression> params = new ArrayList<>();
