@@ -219,9 +219,14 @@ public abstract class Translator {
 		value.setRight(right);
 
 		PPredicate abstractConstants = createAbstractConstantsProperties();
+		
 		ADefinitionExpression readProbData = new ADefinitionExpression();
 		readProbData.setDefLiteral(new TIdentifierLiteral("READ_PROB_DATA_FILE"));
-		readProbData.setParameters(List.of(typeExpression, createString(dataValuePrologFile.getName())));
+		List<PExpression> params = new ArrayList<>();
+		params.add(typeExpression);
+		params.add(createString(dataValuePrologFile.getName()));
+		readProbData.setParameters(params);
+
 		APropertiesMachineClause propertiesClause = new APropertiesMachineClause(
 				new AEqualPredicate(
 						createIdentifier(XML_DATA_NAME),
