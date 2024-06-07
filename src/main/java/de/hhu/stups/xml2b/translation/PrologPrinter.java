@@ -5,7 +5,12 @@ import de.be4.classicalb.core.parser.node.*;
 import de.prob.prolog.output.IPrologTermOutput;
 import de.prob.prolog.output.PrologTermOutput;
 
-import java.io.PrintWriter;
+import java.io.FileOutputStream;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static de.hhu.stups.xml2b.translation.Translator.XML_FREETYPE_ATTRIBUTES_NAME;
 
@@ -13,8 +18,10 @@ public class PrologPrinter extends DepthFirstAdapter {
 
 	private final IPrologTermOutput pout;
 
-	public PrologPrinter(final PrintWriter out) {
-		this.pout = new PrologTermOutput(out, false);
+	private final HashMap<String, PExpression> currRecFields = new HashMap<>();
+
+	public PrologPrinter(final FileOutputStream out) {
+		this.pout = new PrologTermOutput(out);
 	}
 
 	public void print(PExpression start) {
@@ -58,7 +65,7 @@ public class PrologPrinter extends DepthFirstAdapter {
 
 	@Override
 	public void caseACoupleExpression(ACoupleExpression node) {
-		pout.openTerm("");
+		pout.openTerm(",");
 		for (PExpression elem : node.getList()) {
 			elem.apply(this);
 		}
@@ -100,10 +107,18 @@ public class PrologPrinter extends DepthFirstAdapter {
 
 	@Override
 	public void caseARecExpression(ARecExpression node) {
+		this.currRecFields.clear();
 		pout.openTerm("rec");
 		pout.openList();
 		for (PRecEntry recEntry : node.getEntries()) {
 			recEntry.apply(this);
+		}
+		List<String> sortedFields = currRecFields.keySet().stream().sorted().toList();
+		for (String field : sortedFields) {
+			pout.openTerm("field");
+			pout.printAtom(field);
+			currRecFields.get(field).apply(this);
+			pout.closeTerm();
 		}
 		pout.closeList();
 		pout.closeTerm();
@@ -111,9 +126,6 @@ public class PrologPrinter extends DepthFirstAdapter {
 
 	@Override
 	public void caseARecEntry(ARecEntry node) {
-		pout.openTerm("field");
-		pout.printAtom(node.getIdentifier().toString().trim());
-		node.getValue().apply(this);
-		pout.closeTerm();
+		currRecFields.put(node.getIdentifier().toString().trim(), node.getValue());
 	}
 }
