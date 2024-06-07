@@ -228,12 +228,14 @@ public abstract class Translator {
 		readProbData.setParameters(params);
 
 		APropertiesMachineClause propertiesClause = new APropertiesMachineClause(
-				new AEqualPredicate(
-						createIdentifier(XML_DATA_NAME),
-						readProbData
+				new AConjunctPredicate(
+						new AEqualPredicate(
+								createIdentifier(XML_DATA_NAME),
+								readProbData
+						),
+						abstractConstants
 				)
 		);
-				//new AConjunctPredicate(new ATruthPredicate(), new AConjunctPredicate(typification, value)));
 		machineClauseList.add(propertiesClause);
 		return right;
 	}

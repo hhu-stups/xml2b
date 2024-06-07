@@ -1,11 +1,8 @@
 package de.hhu.stups.xml2b.bTypes;
 
 import de.be4.classicalb.core.parser.node.ACoupleExpression;
-import de.be4.classicalb.core.parser.node.AStringExpression;
 import de.be4.classicalb.core.parser.node.PExpression;
-import de.be4.classicalb.core.parser.node.TStringLiteral;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static de.hhu.stups.xml2b.translation.ASTUtils.createString;
