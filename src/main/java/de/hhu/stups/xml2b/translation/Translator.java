@@ -9,9 +9,7 @@ import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -71,10 +69,10 @@ public abstract class Translator {
 
 		checkForDuplicateIdentifiers();
 
-		try (PrintWriter out = new PrintWriter(dataValuePrologFile)) {
+		try (FileOutputStream out = new FileOutputStream(dataValuePrologFile)) {
 			PrologPrinter prologPrinter = new PrologPrinter(out);
 			prologPrinter.print(dataValues);
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 
