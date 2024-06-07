@@ -4,6 +4,7 @@ import de.be4.classicalb.core.parser.node.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static de.hhu.stups.xml2b.translation.ASTUtils.*;
@@ -91,7 +92,7 @@ public class AbstractConstantsProvider {
 														createIdentifier("e"),
 														createIdentifier(ATTRIBUTES_NAME)
 												),
-												createString(ID_NAME)
+												new ASetExtensionExpression(Collections.singletonList(createString(ID_NAME)))
 										)
 
 								)
@@ -204,7 +205,7 @@ public class AbstractConstantsProvider {
 														createIdentifier("e"),
 														createIdentifier(ATTRIBUTES_NAME)
 												),
-												createString(ID_NAME)
+												new ASetExtensionExpression(Collections.singletonList(createString(ID_NAME)))
 										)
 
 								)
@@ -247,7 +248,7 @@ public class AbstractConstantsProvider {
 																		createIdentifier("e"),
 																		createIdentifier(ATTRIBUTES_NAME)
 																),
-																createString(ID_NAME)
+																new ASetExtensionExpression(Collections.singletonList(createString(ID_NAME)))
 														)
 
 												)
