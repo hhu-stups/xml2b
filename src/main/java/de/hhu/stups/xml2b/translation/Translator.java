@@ -10,6 +10,7 @@ import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
 import de.prob.prolog.output.FastTermOutput;
+import de.prob.prolog.output.IPrologTermOutput;
 import de.prob.prolog.output.PrologTermOutput;
 
 import java.io.*;
@@ -73,8 +74,10 @@ public abstract class Translator {
 		checkForDuplicateIdentifiers();
 
 		try (FileOutputStream out = new FileOutputStream(dataValuePrologFile)) {
-			PrologDataPrinter dataPrinter = new PrologDataPrinter(new FastTermOutput(out)); // or PrologTermOutput
+			IPrologTermOutput pout = new FastTermOutput(out);
+			PrologDataPrinter dataPrinter = new PrologDataPrinter(pout); // or PrologTermOutput
 			dataValues.apply(dataPrinter);
+			pout.fullstop();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

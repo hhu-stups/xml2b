@@ -250,7 +250,6 @@ public class AbstractConstantsProvider {
 																),
 																new ASetExtensionExpression(Collections.singletonList(createString(ID_NAME)))
 														)
-
 												)
 										)
 								)
