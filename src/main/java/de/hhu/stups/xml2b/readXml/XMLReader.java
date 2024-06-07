@@ -40,8 +40,8 @@ public class XMLReader extends DefaultHandler {
 		}
 	}
 
-	private final Stack<OpenXMLElement> openXMLElements = new Stack<>();
-	private final Stack<String> openXMLElementNames = new Stack<>();
+	private final Deque<OpenXMLElement> openXMLElements = new ArrayDeque<>();
+	private final Deque<String> openXMLElementNames = new ArrayDeque<>();
 	private final List<XMLElement> closedXMLElements = new ArrayList<>();
 	private Locator locator;
 	private int recId = 1;
@@ -89,7 +89,7 @@ public class XMLReader extends DefaultHandler {
 
 	@Override
 	public void characters(char[] ch, int start, int length) {
-		OpenXMLElement node = openXMLElements.peek();
+		OpenXMLElement node = openXMLElements.getFirst();
 		if (node != null) {
 			String content = new String(ch, start, length).trim(); // this could break content with surrounding white spaces!
 			if (!content.isEmpty()) { // ignore indents and line breaks
@@ -100,8 +100,8 @@ public class XMLReader extends DefaultHandler {
 
 	@Override
 	public void endElement(String uri, String localName, String qName) {
-		OpenXMLElement currentNode = openXMLElements.pop();
-		openXMLElementNames.pop();
+		OpenXMLElement currentNode = openXMLElements.removeFirst();
+		openXMLElementNames.removeFirst();
 		List<Integer> pIds = openXMLElements.stream().map(o -> o.recId).collect(Collectors.toList());
 		List<String> pNames = new ArrayList<>(openXMLElementNames);
 		if (pIds.isEmpty())

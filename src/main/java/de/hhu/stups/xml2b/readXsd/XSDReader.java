@@ -41,7 +41,7 @@ public class XSDReader implements XmlSchemaVisitor {
 		}
 	}
 
-	private final Stack<String> openElements = new Stack<>();
+	private final Deque<String> openElements = new ArrayDeque<>();
 	private final Map<QName, XSDType> visitedTypes = new HashMap<>();
 	private final Map<List<String>, XmlSchemaElement> visitLater = new HashMap<>();
 	private final Map<List<String>, XSDElement> elements = new HashMap<>();
@@ -71,7 +71,7 @@ public class XSDReader implements XmlSchemaVisitor {
 				this.openElements.clear();
 				this.openElements.addAll(actualOpenElements);
 				// remove the currently walked element:
-				this.openElements.pop();
+				this.openElements.removeFirst();
 				walker.walk(actualVisitLater.get(actualOpenElements));
 				walker.clear();
 			}
@@ -180,7 +180,7 @@ public class XSDReader implements XmlSchemaVisitor {
 		}
 		if (b)
 			visitLater.put(new ArrayList<>(openElements), xmlSchemaElement);
-		this.openElements.pop();
+		this.openElements.removeFirst();
 		XSDElement xsdElement = xsdType.createXSDElement(elementQName, new ArrayList<>(openElements));
 		this.elements.put(xsdElement.getParentsWithThis(), xsdElement);
 	}
