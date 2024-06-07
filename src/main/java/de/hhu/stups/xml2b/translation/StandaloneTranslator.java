@@ -25,18 +25,17 @@ public class StandaloneTranslator extends Translator {
     }
 
     protected static XSDElement getXsdElement(XMLElement element, Map<String, BAttributeType> allAttributeTypes) {
-        BAttributeType bContentType = null;
         Map<String, BAttributeType> bAttributeTypesSet = new HashMap<>();
         for (String attribute : element.attributes().keySet()) {
             BAttributeType bAttributeType = getAttribute(attribute, element.attributes().get(attribute));
             bAttributeTypesSet.put(attribute, bAttributeType);
             allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
-
-            String content = element.content();
-            if (!content.isEmpty()) {
-                bContentType = getAttribute(null, content);
-                allAttributeTypes.put(bContentType.getIdentifier(), bContentType);
-            }
+        }
+        BAttributeType bContentType = null;
+        String content = element.content();
+        if (!content.isEmpty()) {
+            bContentType = getAttribute(null, content);
+            allAttributeTypes.put(bContentType.getIdentifier(), bContentType);
         }
 	    return new XSDElement(element.elementType(), element.pNames(), bContentType, bAttributeTypesSet);
     }
