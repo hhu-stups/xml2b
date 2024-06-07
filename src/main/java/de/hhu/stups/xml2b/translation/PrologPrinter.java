@@ -6,11 +6,10 @@ import de.prob.prolog.output.IPrologTermOutput;
 import de.prob.prolog.output.PrologTermOutput;
 
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static de.hhu.stups.xml2b.translation.Translator.XML_FREETYPE_ATTRIBUTES_NAME;
 
@@ -113,7 +112,8 @@ public class PrologPrinter extends DepthFirstAdapter {
 		for (PRecEntry recEntry : node.getEntries()) {
 			recEntry.apply(this);
 		}
-		List<String> sortedFields = currRecFields.keySet().stream().sorted().toList();
+		List<String> sortedFields = new ArrayList<>(currRecFields.keySet());
+		Collections.sort(sortedFields);
 		for (String field : sortedFields) {
 			pout.openTerm("field");
 			pout.printAtom(field);
