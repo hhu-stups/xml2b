@@ -89,8 +89,14 @@ public class PrologPrinter extends DepthFirstAdapter {
 	@Override
 	public void caseASequenceExtensionExpression(ASequenceExtensionExpression node) {
 		pout.openList();
-		for (PExpression elem : node.getExpression()) {
-			elem.apply(this);
+		List<PExpression> elements = node.getExpression();
+		for (int i = 0; i < elements.size(); i++) {
+			pout.openTerm(",");
+			pout.openTerm("int");
+			pout.printNumber(i+1);
+			pout.closeTerm();
+			elements.get(i).apply(this);
+			pout.closeTerm();
 		}
 		pout.closeList();
 	}
@@ -112,6 +118,7 @@ public class PrologPrinter extends DepthFirstAdapter {
 		for (PRecEntry recEntry : node.getEntries()) {
 			recEntry.apply(this);
 		}
+		// record fields must be sorted!
 		List<String> sortedFields = new ArrayList<>(currRecFields.keySet());
 		Collections.sort(sortedFields);
 		for (String field : sortedFields) {
