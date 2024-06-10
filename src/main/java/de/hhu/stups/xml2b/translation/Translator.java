@@ -64,8 +64,8 @@ public abstract class Translator {
 
 		AFileDefinitionDefinition probLibDefinition = new AFileDefinitionDefinition(new TStringLiteral("LibraryProB.def"));
 		machineClauseList.add(new ADefinitionsMachineClause(Collections.singletonList(probLibDefinition)));
-		createFreetypeClause();
-		createSetsClause();
+		AFreetypesMachineClause freetypesClause = createFreetypeClause();
+		ASetsMachineClause setsClause = createSetsClause();
 		machineClauseList.add(createAbstractConstantsClause());
 		usedIdentifiers.addAll(getIdentifiers());
 		createConstantsClause();
@@ -75,7 +75,7 @@ public abstract class Translator {
 
 		try (FileOutputStream out = new FileOutputStream(dataValuePrologFile)) {
 			IPrologTermOutput pout = new FastTermOutput(out);
-			PrologDataPrinter dataPrinter = new PrologDataPrinter(pout); // or PrologTermOutput
+			PrologDataPrinter dataPrinter = new PrologDataPrinter(pout, setsClause, freetypesClause); // or PrologTermOutput
 			dataValues.apply(dataPrinter);
 			pout.fullstop();
 		} catch (IOException e) {
@@ -244,15 +244,19 @@ public abstract class Translator {
 		return right;
 	}
 
-	private void createFreetypeClause() {
-		machineClauseList.add(new AFreetypesMachineClause(Collections.singletonList(
-				new AFreetype(new TIdentifierLiteral(XML_FREETYPE_ATTRIBUTES_NAME), new ArrayList<>(), getConstructorsForAttributes()))));
+	private AFreetypesMachineClause createFreetypeClause() {
+		AFreetypesMachineClause freetypesClause = new AFreetypesMachineClause(Collections.singletonList(
+				new AFreetype(new TIdentifierLiteral(XML_FREETYPE_ATTRIBUTES_NAME), new ArrayList<>(), getConstructorsForAttributes())));
+		machineClauseList.add(freetypesClause);
+		return freetypesClause;
 	}
 
-	private void createSetsClause() {
+	private ASetsMachineClause createSetsClause() {
 		List<PSet> enumSets = getEnumSets(usedIdentifiers);
+		ASetsMachineClause setsClause = new ASetsMachineClause(enumSets);
 		if (!enumSets.isEmpty())
-			machineClauseList.add(new ASetsMachineClause(enumSets));
+			machineClauseList.add(setsClause);
+		return setsClause;
 	}
 
 	protected abstract List<PSet> getEnumSets(List<String> usedIdentifiers);
