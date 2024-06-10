@@ -140,7 +140,7 @@ public abstract class Translator {
 				new ACartesianProductExpression(new ACartesianProductExpression(new AIntegerSetExpression(), new AIntegerSetExpression()), new ACartesianProductExpression(new AIntegerSetExpression(), new AIntegerSetExpression()))
 		));
 		PExpression typeExpression = new ASeqExpression(new AStructExpression(recTypes));
-		typification.setRight(typeExpression);
+		typification.setRight(typeExpression.clone());
 
 		// VALUE:
 		AEqualPredicate value = new AEqualPredicate();
@@ -220,14 +220,14 @@ public abstract class Translator {
 			sequenceOfRecords.add(new ACoupleExpression(couple));
 		}
 		PExpression right = !sequenceOfRecords.isEmpty() ? new ASetExtensionExpression(sequenceOfRecords) : new AEmptySetExpression();
-		value.setRight(right);
+		value.setRight(right.clone());
 
 		PPredicate abstractConstants = createAbstractConstantsProperties();
 
 		ADefinitionExpression readProbData = new ADefinitionExpression();
 		readProbData.setDefLiteral(new TIdentifierLiteral("READ_PROB_DATA_FILE"));
 		List<PExpression> params = new ArrayList<>();
-		params.add(typeExpression);
+		params.add(typeExpression.clone());
 		params.add(createString(dataValuePrologFile.getName()));
 		readProbData.setParameters(params);
 
@@ -241,7 +241,7 @@ public abstract class Translator {
 				)
 		);
 		machineClauseList.add(propertiesClause);
-		return right;
+		return right.clone();
 	}
 
 	private AFreetypesMachineClause createFreetypeClause() {
