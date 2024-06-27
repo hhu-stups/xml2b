@@ -46,10 +46,11 @@ public class XML2B {
             throw new IllegalArgumentException("expected 1 or 2 files, got " + files.length);
         }
         this.directory = files[0].getAbsoluteFile().getParentFile().toPath();
-        this.modelName = files[0].getName();
+        this.modelName = files[0].getName().split("\\.")[0];
     }
 
     public Start translate() {
+        // TODO: option for fastrw
         return translator.createBAst(new File(String.valueOf(directory.resolve(modelName + ".probdata"))));
     }
 }
