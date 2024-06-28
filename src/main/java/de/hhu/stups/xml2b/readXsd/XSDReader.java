@@ -130,7 +130,7 @@ public class XSDReader implements XmlSchemaVisitor {
 				Set<String> enumValues = getEnumValuesFromFacets(restriction.getFacets());
 				if (!enumValues.isEmpty() && TypeUtils.getJavaType(restriction.getBaseTypeName()).equals("String")) {
 					if (!enumSets.containsKey(typeName)) {
-						enumSets.put(typeName, new BEnumSet(typeName.getLocalPart(), enumValues));
+						enumSets.put(typeName, new BEnumSet(qNameToString(typeName), enumValues));
 					} else {
 						enumSets.get(typeName).addValues(enumValues);
 					}
@@ -140,14 +140,15 @@ public class XSDReader implements XmlSchemaVisitor {
 				// e.g. <xs:union memberTypes="rail3:tBaliseGroupType rail3:tOtherEnumerationValue"/>
 				// create new type containing values of all union types
 				XmlSchemaSimpleTypeUnion union = (XmlSchemaSimpleTypeUnion) ((XmlSchemaSimpleType) type).getContent();
+				BEnumSet enumSet = new BEnumSet(qNameToString(typeName), new HashSet<>());
 				Arrays.stream(union.getMemberTypesQNames())
 						.forEach(qName -> {
-							Set<String> enumValues = collectUnionEnumSets(qName);
-							if (!enumValues.isEmpty()) {
+							collectUnionEnumSets(qName, enumSet);
+							if (!enumSet.getEnumValues().isEmpty()) { // at least one XmlSchemaEnumerationFacet should have been found
 								if (!enumSets.containsKey(typeName)) {
-									enumSets.put(typeName, new BEnumSet(typeName.getLocalPart(), enumValues));
+									enumSets.put(typeName, enumSet);
 								} else {
-									enumSets.get(typeName).addValues(enumValues);
+									enumSets.get(typeName).addValues(enumSet.getEnumValues());
 								}
 							}
 						});
@@ -155,22 +156,23 @@ public class XSDReader implements XmlSchemaVisitor {
 		}
 	}
 
-	private Set<String> collectUnionEnumSets(QName typeName) {
-		Set<String> enumValues = new HashSet<>();
+	private void collectUnionEnumSets(QName typeName, BEnumSet enumSet) {
 		XmlSchemaType type = types.getOrDefault(typeName, null);
 		if (type instanceof XmlSchemaSimpleType
 				&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
 			XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
 			if (TypeUtils.getJavaType(restriction.getBaseTypeName()).equals("String"))
-				enumValues.addAll(getEnumValuesFromFacets(restriction.getFacets()));
+				enumSet.addValues(getEnumValuesFromFacets(restriction.getFacets()));
+			if (checkExtensibleEnumsFromFacets(restriction.getFacets())) {
+				enumSet.setExtensible();
+			}
 		} else if (type instanceof XmlSchemaSimpleType
 				&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeUnion) {
 			XmlSchemaSimpleTypeUnion union = (XmlSchemaSimpleTypeUnion) ((XmlSchemaSimpleType) type).getContent();
-			enumValues.addAll(Arrays.stream(union.getMemberTypesQNames())
-					.map(this::collectUnionEnumSets)
-					.flatMap(Collection::stream).collect(Collectors.toList()));
+			for (QName qName : union.getMemberTypesQNames()) {
+				collectUnionEnumSets(qName, enumSet);
+			}
 		}
-		return enumValues;
 	}
 
 	private static Set<String> getEnumValuesFromFacets(List<XmlSchemaFacet> facets) {
@@ -182,6 +184,17 @@ public class XSDReader implements XmlSchemaVisitor {
 			}
 		}
 		return enum_values;
+	}
+
+	private static boolean checkExtensibleEnumsFromFacets(List<XmlSchemaFacet> facets) {
+		boolean extensible = false;
+		for (XmlSchemaFacet facet : facets) {
+			if (facet instanceof XmlSchemaPatternFacet) {
+				extensible = true;
+				break;
+			}
+		}
+		return extensible;
 	}
 
 	@Override

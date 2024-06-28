@@ -20,7 +20,6 @@ public class XSDTranslator extends Translator {
 
     @Override
     protected void getTypes() {
-        // TODO: allow enum set extensions with other: (tOtherEnumerationValue)
         Set<String> presentAttributes = new HashSet<>();
         Map<List<String>, XSDElement> types = xsdReader.getElements();
         Set<List<String>> notPresentElements = new HashSet<>(types.keySet());

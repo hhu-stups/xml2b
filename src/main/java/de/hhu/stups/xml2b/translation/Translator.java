@@ -73,13 +73,15 @@ public abstract class Translator {
 		AFileDefinitionDefinition probLibDefinition = new AFileDefinitionDefinition(new TStringLiteral("LibraryProB.def"));
 		machineClauseList.add(new ADefinitionsMachineClause(Collections.singletonList(probLibDefinition)));
 		AFreetypesMachineClause freetypesClause = createFreetypeClause();
-		ASetsMachineClause setsClause = createSetsClause();
 		machineClauseList.add(createAbstractConstantsClause());
 		usedIdentifiers.addAll(getIdentifiers());
 		createConstantsClause();
 
 		File dataValuePrologFile = new File(String.valueOf(directory.resolve(machineName + PROBDATA_SUFFIX)));
 		PExpression dataValues = createPropertyClause(dataValuePrologFile);
+
+		// SETS clause must be created after PROPERTIES: extensible enum sets can be extended while data is added to AST
+		ASetsMachineClause setsClause = createSetsClause();
 
 		checkForDuplicateIdentifiers();
 

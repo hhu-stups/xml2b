@@ -8,6 +8,9 @@ import java.util.Set;
 public class BEnumSet {
 	private final String identifier, prefix;
 	private final Set<String> enum_values;
+	// enum set is extensible e.g. for combinations of fixed values and pattern restricted elements;
+	// these are added when the data is passed to the BEnumSetAttributeType during AST creation
+	private boolean extensible = false;
 
 	public BEnumSet(String identifier, Set<String> values) {
 		this.prefix = identifier + "_";
@@ -38,9 +41,17 @@ public class BEnumSet {
 		return enum_values;
 	}
 
+	public void setExtensible() {
+		this.extensible = true;
+	}
+
+	public boolean isExtensible() {
+		return extensible;
+	}
+
 	@Override
 	public String toString() {
-		return "ENUM_SET(" + enum_values + ")";
+		return "ENUM_SET(" + identifier + "; extensible:" + extensible + "; " + enum_values + ")";
 	}
 
 	@Override

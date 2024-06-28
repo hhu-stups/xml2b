@@ -27,11 +27,12 @@ public class BEnumSetAttributeType extends BAttributeType {
 
 	@Override
 	public PExpression getFunctionExpression(String data) {
-		if (enumSet.getEnumValues().contains(data)) {
-			PExpression dataExpression = createIdentifier(enumSet.getValueIdentifier(data));
-			return new AFunctionExpression(createIdentifier(this.getIdentifier()), Collections.singletonList(dataExpression));
-		} else {
+		if (enumSet.isExtensible()) {
+			enumSet.addValues(Collections.singleton(data));
+		} else if (!enumSet.getEnumValues().contains(data)) {
 			throw new IllegalArgumentException("enum set does not contain argument");
 		}
+		PExpression dataExpression = createIdentifier(enumSet.getValueIdentifier(data));
+		return new AFunctionExpression(createIdentifier(this.getIdentifier()), Collections.singletonList(dataExpression));
 	}
 }
