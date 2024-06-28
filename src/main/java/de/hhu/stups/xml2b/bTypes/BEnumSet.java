@@ -22,12 +22,18 @@ public class BEnumSet {
 	public String getPrefix() {
 		return prefix;
 	}
+
 	public String getIdentifier() {
 		return this.identifier;
+	}
+
+	public String getValueIdentifier(final String data) {
+		return this.prefix + data;
 	}
 	public AIdentifierExpression getIdentifierExpression() {
 		return ASTUtils.createIdentifier(identifier);
 	}
+
 	public Set<String> getEnumValues() {
 		return enum_values;
 	}

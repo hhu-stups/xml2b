@@ -69,7 +69,7 @@ public class XSDTranslator extends Translator {
             BEnumSet enumSet = xsdReader.getEnumSets().get(enumSetId);
             enumSets.add(new AEnumeratedSetSet(enumSet.getIdentifierExpression().getIdentifier(),
                     enumSet.getEnumValues().stream()
-                            .map(val -> enumSet.getPrefix() + val)
+                            .map(enumSet::getValueIdentifier)
                             .map(ASTUtils::createIdentifier).collect(Collectors.toList())));
             usedIdentifiers.add(enumSet.getIdentifierExpression().toString().trim());
         }
