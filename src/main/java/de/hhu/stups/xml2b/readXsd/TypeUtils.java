@@ -184,8 +184,9 @@ public class TypeUtils {
 		switch (getJavaType(xsdTypeQ)) {
 			case "BigDecimal":
 			case "Double":
-			case "Float":
 				return new BRealAttributeType(attributeName);
+			case "Float":
+				return new BFloatAttributeType(attributeName);
 			case "BigInteger":
 			case "Integer":
 			case "Short":

@@ -127,7 +127,7 @@ The ignored restriction facets only provide upper/lower bounds for the length of
 | xs:base64Binary       | STRING |
 | xs:boolean            | BOOL   |
 | xs:double             | REAL   |
-| xs:float              | REAL   |
+| xs:float              | FLOAT  |
 | xs:hexBinary          | STRING |
 | xs:NOTATION           | STRING |
 | xs:QName              | STRING |
