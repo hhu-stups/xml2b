@@ -8,59 +8,64 @@ The main motivation is the derivation of attribute types, which cannot be provid
 
 ### Translation with XSD Schema
 
-
+First, the XML file is read and validated against the provided XSD Schema using an SAXParser.
+Then, the elements together with their attributes and B types are derived from the XSD Schema.
 
 #### XSD Elements
 
-| XSD Element    | How translated | B Type |
-|----------------|----------------|--------|
-| all            |                |        |
-| annotation     |                |        |
-| any            |                |        |
-| anyAttribute   |                |        |
-| appinfo        |                |        |
-| attribute      |                |        |
-| attributeGroup |                |        |
-| choice         |                |        |
-| complexContent |                |        |
-| complexType    |                |        |
-| documentation  |                |        |
-| element        |                |        |
-| extension      |                |        |
-| field          |                |        |
-| group          |                |        |
-| import         |                |        |
-| include        |                |        |
-| key            |                |        |
-| keyref         |                |        |
-| list           |                |        |
-| notation       |                |        |
-| redefine       |                |        |
-| restriction    |                |        |
-| schema         |                |        |
-| selector       |                |        |
-| sequence       |                |        |
-| simpleContent  |                |        |
-| simpleType     |                |        |
-| union          |                |        |
-| unique         |                |        |
+| XSD Element    |                                    B Translation                                    |
+|----------------|:-----------------------------------------------------------------------------------:|
+| all            |                                                                                     |
+| annotation     |                    _ignored_, can be used for `@desc` in future                     |
+| any            |                                                                                     |
+| anyAttribute   |                                                                                     |
+| appinfo        |                                      _ignored_                                      |
+| attribute      |                                                                                     |
+| attributeGroup |                  attribute type information collected from schemas                  |
+| choice         |                                                                                     |
+| complexContent |                                                                                     |
+| complexType    | all types are collected from the schemas at the beginning before element extraction |
+| documentation  |                                                                                     |
+| element        |                                                                                     |
+| extension      |                                                                                     |
+| field          |                                                                                     |
+| group          |                        `XSDGroupUtils`: collect all elements                        |
+| import         |                                                                                     |
+| include        |                                                                                     |
+| key            |                                      _ignored_                                      |
+| keyref         |                                      _ignored_                                      |
+| list           |                                                                                     |
+| notation       |                                                                                     |
+| redefine       |                                  <em>ignored</em>                                   |
+| restriction    |                                                                                     |
+| schema         |                  recursively traverse all schemas at the beginning                  |
+| selector       |                                                                                     |
+| sequence       |                                                                                     |
+| simpleContent  |                                                                                     |
+| simpleType     | all types are collected from the schemas at the beginning before element extraction |
+| union          |                                                                                     |
+| unique         |                                                                                     |
 
 #### XSD Restrictions/Facets
 
-| XSD Restriction/Facet | How translated | B Type |
-|-----------------------|----------------|--------|
-| enumeration           |                |        |
-| fractionDigits        |                |        |
-| length                |                |        |
-| maxExclusive          |                |        |
-| maxInclusive          |                |        |
-| maxLength             |                |        |
-| minExclusive          |                |        |
-| minInclusive          |                |        |
-| minLength             |                |        |
-| pattern               |                |        |
-| totalDigits           |                |        |
-| whiteSpace            |                |        |
+###### Enumerated Sets
+
+| XSD Restriction/Facet |                                                                                                                             B Translation                                                                                                                              |
+|-----------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| enumeration           |                                                                                                                 enumerated set of all provided values                                                                                                                  |
+| fractionDigits        |                                                                                                                               _ignored_                                                                                                                                |
+| length                |                                                                                                                               _ignored_                                                                                                                                |
+| maxExclusive          |                                                                                                                               _ignored_                                                                                                                                |
+| maxInclusive          |                                                                                                                               _ignored_                                                                                                                                |
+| maxLength             |                                                                                                                               _ignored_                                                                                                                                |
+| minExclusive          |                                                                                                                               _ignored_                                                                                                                                |
+| minInclusive          |                                                                                                                               _ignored_                                                                                                                                |
+| minLength             |                                                                                                                               _ignored_                                                                                                                                |
+| pattern               | if in combination with a enumeration restriction or `xs:union` of another enumerated set: the enumerated set is marked extensible, i.e. values can be added dynamically during AST creation (since after XSD validation we can assume every present value to be valid) |
+| totalDigits           |                                                                                                                               _ignored_                                                                                                                                |
+| whiteSpace            |                                                                                                                               _ignored_                                                                                                                                |
+
+The ignored restriction facets only provide upper/lower bounds for the length of values and are thus not relevant for definition of enumerated sets.
 
 #### XSD Types
 
@@ -130,6 +135,9 @@ The main motivation is the derivation of attribute types, which cannot be provid
 
 ### Translation without Schema
 
+First, the XML file is read using an SAXParser.
+Then, the B types of attributes and contents are derived by application of the following conversion.
+
 #### Type Derivation
 
 | Type of String | B Type                          | Example | B Value |
@@ -141,10 +149,11 @@ The main motivation is the derivation of attribute types, which cannot be provid
 | anything else  | STRING                          | "data"  | "data"  |
 
 
-### General checks
+### General remarks
 
+- Namespaces are available if used in the XML file, e.g. `<exampleNS:exampleTag>` is mapped to a record with field `element: "exampleNS:exampleTag"`, while the same without namespace prefix (`<exampleTag>`) is mapped to a record with field `element: "exampleTag"`.
 
-### Provided Abstract Contants
+### Provided Abstract Constants
 
 - `XML_getElementsOfType = %t.(t : XML_ELEMENT_TYPES | { e | e : ran(XML_DATA) & e'elementType = t })`
 - `XML_getElementOfId = %(i).(i : dom('id') | dom({ e, el | e : ran(XML_DATA) & (i,el) : 'id' & el : e'attributes }))`

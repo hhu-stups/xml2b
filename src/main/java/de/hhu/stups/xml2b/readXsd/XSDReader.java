@@ -135,7 +135,7 @@ public class XSDReader implements XmlSchemaVisitor {
 					} else {
 						enumSets.get(typeName).addValues(enumSet.getEnumValues());
 					}
-				} // TODO: else check for extensible facets (pattern, ...) and mark BEnumSet as extensible
+				}
 			} else if (type instanceof XmlSchemaSimpleType
 					&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeUnion) {
 				// e.g. <xs:union memberTypes="rail3:tBaliseGroupType rail3:tOtherEnumerationValue"/>
@@ -180,11 +180,14 @@ public class XSDReader implements XmlSchemaVisitor {
 		boolean extensible = false;
 		for (XmlSchemaFacet facet : facets) {
 			if (facet instanceof XmlSchemaEnumerationFacet) {
+				// defines a list of acceptable values
 				XmlSchemaEnumerationFacet enumerationFacet = (XmlSchemaEnumerationFacet) facet;
 				enumSet.addValue(enumerationFacet.getValue().toString());
 			} else if (facet instanceof XmlSchemaPatternFacet) {
+				// defines the exact sequence of characters that are acceptable
 				extensible = true;
 			}
+			// all other facet types do not introduce new acceptable values, but provide bounds for length, minLength, ...
 		}
 		return extensible;
 	}
