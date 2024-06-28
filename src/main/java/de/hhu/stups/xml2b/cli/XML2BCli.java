@@ -70,8 +70,8 @@ public class XML2BCli {
 			if (xml2BCli.xsdFile != null) {
 				LOGGER.info("{} is valid according to {}", xml2BCli.xmlFile.getName(), xml2BCli.xsdFile.getName());
 			}
-			LOGGER.info("translation of {} succeeded", xml2BCli.xmlFile.getName());
 			xml2BCli.createMachine(start);
+			LOGGER.info("translation of {} succeeded", xml2BCli.xmlFile.getName());
 		} catch (BCompoundException e) {
 			if (xml2BCli.xsdFile != null) {
 				LOGGER.error("{} is NOT valid according to {}", xml2BCli.xmlFile.getName(), xml2BCli.xsdFile.getName());

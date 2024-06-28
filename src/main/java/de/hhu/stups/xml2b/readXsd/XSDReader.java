@@ -127,12 +127,13 @@ public class XSDReader implements XmlSchemaVisitor {
 			if (type instanceof XmlSchemaSimpleType
 					&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
 				XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
-				Set<String> enumValues = getEnumValuesFromFacets(restriction.getFacets());
-				if (!enumValues.isEmpty() && TypeUtils.getJavaType(restriction.getBaseTypeName()).equals("String")) {
+				BEnumSet enumSet = new BEnumSet(qNameToString(typeName), new HashSet<>());
+				getEnumValuesFromFacets(restriction.getFacets(), enumSet);
+				if (!enumSet.getEnumValues().isEmpty() && TypeUtils.getJavaType(restriction.getBaseTypeName()).equals("String")) {
 					if (!enumSets.containsKey(typeName)) {
-						enumSets.put(typeName, new BEnumSet(qNameToString(typeName), enumValues));
+						enumSets.put(typeName, enumSet);
 					} else {
-						enumSets.get(typeName).addValues(enumValues);
+						enumSets.get(typeName).addValues(enumSet.getEnumValues());
 					}
 				} // TODO: else check for extensible facets (pattern, ...) and mark BEnumSet as extensible
 			} else if (type instanceof XmlSchemaSimpleType
@@ -161,10 +162,10 @@ public class XSDReader implements XmlSchemaVisitor {
 		if (type instanceof XmlSchemaSimpleType
 				&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
 			XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
-			if (TypeUtils.getJavaType(restriction.getBaseTypeName()).equals("String"))
-				enumSet.addValues(getEnumValuesFromFacets(restriction.getFacets()));
-			if (checkExtensibleEnumsFromFacets(restriction.getFacets())) {
-				enumSet.setExtensible();
+			if (TypeUtils.getJavaType(restriction.getBaseTypeName()).equals("String")) {
+				// Caution: this implicitly collects the enum values!
+				if (getEnumValuesFromFacets(restriction.getFacets(), enumSet))
+					enumSet.setExtensible();
 			}
 		} else if (type instanceof XmlSchemaSimpleType
 				&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeUnion) {
@@ -175,23 +176,14 @@ public class XSDReader implements XmlSchemaVisitor {
 		}
 	}
 
-	private static Set<String> getEnumValuesFromFacets(List<XmlSchemaFacet> facets) {
-		Set<String> enum_values = new HashSet<>();
+	private static boolean getEnumValuesFromFacets(List<XmlSchemaFacet> facets, BEnumSet enumSet) {
+		boolean extensible = false;
 		for (XmlSchemaFacet facet : facets) {
 			if (facet instanceof XmlSchemaEnumerationFacet) {
 				XmlSchemaEnumerationFacet enumerationFacet = (XmlSchemaEnumerationFacet) facet;
-				enum_values.add(enumerationFacet.getValue().toString());
-			}
-		}
-		return enum_values;
-	}
-
-	private static boolean checkExtensibleEnumsFromFacets(List<XmlSchemaFacet> facets) {
-		boolean extensible = false;
-		for (XmlSchemaFacet facet : facets) {
-			if (facet instanceof XmlSchemaPatternFacet) {
+				enumSet.addValue(enumerationFacet.getValue().toString());
+			} else if (facet instanceof XmlSchemaPatternFacet) {
 				extensible = true;
-				break;
 			}
 		}
 		return extensible;

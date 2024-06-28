@@ -18,6 +18,10 @@ public class BEnumSet {
 		this.enum_values = values;
 	}
 
+	public void addValue(String value) {
+		enum_values.add(value);
+	}
+
 	public void addValues(Set<String> values) {
 		enum_values.addAll(values);
 	}

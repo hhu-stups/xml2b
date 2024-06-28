@@ -28,7 +28,7 @@ public class BEnumSetAttributeType extends BAttributeType {
 	@Override
 	public PExpression getFunctionExpression(String data) {
 		if (enumSet.isExtensible()) {
-			enumSet.addValues(Collections.singleton(data));
+			enumSet.addValue(data);
 		} else if (!enumSet.getEnumValues().contains(data)) {
 			throw new IllegalArgumentException("enum set does not contain argument");
 		}
