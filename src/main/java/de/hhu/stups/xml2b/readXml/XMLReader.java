@@ -40,13 +40,12 @@ public class XMLReader extends DefaultHandler {
 		}
 	}
 
-	private final Deque<OpenXMLElement> openXMLElements = new ArrayDeque<>();
-	private final Deque<String> openXMLElementNames = new ArrayDeque<>();
+	private final Stack<OpenXMLElement> openXMLElements = new Stack<>();
+	private final Stack<String> openXMLElementNames = new Stack<>();
 	private final List<XMLElement> closedXMLElements = new ArrayList<>();
 	private Locator locator;
 	private int recId = 1;
 
-	// TODO: namespaces?
 	public List<XMLElement> readXML(File file, File xsdFile) {
 		try {
 			SAXParserFactory saxFactory = SAXParserFactory.newInstance();
@@ -74,6 +73,7 @@ public class XMLReader extends DefaultHandler {
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		OpenXMLElement newNode = new OpenXMLElement(recId, locator.getLineNumber(), locator.getColumnNumber(), extractAttributes(attributes));
 		openXMLElements.push(newNode);
+		// namespaces are just copied, e.g. exampleNS:exampleTag is used as String for the element field of the B record
 		openXMLElementNames.push(qName);
 		recId++;
 	}
@@ -88,7 +88,7 @@ public class XMLReader extends DefaultHandler {
 
 	@Override
 	public void characters(char[] ch, int start, int length) {
-		OpenXMLElement node = openXMLElements.getFirst();
+		OpenXMLElement node = openXMLElements.peek();
 		if (node != null) {
 			String content = new String(ch, start, length).trim(); // this could break content with surrounding white spaces!
 			if (!content.isEmpty()) { // ignore indents and line breaks
@@ -99,8 +99,8 @@ public class XMLReader extends DefaultHandler {
 
 	@Override
 	public void endElement(String uri, String localName, String qName) {
-		OpenXMLElement currentNode = openXMLElements.removeFirst();
-		openXMLElementNames.removeFirst();
+		OpenXMLElement currentNode = openXMLElements.pop();
+		openXMLElementNames.pop();
 		List<Integer> pIds = openXMLElements.stream().map(o -> o.recId).collect(Collectors.toList());
 		List<String> pNames = new ArrayList<>(openXMLElementNames);
 		if (pIds.isEmpty())

@@ -16,6 +16,7 @@ import de.prob.prolog.output.PrologTermOutput;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,19 +27,32 @@ public abstract class Translator {
 
 	public static final String XML_DATA_NAME = "XML_DATA", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES", XML_CONTENT_TYPES_NAME = "XML_CONTENT_TYPES",
 			ID_NAME = "id", P_IDS_NAME = "pIds", REC_ID_NAME = "recId", ELEMENT_NAME = "element", CONTENT_NAME = "content", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
+	public static final String PROBDATA_SUFFIX = ".probdata";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
 	protected Map<String, BAttributeType> allAttributeTypes = new HashMap<>();
 	protected final XSDReader xsdReader;
 
 	private final String machineName;
+	private final Path directory;
 	private final List<String> usedIdentifiers = new ArrayList<>();
+	private boolean useFastRw = false;
+	private FastReadWriter.PrologSystem prologSystem = FastReadWriter.PrologSystem.SICSTUS;
 
 	public Translator(final File xmlFile, final File xsdFile) throws BCompoundException {
+		this(xmlFile, xsdFile, true, FastReadWriter.PrologSystem.SICSTUS);
+	}
+
+	public Translator(final File xmlFile, final File xsdFile, final boolean useFastRw,
+	                  final FastReadWriter.PrologSystem prologSystem) throws BCompoundException {
+		this.directory = xmlFile.getAbsoluteFile().getParentFile().toPath();
+		this.machineName = xmlFile.getName().split("\\.")[0];
+		this.useFastRw = useFastRw;
+		this.prologSystem = prologSystem;
+
 		XMLReader xmlReader = new XMLReader();
 		this.xmlElements = xmlReader.readXML(xmlFile, xsdFile);
 		this.handleValidationErrors(xmlFile, xmlReader.getErrors());
-		this.machineName = xmlFile.getName().split("\\.")[0];
 		this.xsdReader = xsdFile != null ? new XSDReader(xsdFile) : null;
 		this.getTypes();
 	}
@@ -55,15 +69,7 @@ public abstract class Translator {
 
 	protected abstract void getTypes();
 
-	public Start createBAst(final File dataValuePrologFile) {
-		AGeneratedParseUnit aGeneratedParseUnit = new AGeneratedParseUnit();
-		AAbstractMachineParseUnit aAbstractMachineParseUnit = new AAbstractMachineParseUnit();
-		aAbstractMachineParseUnit.setVariant(new AMachineMachineVariant());
-		AMachineHeader machineHeader = new AMachineHeader();
-		List<TIdentifierLiteral> headerName = ASTUtils.createTIdentifierLiteral(machineName);
-		machineHeader.setName(headerName);
-		aAbstractMachineParseUnit.setHeader(machineHeader);
-
+	public Start createBAst() {
 		AFileDefinitionDefinition probLibDefinition = new AFileDefinitionDefinition(new TStringLiteral("LibraryProB.def"));
 		machineClauseList.add(new ADefinitionsMachineClause(Collections.singletonList(probLibDefinition)));
 		AFreetypesMachineClause freetypesClause = createFreetypeClause();
@@ -71,12 +77,14 @@ public abstract class Translator {
 		machineClauseList.add(createAbstractConstantsClause());
 		usedIdentifiers.addAll(getIdentifiers());
 		createConstantsClause();
+
+		File dataValuePrologFile = new File(String.valueOf(directory.resolve(machineName + PROBDATA_SUFFIX)));
 		PExpression dataValues = createPropertyClause(dataValuePrologFile);
 
 		checkForDuplicateIdentifiers();
 
 		try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(dataValuePrologFile.toPath()))) {
-			IPrologTermOutput pout = new FastTermOutput(FastReadWriter.PrologSystem.SICSTUS, out); // or PrologTermOutput
+			IPrologTermOutput pout = useFastRw ? new FastTermOutput(prologSystem, out) : new PrologTermOutput(out, false);
 			PrologDataPrinter dataPrinter = new PrologDataPrinter(pout, setsClause, freetypesClause);
 			dataValues.apply(dataPrinter);
 			pout.fullstop();
@@ -84,9 +92,12 @@ public abstract class Translator {
 			throw new RuntimeException(e);
 		}
 
-		aAbstractMachineParseUnit.setMachineClauses(machineClauseList);
-		aGeneratedParseUnit.setParseUnit(aAbstractMachineParseUnit);
-		return new Start(aGeneratedParseUnit, new EOF());
+		AAbstractMachineParseUnit aAbstractMachineParseUnit = new AAbstractMachineParseUnit(
+				new AMachineMachineVariant(),
+				new AMachineHeader(createTIdentifierLiteral(machineName), new LinkedList<>()),
+				machineClauseList
+		);
+		return new Start(new AGeneratedParseUnit(aAbstractMachineParseUnit), new EOF());
 	}
 
 	private void checkForDuplicateIdentifiers() {
@@ -179,7 +190,7 @@ public abstract class Translator {
 			// Attributes:
 			List<PExpression> attributes = new ArrayList<>();
 			Map<String, BAttributeType> attributeTypes = xmlElement.typeInformation().getAttributeTypes();
-			for (String attribute : xmlElement.attributes().keySet()) { // TODO: ignore attributes not present! (otherwise null)
+			for (String attribute : xmlElement.attributes().keySet()) {
 				if (attributeTypes.containsKey(attribute)) {
 					BAttributeType type = attributeTypes.get(attribute);
 					if (type == null) {
@@ -193,44 +204,30 @@ public abstract class Translator {
 					createIdentifier(ATTRIBUTES_NAME),
 					!attributes.isEmpty() ? new ASetExtensionExpression(attributes) : new AEmptySetExpression()
 			));
-			List<PExpression> startLocation = new ArrayList<>();
-			startLocation.add(createInteger(xmlElement.startLine()));
-			startLocation.add(createInteger(xmlElement.startColumn()));
-			List<PExpression> endLocation = new ArrayList<>();
-			endLocation.add(createInteger(xmlElement.endLine()));
-			endLocation.add(createInteger(xmlElement.endColumn()));
 			List<PExpression> locations = new ArrayList<>();
-			locations.add(new ACoupleExpression(startLocation));
-			locations.add(new ACoupleExpression(endLocation));
+			locations.add(new ACoupleExpression(Arrays.asList(createInteger(xmlElement.startLine()), createInteger(xmlElement.startColumn()))));
+			locations.add(new ACoupleExpression(Arrays.asList(createInteger(xmlElement.endLine()), createInteger(xmlElement.endColumn()))));
 			recValues.add(new ARecEntry(
 					createIdentifier(LOCATION_NAME),
 					new ACoupleExpression(locations)
 			));
 			ARecExpression rec = new ARecExpression(recValues);
 			AIntegerExpression recIndex = createInteger(xmlElement.recId());
-			List<PExpression> couple = new ArrayList<>();
-			couple.add(recIndex);
-			couple.add(rec);
-			sequenceOfRecords.add(new ACoupleExpression(couple));
+			sequenceOfRecords.add(new ACoupleExpression(Arrays.asList(recIndex, rec)));
 		}
 		PExpression right = !sequenceOfRecords.isEmpty() ? new ASetExtensionExpression(sequenceOfRecords) : new AEmptySetExpression();
 		value.setRight(right.clone());
 
 		PPredicate abstractConstants = createAbstractConstantsProperties();
 
-		ADefinitionExpression readProbData = new ADefinitionExpression();
-		readProbData.setDefLiteral(new TIdentifierLiteral("READ_PROB_DATA_FILE"));
-		List<PExpression> params = new ArrayList<>();
-		params.add(typeExpression.clone());
-		params.add(createString(dataValuePrologFile.getName()));
-		readProbData.setParameters(params);
+		ADefinitionExpression readProbData = new ADefinitionExpression(
+				new TIdentifierLiteral("READ_PROB_DATA_FILE"),
+				Arrays.asList(typeExpression.clone(), createString(dataValuePrologFile.getName()))
+		);
 
 		APropertiesMachineClause propertiesClause = new APropertiesMachineClause(
 				new AConjunctPredicate(
-						new AEqualPredicate(
-								createIdentifier(XML_DATA_NAME),
-								readProbData
-						),
+						new AEqualPredicate(createIdentifier(XML_DATA_NAME), readProbData),
 						abstractConstants
 				)
 		);

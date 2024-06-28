@@ -34,9 +34,8 @@ public class XML2B {
     }
 
     private final Translator translator;
-    private final Path directory;
-    private final String modelName;
 
+    // TODO: options for fastrw, Prolog system and no completeness check
     public XML2B(File... files) throws BCompoundException {
         if (files.length == 1) {
             this.translator = new StandaloneTranslator(files[0]);
@@ -45,12 +44,9 @@ public class XML2B {
         } else {
             throw new IllegalArgumentException("expected 1 or 2 files, got " + files.length);
         }
-        this.directory = files[0].getAbsoluteFile().getParentFile().toPath();
-        this.modelName = files[0].getName().split("\\.")[0];
     }
 
     public Start translate() {
-        // TODO: option for fastrw
-        return translator.createBAst(new File(String.valueOf(directory.resolve(modelName + ".probdata"))));
+        return translator.createBAst();
     }
 }
