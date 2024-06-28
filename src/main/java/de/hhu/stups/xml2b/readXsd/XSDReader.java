@@ -13,6 +13,7 @@ import org.xml.sax.InputSource;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static de.hhu.stups.xml2b.readXsd.TypeUtils.qNameToString;
 import static org.apache.ws.commons.schema.walker.XmlSchemaBaseSimpleType.ANYTYPE;
@@ -126,31 +127,58 @@ public class XSDReader implements XmlSchemaVisitor {
 			if (type instanceof XmlSchemaSimpleType
 					&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
 				XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
-				Set<String> enumValues = getEnumValuesFromFacets(restriction.getFacets(), typeName);
+				Set<String> enumValues = getEnumValuesFromFacets(restriction.getFacets());
 				if (!enumValues.isEmpty() && TypeUtils.getJavaType(restriction.getBaseTypeName()).equals("String")) {
 					if (!enumSets.containsKey(typeName)) {
 						enumSets.put(typeName, new BEnumSet(typeName.getLocalPart(), enumValues));
 					} else {
 						enumSets.get(typeName).addValues(enumValues);
 					}
-				}
+				} // TODO: else check for extensible facets (pattern, ...) and mark BEnumSet as extensible
 			} else if (type instanceof XmlSchemaSimpleType
 					&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeUnion) {
-				// <xs:union memberTypes="rail3:tBaliseGroupType rail3:tOtherEnumerationValue"/>
-				// TODO: this solution does not work for multiple memberTypes that are already enum sets!
-				// if union (or other type): new enum set with another prefix. for arbitrary value: add when translated (flag)
+				// e.g. <xs:union memberTypes="rail3:tBaliseGroupType rail3:tOtherEnumerationValue"/>
+				// create new type containing values of all union types
 				XmlSchemaSimpleTypeUnion union = (XmlSchemaSimpleTypeUnion) ((XmlSchemaSimpleType) type).getContent();
-				collectEnumSets(new HashSet<>(Arrays.asList(union.getMemberTypesQNames())));
+				Arrays.stream(union.getMemberTypesQNames())
+						.forEach(qName -> {
+							Set<String> enumValues = collectUnionEnumSets(qName);
+							if (!enumValues.isEmpty()) {
+								if (!enumSets.containsKey(typeName)) {
+									enumSets.put(typeName, new BEnumSet(typeName.getLocalPart(), enumValues));
+								} else {
+									enumSets.get(typeName).addValues(enumValues);
+								}
+							}
+						});
 			}
 		}
 	}
 
-	private static Set<String> getEnumValuesFromFacets(List<XmlSchemaFacet> facets, QName identifier) {
+	private Set<String> collectUnionEnumSets(QName typeName) {
+		Set<String> enumValues = new HashSet<>();
+		XmlSchemaType type = types.getOrDefault(typeName, null);
+		if (type instanceof XmlSchemaSimpleType
+				&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeRestriction) {
+			XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction) ((XmlSchemaSimpleType) type).getContent();
+			if (TypeUtils.getJavaType(restriction.getBaseTypeName()).equals("String"))
+				enumValues.addAll(getEnumValuesFromFacets(restriction.getFacets()));
+		} else if (type instanceof XmlSchemaSimpleType
+				&& ((XmlSchemaSimpleType) type).getContent() instanceof XmlSchemaSimpleTypeUnion) {
+			XmlSchemaSimpleTypeUnion union = (XmlSchemaSimpleTypeUnion) ((XmlSchemaSimpleType) type).getContent();
+			enumValues.addAll(Arrays.stream(union.getMemberTypesQNames())
+					.map(this::collectUnionEnumSets)
+					.flatMap(Collection::stream).collect(Collectors.toList()));
+		}
+		return enumValues;
+	}
+
+	private static Set<String> getEnumValuesFromFacets(List<XmlSchemaFacet> facets) {
 		Set<String> enum_values = new HashSet<>();
 		for (XmlSchemaFacet facet : facets) {
 			if (facet instanceof XmlSchemaEnumerationFacet) {
 				XmlSchemaEnumerationFacet enumerationFacet = (XmlSchemaEnumerationFacet) facet;
-				enum_values.add(identifier.getLocalPart() + "_" + enumerationFacet.getValue().toString());
+				enum_values.add(enumerationFacet.getValue().toString());
 			}
 		}
 		return enum_values;

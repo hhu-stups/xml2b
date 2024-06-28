@@ -28,7 +28,8 @@ public class XSDTranslator extends Translator {
             presentAttributes.addAll(xmlElement.attributes().keySet());
 	        XSDElement xsdElement;
             if (types.containsKey(xmlElement.pNamesWithThis())) {
-                // TODO: same attribute for same xmlElement in same namespace: can this happen ? handle possible different types
+                // we consider all parent elements here, so the attribute types should be unique
+                // thus: same attribute for same xmlElement in same namespace should not be a problem
                 xsdElement = types.get(xmlElement.pNamesWithThis());
                 Map<String, BAttributeType> attributeTypes = xsdElement.getAttributeTypes();
                 attributeTypes.forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
@@ -67,7 +68,9 @@ public class XSDTranslator extends Translator {
         for (QName enumSetId : xsdReader.getEnumSets().keySet()) {
             BEnumSet enumSet = xsdReader.getEnumSets().get(enumSetId);
             enumSets.add(new AEnumeratedSetSet(enumSet.getIdentifierExpression().getIdentifier(),
-                    enumSet.getEnumValues().stream().map(ASTUtils::createIdentifier).collect(Collectors.toList())));
+                    enumSet.getEnumValues().stream()
+                            .map(val -> enumSet.getPrefix() + val)
+                            .map(ASTUtils::createIdentifier).collect(Collectors.toList())));
             usedIdentifiers.add(enumSet.getIdentifierExpression().toString().trim());
         }
         return enumSets;
