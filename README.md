@@ -1,10 +1,20 @@
 # XML2B
 ### EXPERIMENTAL
 
-This project is still experimental.
+This project is still under development.
 
 XML2B aims to generate classical B machines for data validation from data stored in XML documents.
 The main motivation is the derivation of attribute types, which cannot be provided by ProB's generic external function `READ_XML`.
+Type derivation can be carried out either standalone or with the help of XSD schema files.
+
+### Usage
+#### Command Line
+
+#### Java
+
+#### Get Value of an Attribute
+
+`b : BOOL__VALUE~[e'attributes]` Caution: if an attribute is present, but has another type than `BOOL` it is ignored this way!
 
 ### Translation with XSD Schema
 

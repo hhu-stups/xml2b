@@ -85,6 +85,7 @@ public abstract class Translator {
 
 		checkForDuplicateIdentifiers();
 
+		// TODO: check if file already exists
 		try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(dataValuePrologFile.toPath()))) {
 			IPrologTermOutput pout = useFastRw ? new FastTermOutput(prologSystem, out) : new PrologTermOutput(out, false);
 			PrologDataPrinter dataPrinter = new PrologDataPrinter(pout, setsClause, freetypesClause);
@@ -94,6 +95,7 @@ public abstract class Translator {
 			throw new RuntimeException(e);
 		}
 
+		// TODO: machineName can be different from output file name!
 		AAbstractMachineParseUnit aAbstractMachineParseUnit = new AAbstractMachineParseUnit(
 				new AMachineMachineVariant(),
 				new AMachineHeader(createTIdentifierLiteral(machineName), new LinkedList<>()),
@@ -172,6 +174,7 @@ public abstract class Translator {
 					createIdentifier(ELEMENT_NAME),
 					createString(xmlElement.elementType())
 			));
+			// TODO: add default values for contents and attributes if not present
 			// Content:
 			PExpression contentExpression;
 			if (xmlElement.content().isEmpty()) {
