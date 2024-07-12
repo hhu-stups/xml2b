@@ -95,10 +95,7 @@ public class XML2BCli {
 			}
 		} else {
 			LOGGER.info("no output path provided, print machine");
-			PrettyPrinter prettyPrinter = new PrettyPrinter();
-			prettyPrinter.setUseIndentation(true);
-			start.apply(prettyPrinter);
-			System.out.println(prettyPrinter.getPrettyPrint());
+			System.out.println(PrettyPrinter.getPrettyPrint(start));
 		}
 	}
 
