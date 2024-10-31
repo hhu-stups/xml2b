@@ -129,27 +129,27 @@ public abstract class Translator {
 		typification.setLeft(createIdentifier(XML_DATA_NAME));
 		List<PRecEntry> recTypes = new ArrayList<>();
 		recTypes.add(new ARecEntry(
-				createIdentifier(P_IDS_NAME),
+				new TIdentifierLiteral(P_IDS_NAME),
 				new ASeq1Expression(new AIntegerSetExpression())
 		));
 		recTypes.add(new ARecEntry(
-				createIdentifier(REC_ID_NAME),
+				new TIdentifierLiteral(REC_ID_NAME),
 				new AIntegerSetExpression()
 		));
 		recTypes.add(new ARecEntry(
-				createIdentifier(ELEMENT_NAME),
+				new TIdentifierLiteral(ELEMENT_NAME),
 				new AStringSetExpression()
 		));
 		recTypes.add(new ARecEntry(
-				createIdentifier(CONTENT_NAME),
+				new TIdentifierLiteral(CONTENT_NAME),
 				new APowSubsetExpression(createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME))
 		));
 		recTypes.add(new ARecEntry(
-				createIdentifier(ATTRIBUTES_NAME),
+				new TIdentifierLiteral(ATTRIBUTES_NAME),
 				new APartialFunctionExpression(new AStringSetExpression(), createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME))
 		));
 		recTypes.add(new ARecEntry(
-				createIdentifier(LOCATION_NAME),
+				new TIdentifierLiteral(LOCATION_NAME),
 				new ACartesianProductExpression(new ACartesianProductExpression(new AIntegerSetExpression(), new AIntegerSetExpression()), new ACartesianProductExpression(new AIntegerSetExpression(), new AIntegerSetExpression()))
 		));
 		PExpression typeExpression = new ASeqExpression(new AStructExpression(recTypes));
@@ -163,15 +163,15 @@ public abstract class Translator {
 		for (XMLElement xmlElement : xmlElements) {
 			List<PRecEntry> recValues = new ArrayList<>();
 			recValues.add(new ARecEntry(
-					createIdentifier(P_IDS_NAME),
+					new TIdentifierLiteral(P_IDS_NAME),
 					new ASequenceExtensionExpression(xmlElement.pIds().stream().map(ASTUtils::createInteger).collect(Collectors.toList()))
 			));
 			recValues.add(new ARecEntry(
-					createIdentifier(REC_ID_NAME),
+					new TIdentifierLiteral(REC_ID_NAME),
 					createInteger(xmlElement.recId())
 			));
 			recValues.add(new ARecEntry(
-					createIdentifier(ELEMENT_NAME),
+					new TIdentifierLiteral(ELEMENT_NAME),
 					createString(xmlElement.elementType())
 			));
 			// TODO: add default values for contents and attributes if not present
@@ -189,7 +189,7 @@ public abstract class Translator {
 				contentExpression = new ASetExtensionExpression(contents);
 			}
 			recValues.add(new ARecEntry(
-					createIdentifier(CONTENT_NAME),
+					new TIdentifierLiteral(CONTENT_NAME),
 					contentExpression
 			));
 			// Attributes:
@@ -206,14 +206,14 @@ public abstract class Translator {
 				}
 			}
 			recValues.add(new ARecEntry(
-					createIdentifier(ATTRIBUTES_NAME),
+					new TIdentifierLiteral(ATTRIBUTES_NAME),
 					!attributes.isEmpty() ? new ASetExtensionExpression(attributes) : new AEmptySetExpression()
 			));
 			List<PExpression> locations = new ArrayList<>();
 			locations.add(new ACoupleExpression(Arrays.asList(createInteger(xmlElement.startLine()), createInteger(xmlElement.startColumn()))));
 			locations.add(new ACoupleExpression(Arrays.asList(createInteger(xmlElement.endLine()), createInteger(xmlElement.endColumn()))));
 			recValues.add(new ARecEntry(
-					createIdentifier(LOCATION_NAME),
+					new TIdentifierLiteral(LOCATION_NAME),
 					new ACoupleExpression(locations)
 			));
 			ARecExpression rec = new ARecExpression(recValues);

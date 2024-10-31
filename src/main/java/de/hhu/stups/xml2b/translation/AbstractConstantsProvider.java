@@ -58,7 +58,7 @@ public class AbstractConstantsProvider {
 								new AEqualPredicate(
 										new ARecordFieldExpression(
 												createIdentifier("e"),
-												createIdentifier(ELEMENT_NAME)
+												new TIdentifierLiteral(ELEMENT_NAME)
 										),
 										createIdentifier("t")
 								)
@@ -90,7 +90,7 @@ public class AbstractConstantsProvider {
 										new AImageExpression(
 												new ARecordFieldExpression(
 														createIdentifier("e"),
-														createIdentifier(ATTRIBUTES_NAME)
+														new TIdentifierLiteral(ATTRIBUTES_NAME)
 												),
 												new ASetExtensionExpression(Collections.singletonList(createString(ID_NAME)))
 										)
@@ -119,12 +119,12 @@ public class AbstractConstantsProvider {
 								new AMemberPredicate(
 										new ARecordFieldExpression(
 												createIdentifier("e"),
-												createIdentifier(REC_ID_NAME)
+												new TIdentifierLiteral(REC_ID_NAME)
 										),
 										new ARangeExpression(
 											new ARecordFieldExpression(
 													createIdentifier("c"),
-													createIdentifier(P_IDS_NAME)
+													new TIdentifierLiteral(P_IDS_NAME)
 											)
 										)
 								)
@@ -158,19 +158,19 @@ public class AbstractConstantsProvider {
 										new AMemberPredicate(
 												new ARecordFieldExpression(
 														createIdentifier("e"),
-														createIdentifier(REC_ID_NAME)
+														new TIdentifierLiteral(REC_ID_NAME)
 												),
 												new ARangeExpression(
 														new ARecordFieldExpression(
 																createIdentifier("c"),
-																createIdentifier(P_IDS_NAME)
+																new TIdentifierLiteral(P_IDS_NAME)
 														)
 												)
 										),
 										new AEqualPredicate(
 												new ARecordFieldExpression(
 														createIdentifier("c"),
-														createIdentifier(ELEMENT_NAME)
+														new TIdentifierLiteral(ELEMENT_NAME)
 												),
 												createIdentifier("t")
 										)
@@ -203,7 +203,7 @@ public class AbstractConstantsProvider {
 										new AImageExpression(
 												new ARecordFieldExpression(
 														createIdentifier("e"),
-														createIdentifier(ATTRIBUTES_NAME)
+														new TIdentifierLiteral(ATTRIBUTES_NAME)
 												),
 												new ASetExtensionExpression(Collections.singletonList(createString(ID_NAME)))
 										)
@@ -234,7 +234,7 @@ public class AbstractConstantsProvider {
 												new AEqualPredicate(
 														new ARecordFieldExpression(
 																createIdentifier("e"),
-																createIdentifier(ELEMENT_NAME)
+																new TIdentifierLiteral(ELEMENT_NAME)
 														),
 														createIdentifier("t")
 												),
@@ -246,7 +246,7 @@ public class AbstractConstantsProvider {
 														new AImageExpression(
 																new ARecordFieldExpression(
 																		createIdentifier("e"),
-																		createIdentifier(ATTRIBUTES_NAME)
+																		new TIdentifierLiteral(ATTRIBUTES_NAME)
 																),
 																new ASetExtensionExpression(Collections.singletonList(createString(ID_NAME)))
 														)
