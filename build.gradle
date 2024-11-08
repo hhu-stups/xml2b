@@ -23,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    implementation group: "de.hhu.stups", name: "bparser", version: "2.13.5-SNAPSHOT"
+    implementation group: "de.hhu.stups", name: "bparser", version: "2.13.6-SNAPSHOT"
     implementation group: "ch.qos.logback", name: "logback-classic", version: "1.5.11"
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.9.0'
     implementation group: 'org.apache.ws.xmlschema', name: 'xmlschema-walker', version: '2.3.1'
