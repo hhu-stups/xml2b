@@ -25,8 +25,15 @@ import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.*;
 
 public abstract class Translator {
 
-	public static final String XML_DATA_NAME = "XML_DATA", XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES", XML_CONTENT_TYPES_NAME = "XML_CONTENT_TYPES",
-			ID_NAME = "id", P_IDS_NAME = "pIds", REC_ID_NAME = "recId", ELEMENT_NAME = "element", CONTENT_NAME = "content", ATTRIBUTES_NAME = "attributes", LOCATION_NAME = "xmlLocation";
+	public static final String XML_DATA_NAME = "XML_DATA";
+	public static final String XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES";
+	public static final String ID_NAME = "id";
+	public static final String P_IDS_NAME = "pIds";
+	public static final String REC_ID_NAME = "recId";
+	public static final String ELEMENT_NAME = "element";
+	public static final String CONTENT_NAME = "content";
+	public static final String ATTRIBUTES_NAME = "attributes";
+	public static final String LOCATION_NAME = "xmlLocation";
 	public static final String PROBDATA_SUFFIX = ".probdata";
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
 	protected final List<XMLElement> xmlElements;
@@ -36,8 +43,8 @@ public abstract class Translator {
 	private final String machineName;
 	private final Path directory;
 	private final List<String> usedIdentifiers = new ArrayList<>();
-	private boolean useFastRw = false;
-	private FastReadWriter.PrologSystem prologSystem = FastReadWriter.PrologSystem.SICSTUS;
+	private final boolean useFastRw;
+	private final FastReadWriter.PrologSystem prologSystem;
 
 	public Translator(final File xmlFile, final File xsdFile) throws BCompoundException {
 		this(xmlFile, xsdFile, true, FastReadWriter.PrologSystem.SICSTUS);
