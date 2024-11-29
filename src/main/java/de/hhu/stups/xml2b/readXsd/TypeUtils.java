@@ -1,5 +1,8 @@
 package de.hhu.stups.xml2b.readXsd;
 
+import com.sun.xml.xsom.XSContentType;
+import com.sun.xml.xsom.XSDeclaration;
+import com.sun.xml.xsom.XSType;
 import de.hhu.stups.xml2b.bTypes.*;
 
 import javax.xml.namespace.QName;
@@ -176,12 +179,8 @@ public class TypeUtils {
 		xsdTypesToJava.put("untypedAtomic", string);
 	}
 
-	public static boolean isConvertibleType(final QName qName) {
-		return xsdTypesToJava.containsKey(qNameToString(qName));
-	}
-
-	public static BAttributeType getBAttributeType(QName xsdTypeQ, String attributeName) {
-		switch (getJavaType(xsdTypeQ)) {
+	public static BAttributeType getBAttributeType(XSType xsdType, String attributeName) {
+		switch (getJavaType(xsdType)) {
 			case "BigDecimal":
 			case "Double":
 				return new BRealAttributeType(attributeName);
@@ -201,8 +200,25 @@ public class TypeUtils {
 		}
 	}
 
-	public static String getJavaType(QName xsdType) {
-		return xsdTypesToJava.getOrDefault(qNameToString(xsdType), "String");
+	public static String getJavaType(XSType xsType) {
+		XSType baseType = getBaseType(xsType);
+		return xsdTypesToJava.getOrDefault(getQNameAsStringFromDeclaration(baseType), "String");
+	}
+
+	private static XSType getBaseType(XSType type) {
+		if (type.isSimpleType()) {
+			XSType baseType = type.asSimpleType().getBaseType();
+			if (baseType == null || baseType.getName().equals("anySimpleType")) {
+				return type;
+			}
+			return getBaseType(baseType);
+		} else if (type.isComplexType()) {
+			XSContentType contentType = type.asComplexType().getContentType();
+			if (contentType.asSimpleType() != null) {
+				return getBaseType(contentType.asSimpleType());
+			}
+		}
+		return null;
 	}
 
 	public static String qNameToString(QName qName) {
@@ -214,5 +230,13 @@ public class TypeUtils {
 			xsdType += qName.getLocalPart();
 		}
 		return xsdType;
+	}
+
+	public static QName getQNameFromDeclaration(XSDeclaration xsDeclaration) {
+		return new QName(xsDeclaration.getTargetNamespace(), xsDeclaration.getName());
+	}
+
+	public static String getQNameAsStringFromDeclaration(XSDeclaration xsDeclaration) {
+		return qNameToString(getQNameFromDeclaration(xsDeclaration));
 	}
 }
