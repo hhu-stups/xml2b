@@ -98,8 +98,7 @@ public abstract class Translator {
 		// TODO: check if file already exists
 		try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(dataValuePrologFile.toPath()))) {
 			IPrologTermOutput pout = useFastRw ? new FastTermOutput(prologSystem, out) : new PrologTermOutput(out, false);
-			PrologDataPrinter dataPrinter = new PrologDataPrinter(pout, setsClause, freetypesClause);
-			dataValues.apply(dataPrinter);
+			dataValues.apply(new PrologDataPrinter(pout, setsClause, freetypesClause));
 			pout.fullstop();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -234,9 +233,10 @@ public abstract class Translator {
 					new TIdentifierLiteral(LOCATION_NAME),
 					new ACoupleExpression(locations)
 			));
-			ARecExpression rec = new ARecExpression(recValues);
-			AIntegerExpression recIndex = createInteger(xmlElement.recId());
-			sequenceOfRecords.add(new ACoupleExpression(Arrays.asList(recIndex, rec)));
+			sequenceOfRecords.add(new ACoupleExpression(Arrays.asList(
+					createIntegerExpression(xmlElement.recId()),
+					new ARecExpression(recValues))
+			));
 		}
 		PExpression right = !sequenceOfRecords.isEmpty() ? new ASetExtensionExpression(sequenceOfRecords) : new AEmptySetExpression();
 		value.setRight(right.clone());
