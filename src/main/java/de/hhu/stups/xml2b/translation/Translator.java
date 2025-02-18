@@ -32,7 +32,8 @@ public abstract class Translator {
 	public static final String MAX_CID_NAME = "maxCId";
 	public static final String P_IDS_NAME = "pIds";
 	public static final String REC_ID_NAME = "recId";
-	public static final String ELEMENT_NAME = "element";
+	// Element instead of element: first field in records for fast search
+	public static final String ELEMENT_NAME = "Element";
 	public static final String CONTENT_NAME = "content";
 	public static final String ATTRIBUTES_NAME = "attributes";
 	public static final String LOCATION_NAME = "xmlLocation";
