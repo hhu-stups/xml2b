@@ -23,6 +23,7 @@ public class XMLReader extends DefaultHandler {
 		private final int recId, lineNumber, columnNumber;
 		private final Map<String, String> attributes;
 		private String content = "";
+		private int nrOfChildren = 0;
 
 		private OpenXMLElement(int recId, int lineNumber, int columnNumber, Map<String, String> attributes) {
 			this.recId = recId;
@@ -31,12 +32,16 @@ public class XMLReader extends DefaultHandler {
 			this.attributes = attributes;
 		}
 
+		private void incNrOfChildren() {
+			this.nrOfChildren++;
+		}
+
 		private void addContent(final String content) {
 			this.content += content;
 		}
 
 		private XMLElement getClosedXMLElement(String elementType, List<Integer> pIds, List<String> pNames, int endLine, int endColumn) {
-			return new XMLElement(elementType, pIds, pNames, recId, attributes, content, lineNumber, columnNumber, endLine, endColumn);
+			return new XMLElement(elementType, pIds, pNames, nrOfChildren, recId, attributes, content, lineNumber, columnNumber, endLine, endColumn);
 		}
 	}
 
@@ -71,6 +76,7 @@ public class XMLReader extends DefaultHandler {
 
 	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
+		openXMLElements.forEach(OpenXMLElement::incNrOfChildren);
 		OpenXMLElement newNode = new OpenXMLElement(recId, locator.getLineNumber(), locator.getColumnNumber(), extractAttributes(attributes));
 		openXMLElements.push(newNode);
 		// namespaces are just copied, e.g. exampleNS:exampleTag is used as String for the element field of the B record

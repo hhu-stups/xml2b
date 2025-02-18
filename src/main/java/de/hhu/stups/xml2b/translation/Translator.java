@@ -29,6 +29,7 @@ public abstract class Translator {
 	public static final String XML_DATA_NAME = "XML_DATA";
 	public static final String XML_FREETYPE_ATTRIBUTES_NAME = "XML_ATTRIBUTE_TYPES";
 	public static final String ID_NAME = "id";
+	public static final String MAX_CID_NAME = "maxCId";
 	public static final String P_IDS_NAME = "pIds";
 	public static final String REC_ID_NAME = "recId";
 	public static final String ELEMENT_NAME = "element";
@@ -137,6 +138,10 @@ public abstract class Translator {
 		typification.setLeft(createIdentifier(XML_DATA_NAME));
 		List<PRecEntry> recTypes = new ArrayList<>();
 		recTypes.add(new ARecEntry(
+				new TIdentifierLiteral(MAX_CID_NAME),
+				new AIntegerSetExpression()
+		));
+		recTypes.add(new ARecEntry(
 				new TIdentifierLiteral(P_IDS_NAME),
 				new ASeq1Expression(new AIntegerSetExpression())
 		));
@@ -170,6 +175,10 @@ public abstract class Translator {
 		List<PExpression> sequenceOfRecords = new ArrayList<>();
 		for (XMLElement xmlElement : xmlElements) {
 			List<PRecEntry> recValues = new ArrayList<>();
+			recValues.add(new ARecEntry(
+					new TIdentifierLiteral(MAX_CID_NAME),
+					createIntegerExpression(xmlElement.maxCId())
+			));
 			recValues.add(new ARecEntry(
 					new TIdentifierLiteral(P_IDS_NAME),
 					new ASequenceExtensionExpression(xmlElement.pIds().stream().map(ASTBuilder::createIntegerExpression).collect(Collectors.toList()))

@@ -11,6 +11,7 @@ public final class XMLElement {
 	private final String elementType;
 	private final List<Integer> pIds;
 	private final List<String> pNames;
+	private final int maxChildId;
 	private final int recId;
 	private final Map<String, String> attributes;
 	private final String content;
@@ -18,11 +19,12 @@ public final class XMLElement {
 
 	private XSDElement typeInformation = null;
 
-	public XMLElement(String elementType, List<Integer> pIds, List<String> pNames, int recId, Map<String, String> attributes,
-	                  String content, int startLine, int startColumn, int endLine, int endColumn) {
+	public XMLElement(String elementType, List<Integer> pIds, List<String> pNames, int nrOfChildren, int recId,
+	                  Map<String, String> attributes, String content, int startLine, int startColumn, int endLine, int endColumn) {
 		this.elementType = elementType;
 		this.pIds = pIds;
 		this.pNames = pNames;
+		this.maxChildId = recId + nrOfChildren;
 		this.recId = recId;
 		this.attributes = attributes;
 		this.content = content;
@@ -65,6 +67,10 @@ public final class XMLElement {
 		List<String> parentsWithThis = new ArrayList<>(this.pNames);
 		parentsWithThis.add(this.elementType);
 		return parentsWithThis;
+	}
+
+	public int maxCId() {
+		return this.maxChildId;
 	}
 
 	public int recId() {
@@ -110,6 +116,7 @@ public final class XMLElement {
 				"elementType=" + elementType + ", " +
 				"pIds=" + pIds + ", " +
 				"pNames=" + pNames + ", " +
+				"maxCId=" + maxChildId + ", " +
 				"recId=" + recId + ", " +
 				"attributes=" + attributes + ", " +
 				"content=" + content + ", " +
