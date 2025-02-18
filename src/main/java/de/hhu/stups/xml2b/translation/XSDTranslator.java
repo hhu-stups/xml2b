@@ -3,6 +3,7 @@ package de.hhu.stups.xml2b.translation;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.AEnumeratedSetSet;
 import de.be4.classicalb.core.parser.node.PSet;
+import de.be4.classicalb.core.parser.util.ASTBuilder;
 import de.hhu.stups.xml2b.bTypes.*;
 import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXsd.XSDElement;
@@ -69,7 +70,7 @@ public class XSDTranslator extends Translator {
             enumSets.add(new AEnumeratedSetSet(enumSet.getIdentifierExpression().getIdentifier(),
                     enumSet.getEnumValues().stream()
                             .map(enumSet::getValueIdentifier)
-                            .map(ASTUtils::createIdentifier).collect(Collectors.toList())));
+                            .map(ASTBuilder::createIdentifier).collect(Collectors.toList())));
             usedIdentifiers.add(enumSet.getIdentifierExpression().toString().trim());
         }
         return enumSets;

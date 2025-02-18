@@ -4,8 +4,8 @@ import de.be4.classicalb.core.parser.node.*;
 
 import java.util.Collections;
 
-import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
-import static de.hhu.stups.xml2b.translation.ASTUtils.createInteger;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createIdentifier;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createIntegerExpression;
 
 public class BIntegerAttributeType extends BAttributeType {
 	public BIntegerAttributeType(final String attributeName) {
@@ -24,6 +24,6 @@ public class BIntegerAttributeType extends BAttributeType {
 
 	@Override
 	public PExpression getFunctionExpression(String data) {
-		return new AFunctionExpression(createIdentifier(this.getIdentifier()), Collections.singletonList(createInteger(data)));
+		return new AFunctionExpression(createIdentifier(this.getIdentifier()), Collections.singletonList(createIntegerExpression(data)));
 	}
 }

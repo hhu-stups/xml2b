@@ -1,9 +1,10 @@
 package de.hhu.stups.xml2b.bTypes;
 
 import de.be4.classicalb.core.parser.node.AIdentifierExpression;
-import de.hhu.stups.xml2b.translation.ASTUtils;
 
 import java.util.Set;
+
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createIdentifier;
 
 public class BEnumSet {
 	private final String identifier, prefix;
@@ -38,7 +39,7 @@ public class BEnumSet {
 		return this.prefix + data;
 	}
 	public AIdentifierExpression getIdentifierExpression() {
-		return ASTUtils.createIdentifier(identifier);
+		return createIdentifier(identifier);
 	}
 
 	public Set<String> getEnumValues() {

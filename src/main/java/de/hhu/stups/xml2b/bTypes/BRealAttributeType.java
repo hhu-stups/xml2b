@@ -5,7 +5,7 @@ import de.be4.classicalb.core.parser.node.*;
 import java.time.Duration;
 import java.util.Collections;
 
-import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createIdentifier;
 
 public class BRealAttributeType extends BAttributeType {
 	private final boolean isDuration;

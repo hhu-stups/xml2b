@@ -5,7 +5,7 @@ import de.be4.classicalb.core.parser.node.PExpression;
 
 import java.util.Arrays;
 
-import static de.hhu.stups.xml2b.translation.ASTUtils.createString;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createStringExpression;
 
 public abstract class BAttributeType {
 	protected static final String SUFFIX = "__VALUE";
@@ -27,7 +27,7 @@ public abstract class BAttributeType {
 		PExpression functionExpression = this.getFunctionExpression(data);
 		if (this.isContent)
 			return functionExpression;
-		return new ACoupleExpression(Arrays.asList(createString(this.getAttributeName()), functionExpression));
+		return new ACoupleExpression(Arrays.asList(createStringExpression(this.getAttributeName()), functionExpression));
 	}
 
 	public String getAttributeName() {

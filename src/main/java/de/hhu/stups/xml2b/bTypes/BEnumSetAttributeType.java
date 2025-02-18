@@ -5,7 +5,7 @@ import de.be4.classicalb.core.parser.node.PExpression;
 
 import java.util.Collections;
 
-import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createIdentifier;
 
 public class BEnumSetAttributeType extends BAttributeType {
 	private final BEnumSet enumSet;

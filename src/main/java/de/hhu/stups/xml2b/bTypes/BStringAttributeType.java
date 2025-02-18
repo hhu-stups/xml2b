@@ -4,8 +4,8 @@ import de.be4.classicalb.core.parser.node.*;
 
 import java.util.Collections;
 
-import static de.hhu.stups.xml2b.translation.ASTUtils.createIdentifier;
-import static de.hhu.stups.xml2b.translation.ASTUtils.createString;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createIdentifier;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createStringExpression;
 
 public class BStringAttributeType extends BAttributeType {
 	public BStringAttributeType(final String attributeName) {
@@ -24,6 +24,6 @@ public class BStringAttributeType extends BAttributeType {
 
 	@Override
 	public PExpression getFunctionExpression(String data) {
-		return new AFunctionExpression(createIdentifier(this.getIdentifier()), Collections.singletonList(createString(data)));
+		return new AFunctionExpression(createIdentifier(this.getIdentifier()), Collections.singletonList(createStringExpression(data)));
 	}
 }

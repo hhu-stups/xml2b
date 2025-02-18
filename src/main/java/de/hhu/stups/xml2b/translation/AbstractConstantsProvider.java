@@ -3,11 +3,10 @@ package de.hhu.stups.xml2b.translation;
 import de.be4.classicalb.core.parser.node.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static de.hhu.stups.xml2b.translation.ASTUtils.*;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.*;
 import static de.hhu.stups.xml2b.translation.Translator.*;
 
 public class AbstractConstantsProvider {
@@ -92,7 +91,7 @@ public class AbstractConstantsProvider {
 														createIdentifier("e"),
 														new TIdentifierLiteral(ATTRIBUTES_NAME)
 												),
-												new ASetExtensionExpression(Collections.singletonList(createString(ID_NAME)))
+												new ASetExtensionExpression(Collections.singletonList(createStringExpression(ID_NAME)))
 										)
 
 								)
@@ -205,7 +204,7 @@ public class AbstractConstantsProvider {
 														createIdentifier("e"),
 														new TIdentifierLiteral(ATTRIBUTES_NAME)
 												),
-												new ASetExtensionExpression(Collections.singletonList(createString(ID_NAME)))
+												new ASetExtensionExpression(Collections.singletonList(createStringExpression(ID_NAME)))
 										)
 
 								)
@@ -248,7 +247,7 @@ public class AbstractConstantsProvider {
 																		createIdentifier("e"),
 																		new TIdentifierLiteral(ATTRIBUTES_NAME)
 																),
-																new ASetExtensionExpression(Collections.singletonList(createString(ID_NAME)))
+																new ASetExtensionExpression(Collections.singletonList(createStringExpression(ID_NAME)))
 														)
 												)
 										)

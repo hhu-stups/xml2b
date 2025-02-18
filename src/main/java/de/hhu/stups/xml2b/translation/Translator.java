@@ -4,6 +4,7 @@ import de.be4.classicalb.core.parser.analysis.prolog.PrologDataPrinter;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.*;
+import de.be4.classicalb.core.parser.util.ASTBuilder;
 import de.hhu.stups.xml2b.bTypes.BAttributeType;
 import de.hhu.stups.xml2b.bTypes.BStringAttributeType;
 import de.hhu.stups.xml2b.readXml.XMLElement;
@@ -20,7 +21,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.hhu.stups.xml2b.translation.ASTUtils.*;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.*;
 import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.*;
 
 public abstract class Translator {
@@ -105,7 +106,7 @@ public abstract class Translator {
 		// TODO: machineName can be different from output file name!
 		AAbstractMachineParseUnit aAbstractMachineParseUnit = new AAbstractMachineParseUnit(
 				new AMachineMachineVariant(),
-				new AMachineHeader(createTIdentifierLiteral(machineName), new LinkedList<>()),
+				new AMachineHeader(createIdentifier(machineName).getIdentifier(), new LinkedList<>()),
 				machineClauseList
 		);
 		return new Start(new AGeneratedParseUnit(aAbstractMachineParseUnit), new EOF());
@@ -171,15 +172,15 @@ public abstract class Translator {
 			List<PRecEntry> recValues = new ArrayList<>();
 			recValues.add(new ARecEntry(
 					new TIdentifierLiteral(P_IDS_NAME),
-					new ASequenceExtensionExpression(xmlElement.pIds().stream().map(ASTUtils::createInteger).collect(Collectors.toList()))
+					new ASequenceExtensionExpression(xmlElement.pIds().stream().map(ASTBuilder::createIntegerExpression).collect(Collectors.toList()))
 			));
 			recValues.add(new ARecEntry(
 					new TIdentifierLiteral(REC_ID_NAME),
-					createInteger(xmlElement.recId())
+					createIntegerExpression(xmlElement.recId())
 			));
 			recValues.add(new ARecEntry(
 					new TIdentifierLiteral(ELEMENT_NAME),
-					createString(xmlElement.elementType())
+					createStringExpression(xmlElement.elementType())
 			));
 			// TODO: add default values for contents and attributes if not present
 			// Content:
@@ -217,8 +218,8 @@ public abstract class Translator {
 					!attributes.isEmpty() ? new ASetExtensionExpression(attributes) : new AEmptySetExpression()
 			));
 			List<PExpression> locations = new ArrayList<>();
-			locations.add(new ACoupleExpression(Arrays.asList(createInteger(xmlElement.startLine()), createInteger(xmlElement.startColumn()))));
-			locations.add(new ACoupleExpression(Arrays.asList(createInteger(xmlElement.endLine()), createInteger(xmlElement.endColumn()))));
+			locations.add(new ACoupleExpression(Arrays.asList(createIntegerExpression(xmlElement.startLine()), createIntegerExpression(xmlElement.startColumn()))));
+			locations.add(new ACoupleExpression(Arrays.asList(createIntegerExpression(xmlElement.endLine()), createIntegerExpression(xmlElement.endColumn()))));
 			recValues.add(new ARecEntry(
 					new TIdentifierLiteral(LOCATION_NAME),
 					new ACoupleExpression(locations)
@@ -234,7 +235,7 @@ public abstract class Translator {
 
 		ADefinitionExpression readProbData = new ADefinitionExpression(
 				new TIdentifierLiteral("READ_PROB_DATA_FILE"),
-				Arrays.asList(typeExpression.clone(), createString(dataValuePrologFile.getName()))
+				Arrays.asList(typeExpression.clone(), createStringExpression(dataValuePrologFile.getName()))
 		);
 
 		APropertiesMachineClause propertiesClause = new APropertiesMachineClause(
