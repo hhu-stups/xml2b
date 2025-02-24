@@ -5,19 +5,18 @@ import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.*;
 import de.be4.classicalb.core.parser.util.ASTBuilder;
+import de.hhu.stups.xml2b.XML2BOptions;
 import de.hhu.stups.xml2b.bTypes.BAttributeType;
 import de.hhu.stups.xml2b.bTypes.BStringAttributeType;
 import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
-import de.prob.prolog.output.FastReadWriter;
 import de.prob.prolog.output.FastTermOutput;
 import de.prob.prolog.output.IPrologTermOutput;
 import de.prob.prolog.output.PrologTermOutput;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,27 +37,19 @@ public abstract class Translator {
 	public static final String ATTRIBUTES_NAME = "attributes";
 	public static final String LOCATION_NAME = "xmlLocation";
 	public static final String PROBDATA_SUFFIX = ".probdata";
+
 	private final List<PMachineClause> machineClauseList = new ArrayList<>();
+	private final List<String> usedIdentifiers = new ArrayList<>();
+
 	protected final List<XMLElement> xmlElements;
-	protected Map<String, BAttributeType> allAttributeTypes = new HashMap<>();
+	protected final Map<String, BAttributeType> allAttributeTypes = new HashMap<>();
 	protected final XSDReader xsdReader;
 
-	private final String machineName;
-	private final Path directory;
-	private final List<String> usedIdentifiers = new ArrayList<>();
-	private final boolean useFastRw;
-	private final FastReadWriter.PrologSystem prologSystem;
+	// translation options:
+	private XML2BOptions options;
 
 	public Translator(final File xmlFile, final File xsdFile) throws BCompoundException {
-		this(xmlFile, xsdFile, true, FastReadWriter.PrologSystem.SICSTUS);
-	}
-
-	public Translator(final File xmlFile, final File xsdFile, final boolean useFastRw,
-	                  final FastReadWriter.PrologSystem prologSystem) throws BCompoundException {
-		this.directory = xmlFile.getAbsoluteFile().getParentFile().toPath();
-		this.machineName = xmlFile.getName().split("\\.")[0];
-		this.useFastRw = useFastRw;
-		this.prologSystem = prologSystem;
+		this.options = XML2BOptions.defaultOptions(xmlFile);
 
 		XMLReader xmlReader = new XMLReader();
 		this.xmlElements = xmlReader.readXML(xmlFile, xsdFile);
@@ -77,17 +68,23 @@ public abstract class Translator {
 		}
 	}
 
+	public void setCustomOptions(XML2BOptions options) {
+		this.options = options;
+	}
+
 	protected abstract void getTypes();
 
 	public Start createBAst() {
 		AFileDefinitionDefinition probLibDefinition = new AFileDefinitionDefinition(new TStringLiteral("LibraryProB.def"));
 		machineClauseList.add(new ADefinitionsMachineClause(Collections.singletonList(probLibDefinition)));
 		AFreetypesMachineClause freetypesClause = createFreetypeClause();
-		machineClauseList.add(createAbstractConstantsClause());
-		usedIdentifiers.addAll(getIdentifiers());
+		if (options.generateAbstractConstants()) {
+			machineClauseList.add(createAbstractConstantsClause());
+			usedIdentifiers.addAll(getIdentifiers());
+		}
 		createConstantsClause();
 
-		File dataValuePrologFile = new File(String.valueOf(directory.resolve(machineName + PROBDATA_SUFFIX)));
+		File dataValuePrologFile = new File(String.valueOf(options.directory().resolve(options.machineName() + PROBDATA_SUFFIX)));
 		PExpression dataValues = createPropertyClause(dataValuePrologFile);
 
 		// SETS clause must be created after PROPERTIES: extensible enum sets can be extended while data is added to AST
@@ -97,7 +94,8 @@ public abstract class Translator {
 
 		// TODO: check if file already exists
 		try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(dataValuePrologFile.toPath()))) {
-			IPrologTermOutput pout = useFastRw ? new FastTermOutput(prologSystem, out) : new PrologTermOutput(out, false);
+			IPrologTermOutput pout = options.frwPrologSystem() != null ?
+					new FastTermOutput(options.frwPrologSystem(), out) : new PrologTermOutput(out, false);
 			dataValues.apply(new PrologDataPrinter(pout, setsClause, freetypesClause));
 			pout.fullstop();
 		} catch (IOException e) {
@@ -107,7 +105,7 @@ public abstract class Translator {
 		// TODO: machineName can be different from output file name!
 		AAbstractMachineParseUnit aAbstractMachineParseUnit = new AAbstractMachineParseUnit(
 				new AMachineMachineVariant(),
-				new AMachineHeader(createIdentifier(machineName).getIdentifier(), new LinkedList<>()),
+				new AMachineHeader(createIdentifier(options.machineName()).getIdentifier(), new LinkedList<>()),
 				machineClauseList
 		);
 		return new Start(new AGeneratedParseUnit(aAbstractMachineParseUnit), new EOF());

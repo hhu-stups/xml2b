@@ -8,7 +8,6 @@ import de.hhu.stups.xml2b.translation.XSDTranslator;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.Properties;
 
 public class XML2B {
@@ -35,15 +34,13 @@ public class XML2B {
 
     private final Translator translator;
 
-    // TODO: options for fastrw, Prolog system and no completeness check
-    public XML2B(File... files) throws BCompoundException {
-        if (files.length == 1) {
-            this.translator = new StandaloneTranslator(files[0]);
-        } else if (files.length == 2) {
-            this.translator = new XSDTranslator(files[0], files[1]);
-        } else {
-            throw new IllegalArgumentException("expected 1 or 2 files, got " + files.length);
-        }
+    public XML2B(File xmlFile, XML2BOptions options) throws BCompoundException {
+        this(xmlFile, null, options);
+    }
+
+    public XML2B(File xmlFile, File xsdFile, XML2BOptions options) throws BCompoundException {
+        this.translator = xsdFile == null ? new StandaloneTranslator(xmlFile) : new XSDTranslator(xmlFile, xsdFile);
+        this.translator.setCustomOptions(options);
     }
 
     public Start translate() {
