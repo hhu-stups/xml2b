@@ -61,7 +61,6 @@ public class XSDReader {
 				collectElementsFromElement(element);
 			}
 		}
-		System.out.println(elements.values());
 	}
 
 	public Map<List<String>, XSDElement> getElements() {
