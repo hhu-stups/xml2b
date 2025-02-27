@@ -117,15 +117,17 @@ public class XSDReader {
 	}
 
 	private void collectUnionEnumSets(XSSimpleType type, BEnumSet enumSet) {
-		if (type instanceof XSRestrictionSimpleType) {
-			XSRestrictionSimpleType restriction = (XSRestrictionSimpleType) type;
+		if (type.isRestriction()) {
+			XSRestrictionSimpleType restriction = type.asRestriction();
 			if (TypeUtils.getJavaType(restriction).equals("String")) {
 				// Caution: this implicitly collects the enum values!
 				if (getEnumValuesFromFacets(restriction.iterateDeclaredFacets(), enumSet))
-					enumSet.setExtensible();
+					enumSet.setExtensible(); // TODO: we could allow all strings, not just patterns
+			} else { // allow all other types like Integer, Double, Boolean (validity of entry is checked by schema validation)
+				enumSet.setExtensible();
 			}
-		} else if (type instanceof XSUnionSimpleType) {
-			XSUnionSimpleType union = (XSUnionSimpleType) type;
+		} else if (type.isUnion()) {
+			XSUnionSimpleType union = type.asUnion();
 			for (int i = 0; i < union.getMemberSize(); i++) {
 				collectUnionEnumSets(union.getMember(i), enumSet);
 			}
