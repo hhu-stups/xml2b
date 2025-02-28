@@ -239,20 +239,16 @@ public abstract class Translator {
 		PExpression right = !sequenceOfRecords.isEmpty() ? new ASetExtensionExpression(sequenceOfRecords) : new AEmptySetExpression();
 		value.setRight(right.clone());
 
-		PPredicate abstractConstants = createAbstractConstantsProperties();
-
-		ADefinitionExpression readProbData = new ADefinitionExpression(
-				new TIdentifierLiteral("READ_PROB_DATA_FILE"),
-				Arrays.asList(typeExpression.clone(), createStringExpression(dataValuePrologFile.getName()))
-		);
-
-		APropertiesMachineClause propertiesClause = new APropertiesMachineClause(
-				new AConjunctPredicate(
-						new AEqualPredicate(createIdentifier(XML_DATA_NAME), readProbData),
-						abstractConstants
+		PPredicate probData = new AEqualPredicate(createIdentifier(XML_DATA_NAME),
+				new ADefinitionExpression(
+						new TIdentifierLiteral("READ_PROB_DATA_FILE"),
+						Arrays.asList(typeExpression.clone(), createStringExpression(dataValuePrologFile.getName()))
 				)
 		);
-		machineClauseList.add(propertiesClause);
+
+		machineClauseList.add(new APropertiesMachineClause(
+				options.generateAbstractConstants() ? new AConjunctPredicate(probData, createAbstractConstantsProperties()) : probData
+		));
 		return right.clone();
 	}
 
