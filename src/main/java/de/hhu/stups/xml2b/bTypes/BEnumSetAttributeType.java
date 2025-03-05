@@ -2,6 +2,7 @@ package de.hhu.stups.xml2b.bTypes;
 
 import de.be4.classicalb.core.parser.node.AFunctionExpression;
 import de.be4.classicalb.core.parser.node.PExpression;
+import de.hhu.stups.xml2b.readXsd.TypeUtils;
 
 import java.util.Collections;
 
@@ -27,8 +28,11 @@ public class BEnumSetAttributeType extends BAttributeType {
 
 	@Override
 	public PExpression getFunctionExpression(String data) {
-		if (enumSet.isExtensible()) {
-			enumSet.addValue(data); // FIXME don't add integer or similar to enum set
+		if (enumSet.isAllowBuiltIn()) {
+			BAttributeType type = TypeUtils.inferAttributeType(this.getAttributeName(), data);
+			return type.getFunctionExpression(data);
+		} else if (enumSet.isExtensible()) {
+			enumSet.addValue(data);
 		} else if (!enumSet.getEnumValues().contains(data)) {
 			throw new IllegalArgumentException("enum set does not contain argument");
 		}

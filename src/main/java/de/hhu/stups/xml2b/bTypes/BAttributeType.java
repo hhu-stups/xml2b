@@ -21,6 +21,7 @@ public abstract class BAttributeType {
 	}
 
 	abstract public PExpression getSetExpression();
+
 	abstract protected PExpression getFunctionExpression(final String data);
 
 	public PExpression getDataExpression(final String data) {

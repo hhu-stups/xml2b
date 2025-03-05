@@ -6,6 +6,8 @@ import com.sun.xml.xsom.XSType;
 import de.hhu.stups.xml2b.bTypes.*;
 
 import javax.xml.namespace.QName;
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -238,5 +240,22 @@ public class TypeUtils {
 
 	public static String getQNameAsStringFromDeclaration(XSDeclaration xsDeclaration) {
 		return qNameToString(getQNameFromDeclaration(xsDeclaration));
+	}
+
+	public static BAttributeType inferAttributeType(String attributeName, String attributeValue) {
+		try {
+			Duration.parse(attributeValue);
+			return new BRealAttributeType(attributeName, true);
+		} catch (DateTimeParseException dtpe) {
+			try {
+				Double.parseDouble(attributeValue);
+				return new BRealAttributeType(attributeName);
+			} catch (NumberFormatException nfe) {
+				if (attributeValue.equals("true") || attributeValue.equals("false")) {
+					return new BBoolAttributeType(attributeName);
+				}
+			}
+		}
+		return new BStringAttributeType(attributeName);
 	}
 }

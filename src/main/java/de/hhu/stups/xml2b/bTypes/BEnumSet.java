@@ -12,6 +12,7 @@ public class BEnumSet {
 	// enum set is extensible e.g. for combinations of fixed values and pattern restricted elements;
 	// these are added when the data is passed to the BEnumSetAttributeType during AST creation
 	private boolean extensible = false;
+	private boolean allowBuiltIn = false;
 
 	public BEnumSet(String identifier, Set<String> values) {
 		this.prefix = identifier + "_";
@@ -38,6 +39,7 @@ public class BEnumSet {
 	public String getValueIdentifier(final String data) {
 		return this.prefix + data;
 	}
+
 	public AIdentifierExpression getIdentifierExpression() {
 		return createIdentifier(identifier);
 	}
@@ -50,13 +52,21 @@ public class BEnumSet {
 		this.extensible = true;
 	}
 
+	public void setAllowBuiltIn() {
+		this.allowBuiltIn = true;
+	}
+
 	public boolean isExtensible() {
 		return extensible;
 	}
 
+	public boolean isAllowBuiltIn() {
+		return allowBuiltIn;
+	}
+
 	@Override
 	public String toString() {
-		return "ENUM_SET(" + identifier + "; extensible:" + extensible + "; " + enum_values + ")";
+		return "ENUM_SET(" + identifier + "; extensible:" + extensible + "; allowBuiltIn:" + allowBuiltIn + "; " + enum_values + ")";
 	}
 
 	@Override

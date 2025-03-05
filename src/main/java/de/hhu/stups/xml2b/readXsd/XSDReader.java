@@ -124,7 +124,7 @@ public class XSDReader {
 				if (getEnumValuesFromFacets(restriction.iterateDeclaredFacets(), enumSet))
 					enumSet.setExtensible(); // TODO: we could allow all strings, not just patterns
 			} else { // allow all other types like Integer, Double, Boolean (validity of entry is checked by schema validation)
-				enumSet.setExtensible();
+				enumSet.setAllowBuiltIn();
 			}
 		} else if (type.isUnion()) {
 			XSUnionSimpleType union = type.asUnion();

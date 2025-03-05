@@ -7,9 +7,9 @@ import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXsd.XSDElement;
 
 import java.io.File;
-import java.time.Duration;
-import java.time.format.DateTimeParseException;
 import java.util.*;
+
+import static de.hhu.stups.xml2b.readXsd.TypeUtils.inferAttributeType;
 
 public class StandaloneTranslator extends Translator {
 
@@ -27,14 +27,14 @@ public class StandaloneTranslator extends Translator {
     protected static XSDElement getXsdElement(XMLElement element, Map<String, BAttributeType> allAttributeTypes) {
         Map<String, BAttributeType> bAttributeTypesSet = new HashMap<>();
         for (String attribute : element.attributes().keySet()) {
-            BAttributeType bAttributeType = getAttribute(attribute, element.attributes().get(attribute));
+            BAttributeType bAttributeType = inferAttributeType(attribute, element.attributes().get(attribute));
             bAttributeTypesSet.put(attribute, bAttributeType);
             allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
         }
         BAttributeType bContentType = null;
         String content = element.content();
         if (!content.isEmpty()) {
-            bContentType = getAttribute(null, content);
+            bContentType = inferAttributeType(null, content);
             allAttributeTypes.put(bContentType.getIdentifier(), bContentType);
         }
 	    return new XSDElement(element.elementType(), element.pNames(), bContentType, bAttributeTypesSet);
@@ -43,22 +43,5 @@ public class StandaloneTranslator extends Translator {
     @Override
     protected List<PSet> getEnumSets(List<String> usedIdentifiers) {
         return new ArrayList<>();
-    }
-
-    private static BAttributeType getAttribute(String attributeName, String attributeValue) {
-        try {
-            Duration.parse(attributeValue);
-            return new BRealAttributeType(attributeName, true);
-        } catch (DateTimeParseException dtpe) {
-            try {
-                Double.parseDouble(attributeValue);
-                return new BRealAttributeType(attributeName);
-            } catch (NumberFormatException nfe) {
-                if (attributeValue.equals("true") || attributeValue.equals("false")) {
-                    return new BBoolAttributeType(attributeName);
-                }
-            }
-        }
-        return new BStringAttributeType(attributeName);
     }
 }
