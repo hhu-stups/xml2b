@@ -115,7 +115,7 @@ The ignored restriction facets only provide upper/lower bounds for the length of
 ###### Numeric Types
 | XSD Type              | B Type  |
 |-----------------------|---------|
-| xs:byte               | STRING  |
+| xs:byte               | INTEGER |
 | xs:decimal            | REAL    |
 | xs:int                | INTEGER |
 | xs:integer            | INTEGER |

@@ -192,6 +192,7 @@ public class TypeUtils {
 			case "Integer":
 			case "Short":
 			case "Long":
+			case "Byte":
 				return new BIntegerAttributeType(attributeName);
 			case "Duration":
 				return new BRealAttributeType(attributeName, true);
