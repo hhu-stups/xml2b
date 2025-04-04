@@ -204,8 +204,11 @@ public class TypeUtils {
 	}
 
 	public static String getJavaType(XSType xsType) {
-		XSType baseType = getBaseType(xsType);
-		return xsdTypesToJava.getOrDefault(getQNameAsStringFromDeclaration(baseType), "String");
+		String originalType = xsdTypesToJava.get(getQNameAsStringFromDeclaration(xsType));
+		if (originalType != null) {
+			return originalType;
+		}
+		return xsdTypesToJava.getOrDefault(getQNameAsStringFromDeclaration(getBaseType(xsType)), "String");
 	}
 
 	private static XSType getBaseType(XSType type) {
