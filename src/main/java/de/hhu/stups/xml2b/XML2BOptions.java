@@ -35,12 +35,14 @@ public class XML2BOptions {
 		}
 	}
 
+	public static final String SICSTUS_NAME = "sicstus", SWI_NAME = "swi";
+
 	private final String machineName;
 	private final Path directory;
-	private final FastReadWriter.PrologSystem frwPrologSystem;
+	private final String frwPrologSystem;
 	private final boolean generateAbstractConstants;
 
-	private XML2BOptions(String machineName, Path directory, FastReadWriter.PrologSystem frwPrologSystem,
+	private XML2BOptions(String machineName, Path directory, String frwPrologSystem,
 	                    boolean generateAbstractConstants) {
 		this.machineName = machineName;
 		this.directory = directory;
@@ -51,7 +53,7 @@ public class XML2BOptions {
 	public static XML2BOptions defaultOptions(File xmlFile) {
 		String[] splitName = xmlFile.getName().split("\\.");
 		return new XML2BOptions(splitName[splitName.length > 1 ? splitName.length-2 : 0], xmlFile.getAbsoluteFile().getParentFile().toPath(),
-				FastReadWriter.PrologSystem.SICSTUS, false);
+				SICSTUS_NAME, false);
 	}
 
 	public XML2BOptions withMachineName(String machineName) {
@@ -62,7 +64,10 @@ public class XML2BOptions {
 		return new XML2BOptions(this.machineName, directory, this.frwPrologSystem, this.generateAbstractConstants);
 	}
 
-	public XML2BOptions withPrologSystem(FastReadWriter.PrologSystem prologSystem) {
+	public XML2BOptions withPrologSystem(String prologSystem) {
+		if (!prologSystem.equals(SICSTUS_NAME) && !prologSystem.equals(SWI_NAME)) {
+			throw new IllegalArgumentException("Unsupported Prolog system: " + prologSystem);
+		}
 		return new XML2BOptions(this.machineName, this.directory, prologSystem, this.generateAbstractConstants);
 	}
 
@@ -78,7 +83,7 @@ public class XML2BOptions {
 		return directory;
 	}
 
-	public FastReadWriter.PrologSystem frwPrologSystem() {
+	public String frwPrologSystem() {
 		return frwPrologSystem;
 	}
 

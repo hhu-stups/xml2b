@@ -48,22 +48,7 @@ public class XML2BCli {
 				xml2bOptions = xml2bOptions.withGenerateAbstractConstants(true);
 			}
 			if (line.hasOption(FAST_RW.arg())) {
-				FastReadWriter.PrologSystem frwPrologSystem;
-				String frw = line.getOptionValue(FAST_RW.arg()).toLowerCase();
-				switch (frw) {
-					case "sicstus":
-						frwPrologSystem = FastReadWriter.PrologSystem.SICSTUS;
-						break;
-					case "swi":
-						frwPrologSystem = FastReadWriter.PrologSystem.SWI;
-						break;
-					case "none":
-						frwPrologSystem = null;
-						break;
-					default:
-						throw new IllegalArgumentException("Unsupported Prolog system: " + frw);
-				}
-				xml2bOptions = xml2bOptions.withPrologSystem(frwPrologSystem);
+				xml2bOptions = xml2bOptions.withPrologSystem(line.getOptionValue(FAST_RW.arg()).toLowerCase());
 			}
 			if (line.hasOption(OUTPUT.arg())) {
 				File outputFile = new File(line.getOptionValue(OUTPUT.arg()));

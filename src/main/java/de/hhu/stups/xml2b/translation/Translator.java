@@ -11,7 +11,8 @@ import de.hhu.stups.xml2b.bTypes.BStringAttributeType;
 import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
-import de.prob.prolog.output.FastTermOutput;
+import de.prob.prolog.output.FastSicstusTermOutput;
+import de.prob.prolog.output.FastSwiTermOutput;
 import de.prob.prolog.output.IPrologTermOutput;
 import de.prob.prolog.output.PrologTermOutput;
 
@@ -94,8 +95,15 @@ public abstract class Translator {
 
 		// TODO: check if file already exists
 		try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(dataValuePrologFile.toPath()))) {
-			IPrologTermOutput pout = options.frwPrologSystem() != null ?
-					new FastTermOutput(options.frwPrologSystem(), out) : new PrologTermOutput(out, false);
+			IPrologTermOutput pout;
+			String prologSystem = options.frwPrologSystem();
+			if (prologSystem != null && prologSystem.equals(XML2BOptions.SICSTUS_NAME)) {
+				pout = new FastSicstusTermOutput(out);
+			} else if (prologSystem != null && prologSystem.equals(XML2BOptions.SWI_NAME)) {
+				pout = new FastSwiTermOutput(out);
+			} else {
+				pout = new PrologTermOutput(out, false);
+			}
 			dataValues.apply(new PrologDataPrinter(pout, setsClause, freetypesClause));
 			pout.fullstop();
 		} catch (IOException e) {
