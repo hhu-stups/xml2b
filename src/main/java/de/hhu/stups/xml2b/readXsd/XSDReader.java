@@ -167,16 +167,19 @@ public class XSDReader {
 				collectElementsFromParticle(complexType.getExplicitContent().asParticle());
 
 			for (XSAttributeUse use : complexType.getAttributeUses()) {
-				// TODO: default/fixed values
 				XSAttributeDecl decl = use.getDecl();
 				String attributeName = getQNameAsStringFromDeclaration(decl);
 				BAttributeType attributeType = extractAttributeType(decl.getType(), attributeName);
+				attributeType.withDefaultValue(use.getDefaultValue());
+				attributeType.withFixedValue(use.getFixedValue());
 				// put local name as key for later combination with read XMLElements
 				attributes.put(decl.getName(), attributeType);
 			}
 		} else if (type.isSimpleType()) {
 			//System.out.println(elementDecl.getName() + " " + type.asSimpleType().getSimpleBaseType().getName());
 			contentType = extractAttributeType(type.asSimpleType(), null);
+			contentType.withDefaultValue(elementDecl.getDefaultValue());
+			contentType.withFixedValue(elementDecl.getFixedValue());
 		}
 		// TODO: mixed element types (content + complex)
 

@@ -149,7 +149,7 @@ public abstract class Translator {
 		));
 		recTypes.add(new ARecEntry(
 				new TIdentifierLiteral(P_IDS_NAME),
-				new ASeq1Expression(new AIntegerSetExpression())
+				new ASeqExpression(new AIntegerSetExpression())
 		));
 		recTypes.add(new ARecEntry(
 				new TIdentifierLiteral(REC_ID_NAME),
@@ -197,27 +197,45 @@ public abstract class Translator {
 					new TIdentifierLiteral(ELEMENT_NAME),
 					createStringExpression(xmlElement.elementType())
 			));
-			// TODO: add default values for contents and attributes if not present
 			// Content:
-			PExpression contentExpression;
-			if (xmlElement.content().isEmpty()) {
-				contentExpression = new AEmptySetExpression();
-			} else {
+			{
 				BAttributeType type = xmlElement.typeInformation().getContentType();
 				if (type == null) {
 					type = new BStringAttributeType(null);
 				}
-				List<PExpression> contents = new ArrayList<>();
-				contents.add(type.getDataExpression(xmlElement.content()));
-				contentExpression = new ASetExtensionExpression(contents);
+				PExpression contentExpression;
+				if (xmlElement.content().isEmpty()) {
+					String defaultValue = type.getDefaultOrFixedValue();
+					if (defaultValue != null) {
+						contentExpression = new ASetExtensionExpression(Collections.singletonList(
+								type.getDataExpression(defaultValue))); // if not available, but default exists: use default value
+					} else {
+						contentExpression = new AEmptySetExpression(); // else: empty set
+					}
+				} else {
+					contentExpression = new ASetExtensionExpression(Collections.singletonList(
+							type.getDataExpression(xmlElement.content())));
+				}
+				recValues.add(new ARecEntry(
+						new TIdentifierLiteral(CONTENT_NAME),
+						contentExpression
+				));
 			}
-			recValues.add(new ARecEntry(
-					new TIdentifierLiteral(CONTENT_NAME),
-					contentExpression
-			));
 			// Attributes:
 			List<PExpression> attributes = new ArrayList<>();
+			Map<String, String> attributesMap = xmlElement.attributes();
 			Map<String, BAttributeType> attributeTypes = xmlElement.typeInformation().getAttributeTypes();
+			for (String attrType : attributeTypes.keySet()) {
+				BAttributeType type = attributeTypes.get(attrType);
+				if (attributesMap.containsKey(attrType)) {
+					attributes.add(type.getDataExpression(attributesMap.get(attrType))); // if available: set provided value
+				} else {
+					String defaultValue = type.getDefaultOrFixedValue();
+					if (defaultValue != null) {
+						attributes.add(type.getDataExpression(defaultValue)); // if not available, but default exists: use default value
+					}
+				}
+			}
 			for (String attribute : xmlElement.attributes().keySet()) {
 				if (attributeTypes.containsKey(attribute)) {
 					BAttributeType type = attributeTypes.get(attribute);
