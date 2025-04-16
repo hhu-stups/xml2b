@@ -9,7 +9,7 @@ import java.util.Arrays;
 import static de.be4.classicalb.core.parser.util.ASTBuilder.createStringExpression;
 
 public abstract class BAttributeType {
-	protected static final String SUFFIX = "__VALUE";
+	private static final String PREFIX = "Xml"; // match LibraryJSON style
 
 	private final String attributeName, identifier, typeString;
 	private String defaultValue, fixedValue;
@@ -19,7 +19,11 @@ public abstract class BAttributeType {
 		this.attributeName = attributeName;
 		this.isContent = attributeName == null;
 		this.typeString = typeString;
-		this.identifier = typeString + SUFFIX;
+		if (this instanceof BEnumSetAttributeType) {
+			this.identifier = PREFIX + this.typeString; // don't change name of enum
+		} else { // B types like Real
+			this.identifier = PREFIX + this.typeString.charAt(0) + this.typeString.substring(1).toLowerCase();
+		}
 	}
 
 	public void withDefaultValue(final XmlString defaultValue) {
