@@ -1,7 +1,5 @@
 package de.hhu.stups.xml2b;
 
-import de.prob.prolog.output.FastReadWriter;
-
 import java.io.File;
 import java.nio.file.Path;
 
@@ -35,7 +33,7 @@ public class XML2BOptions {
 		}
 	}
 
-	public static final String SICSTUS_NAME = "sicstus", SWI_NAME = "swi";
+	public static final String SICSTUS_NAME = "sicstus", SWI_NAME = "swi", NONE_NAME = "none";
 
 	private final String machineName;
 	private final Path directory;
@@ -65,7 +63,10 @@ public class XML2BOptions {
 	}
 
 	public XML2BOptions withPrologSystem(String prologSystem) {
-		if (!prologSystem.equals(SICSTUS_NAME) && !prologSystem.equals(SWI_NAME)) {
+		if (prologSystem.equalsIgnoreCase(NONE_NAME)) {
+			return new XML2BOptions(this.machineName, this.directory, null, this.generateAbstractConstants);
+		}
+		if (!prologSystem.equalsIgnoreCase(SICSTUS_NAME) && !prologSystem.equalsIgnoreCase(SWI_NAME)) {
 			throw new IllegalArgumentException("Unsupported Prolog system: " + prologSystem);
 		}
 		return new XML2BOptions(this.machineName, this.directory, prologSystem, this.generateAbstractConstants);

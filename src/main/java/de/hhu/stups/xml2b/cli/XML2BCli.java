@@ -48,7 +48,7 @@ public class XML2BCli {
 				xml2bOptions = xml2bOptions.withGenerateAbstractConstants(true);
 			}
 			if (line.hasOption(FAST_RW.arg())) {
-				xml2bOptions = xml2bOptions.withPrologSystem(line.getOptionValue(FAST_RW.arg()).toLowerCase());
+				xml2bOptions = xml2bOptions.withPrologSystem(line.getOptionValue(FAST_RW.arg()));
 			}
 			if (line.hasOption(OUTPUT.arg())) {
 				File outputFile = new File(line.getOptionValue(OUTPUT.arg()));
