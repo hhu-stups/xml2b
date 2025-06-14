@@ -23,13 +23,13 @@ repositories {
 }
 
 dependencies {
-    implementation group: "de.hhu.stups", name: "bparser", version: "2.15.1-SNAPSHOT"
+    implementation group: "de.hhu.stups", name: "bparser", version: "2.15.2"
     implementation group: "ch.qos.logback", name: "logback-classic", version: "1.5.18"
     implementation group: 'commons-cli', name: 'commons-cli', version: '1.9.0'
     implementation group: 'org.glassfish.jaxb', name: 'xsom', version: '4.0.5'
 
-    testImplementation platform('org.junit:junit-bom:5.12.2')
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.12.2'
+    testImplementation platform('org.junit:junit-bom:5.13.1')
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.13.1'
 }
 
 tasks.test {
