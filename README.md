@@ -6,7 +6,7 @@ Type derivation can be carried out either standalone or with the help of XSD sch
 
 ### Usage
 
-A standalone JAR file (`XML2B.jar`) can be build using `./gradlew shadowJar`.
+A standalone JAR file (`XML2B.jar`) can be built using `./gradlew shadowJar`.
 
 #### Command Line
 
