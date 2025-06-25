@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<order id="id_abc">
+    <customer name="Müller">
+        <item product="XMLFile1" version="1.0"/>
+    </customer>
+    <customer name="Paul">
+        <item product="XMLFile2"/>
+    </customer>
+</order>
