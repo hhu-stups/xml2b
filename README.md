@@ -1,20 +1,27 @@
 # XML2B
-### EXPERIMENTAL
 
-This project is still under development.
-
-XML2B aims to generate classical B machines for data validation from data stored in XML documents.
+XML2B aims to generate a typed translation of XML data to classical B machines for data validation.
 The main motivation is the derivation of attribute types, which cannot be provided by ProB's generic external function `READ_XML`.
 Type derivation can be carried out either standalone or with the help of XSD schema files.
 
 ### Usage
+
+A standalone JAR file (`XML2B.jar`) can be build using `./gradlew shadowJar`.
+
 #### Command Line
+
+The first argument always has to be a path to the XML file.
+Optionally, the following options can be provided:
+
+- `-xsd`: path to an XSD file that should be used for schema validation and type extraction
+- `-frw`: specify Prolog system for fast read-write: SICSTUS, SWI; NONE for standard output; default is SICSTUS,
+- `-o`: specify an output path if the machine files should be generated, otherwise the machine is pretty printed to stdout
+- `-version`: print the current version of XML2B
 
 #### Java
 
-#### Get Value of an Attribute
-
-`b : BOOL__VALUE~[e'attributes]` Caution: if an attribute is present, but has another type than `BOOL` it is ignored this way!
+XML2B can also be used from within Java projects.
+For this, the `XML2B` class can be used. Its method `translate()` returns a ProB Java AST object of the translated XML data in B representation.
 
 ### Translation with XSD Schema
 
@@ -23,42 +30,13 @@ Then, the elements together with their attributes and B types are derived from t
 
 #### XSD Elements
 
-| XSD Element    |                                    B Translation                                    |
-|----------------|:-----------------------------------------------------------------------------------:|
-| all            |                                                                                     |
-| annotation     |                    _ignored_, can be used for `@desc` in future                     |
-| any            |                                                                                     |
-| anyAttribute   |                                                                                     |
-| appinfo        |                                      _ignored_                                      |
-| attribute      |                                                                                     |
-| attributeGroup |                  attribute type information collected from schemas                  |
-| choice         |                                                                                     |
-| complexContent |                                                                                     |
-| complexType    | all types are collected from the schemas at the beginning before element extraction |
-| documentation  |                                                                                     |
-| element        |                                                                                     |
-| extension      |                                                                                     |
-| field          |                                                                                     |
-| group          |                        `XSDGroupUtils`: collect all elements                        |
-| import         |                                                                                     |
-| include        |                                                                                     |
-| key            |                                      _ignored_                                      |
-| keyref         |                                      _ignored_                                      |
-| list           |                                                                                     |
-| notation       |                                                                                     |
-| redefine       |                                  <em>ignored</em>                                   |
-| restriction    |                                                                                     |
-| schema         |                  recursively traverse all schemas at the beginning                  |
-| selector       |                                                                                     |
-| sequence       |                                                                                     |
-| simpleContent  |                                                                                     |
-| simpleType     | all types are collected from the schemas at the beginning before element extraction |
-| union          |                                                                                     |
-| unique         |                                                                                     |
-
-#### XSD Restrictions/Facets
+All references schema files are traversed recursively.
+Attribute type information is collected from simple and complex type declaration for elements.
+All types are collected from the schemas at the beginning before element extraction
 
 ###### Enumerated Sets
+
+`xs:restriction`s are used to determine enumerated sets from `xs:enumeration`.
 
 | XSD Restriction/Facet |                                                                                                                             B Translation                                                                                                                              |
 |-----------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
@@ -161,9 +139,12 @@ Then, the B types of attributes and contents are derived by application of the f
 
 ### General remarks
 
-- Namespaces are available if used in the XML file, e.g. `<exampleNS:exampleTag>` is mapped to a record with field `element: "exampleNS:exampleTag"`, while the same without namespace prefix (`<exampleTag>`) is mapped to a record with field `element: "exampleTag"`.
+- Namespaces are available if used in the XML file, e.g. `<exampleNS:exampleTag>` is mapped to a record with field `element: "exampleNS:exampleTag"`, while the same without a namespace prefix (`<exampleTag>`) is mapped to a record with field `element: "exampleTag"`.
+- Get value of an attribute wrapped in a free type: e.g., `b : XmlBool~[e'attributes]`. Caution: if an attribute is present, but has another type than `BOOL` it is ignored this way!
 
 ### Provided Abstract Constants
+
+Will be added if option `-ac` is provided.
 
 - `XML_getElementsOfType = %t.(t : XML_ELEMENT_TYPES | { e | e : ran(XML_DATA) & e'elementType = t })`
 - `XML_getElementOfId = %(i).(i : dom('id') | dom({ e, el | e : ran(XML_DATA) & (i,el) : 'id' & el : e'attributes }))`
