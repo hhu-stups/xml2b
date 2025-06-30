@@ -4,7 +4,7 @@ plugins {
     id 'maven-publish'
     id 'signing'
 
-    id "com.gradleup.shadow" version "8.3.6"
+    //id "com.gradleup.shadow" version "8.3.6"
 }
 
 project.group = "de.hhu.stups"
@@ -49,6 +49,7 @@ application {
     mainClass = "de.hhu.stups.xml2b.cli.XML2BCli"
 }
 
+/*
 shadowJar {
     archiveFileName = 'XML2B.jar'
     manifest {
@@ -58,6 +59,7 @@ shadowJar {
         )
     }
 }
+*/
 
 processResources {
     filesMatching("de/hhu/stups/xml2b/build.properties") {
