@@ -81,6 +81,7 @@ publishing {
 
             pom {
                 name = "XML2B"
+                description = "XML2B"
                 url = 'https://gitlab.cs.uni-duesseldorf.de/stups/prob/xml2b'
 
                 licenses {
