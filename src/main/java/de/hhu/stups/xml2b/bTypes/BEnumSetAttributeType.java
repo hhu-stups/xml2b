@@ -1,10 +1,7 @@
 package de.hhu.stups.xml2b.bTypes;
 
-import de.be4.classicalb.core.parser.node.AFunctionExpression;
 import de.be4.classicalb.core.parser.node.PExpression;
 import de.hhu.stups.xml2b.readXsd.TypeUtils;
-
-import java.util.Collections;
 
 import static de.be4.classicalb.core.parser.util.ASTBuilder.createIdentifier;
 
@@ -27,16 +24,15 @@ public class BEnumSetAttributeType extends BAttributeType {
 	}
 
 	@Override
-	public PExpression getFunctionExpression(String data) {
+	public PExpression getRawExpression(String data) {
 		if (enumSet.isAllowBuiltIn()) {
 			BAttributeType type = TypeUtils.inferAttributeType(this.getAttributeName(), data);
-			return type.getFunctionExpression(data);
+			return type.getRawExpression(data);
 		} else if (enumSet.isExtensible()) {
 			enumSet.addValue(data);
 		} else if (!enumSet.getEnumValues().contains(data)) {
 			throw new IllegalArgumentException("enum set does not contain argument");
 		}
-		PExpression dataExpression = createIdentifier(enumSet.getValueIdentifier(data));
-		return new AFunctionExpression(createIdentifier(this.getIdentifier()), Collections.singletonList(dataExpression));
+		return createIdentifier(enumSet.getValueIdentifier(data));
 	}
 }

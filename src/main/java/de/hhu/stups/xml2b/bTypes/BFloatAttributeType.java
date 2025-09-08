@@ -1,10 +1,9 @@
 package de.hhu.stups.xml2b.bTypes;
 
-import de.be4.classicalb.core.parser.node.*;
+import de.be4.classicalb.core.parser.node.AFloatSetExpression;
+import de.be4.classicalb.core.parser.node.PExpression;
 
-import java.util.Collections;
-
-import static de.be4.classicalb.core.parser.util.ASTBuilder.createIdentifier;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createRealExpression;
 
 public class BFloatAttributeType extends BAttributeType {
 
@@ -23,8 +22,7 @@ public class BFloatAttributeType extends BAttributeType {
 	}
 
 	@Override
-	public PExpression getFunctionExpression(String data) {
-		PExpression dataExpression = new ARealExpression(new TRealLiteral(String.valueOf(Float.parseFloat(data))));
-		return new AFunctionExpression(createIdentifier(this.getIdentifier()), Collections.singletonList(dataExpression));
+	public PExpression getRawExpression(String data) {
+		return createRealExpression(String.valueOf(Float.parseFloat(data)));
 	}
 }

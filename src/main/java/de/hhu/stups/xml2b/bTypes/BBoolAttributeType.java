@@ -1,10 +1,9 @@
 package de.hhu.stups.xml2b.bTypes;
 
-import de.be4.classicalb.core.parser.node.*;
-
-import java.util.Collections;
-
-import static de.be4.classicalb.core.parser.util.ASTBuilder.createIdentifier;
+import de.be4.classicalb.core.parser.node.ABoolSetExpression;
+import de.be4.classicalb.core.parser.node.ABooleanFalseExpression;
+import de.be4.classicalb.core.parser.node.ABooleanTrueExpression;
+import de.be4.classicalb.core.parser.node.PExpression;
 
 public class BBoolAttributeType extends BAttributeType {
 	public BBoolAttributeType(final String attributeName) {
@@ -22,8 +21,7 @@ public class BBoolAttributeType extends BAttributeType {
 	}
 
 	@Override
-	public PExpression getFunctionExpression(String data) {
-		PExpression dataExpression = data.equals("true") ? new ABooleanTrueExpression() : new ABooleanFalseExpression();
-		return new AFunctionExpression(createIdentifier(this.getIdentifier()), Collections.singletonList(dataExpression));
+	public PExpression getRawExpression(String data) {
+		return data.equals("true") ? new ABooleanTrueExpression() : new ABooleanFalseExpression();
 	}
 }

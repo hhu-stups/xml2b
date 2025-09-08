@@ -2,10 +2,13 @@ package de.hhu.stups.xml2b.bTypes;
 
 import com.sun.xml.xsom.XmlString;
 import de.be4.classicalb.core.parser.node.ACoupleExpression;
+import de.be4.classicalb.core.parser.node.AFunctionExpression;
 import de.be4.classicalb.core.parser.node.PExpression;
 
 import java.util.Arrays;
+import java.util.Collections;
 
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createIdentifier;
 import static de.be4.classicalb.core.parser.util.ASTBuilder.createStringExpression;
 
 public abstract class BAttributeType {
@@ -59,7 +62,11 @@ public abstract class BAttributeType {
 
 	abstract public PExpression getSetExpression();
 
-	abstract protected PExpression getFunctionExpression(final String data);
+	abstract public PExpression getRawExpression(final String data);
+
+	public PExpression getFunctionExpression(final String data) {
+		return new AFunctionExpression(createIdentifier(this.getIdentifier()), Collections.singletonList(getRawExpression(data)));
+	}
 
 	public PExpression getDataExpression(final String data) {
 		PExpression functionExpression = this.getFunctionExpression(data);
