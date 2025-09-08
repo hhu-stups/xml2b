@@ -39,15 +39,15 @@ public abstract class Translator {
 	public static final String LOCATION_NAME = "xmlLocation";
 	public static final String PROBDATA_SUFFIX = ".probdata";
 
-	private final List<PMachineClause> machineClauseList = new ArrayList<>();
-	private final List<String> usedIdentifiers = new ArrayList<>();
+	protected final List<PMachineClause> machineClauseList = new ArrayList<>();
+	protected final List<String> usedIdentifiers = new ArrayList<>();
 
 	protected final List<XMLElement> xmlElements;
 	protected final Map<String, BAttributeType> allAttributeTypes = new HashMap<>();
 	protected final XSDReader xsdReader;
 
 	// translation options:
-	private XML2BOptions options;
+	protected XML2BOptions options;
 
 	public Translator(final File xmlFile, final File xsdFile) throws BCompoundException {
 		this.options = XML2BOptions.defaultOptions(xmlFile);
@@ -285,7 +285,7 @@ public abstract class Translator {
 		return freetypesClause;
 	}
 
-	private ASetsMachineClause createSetsClause() {
+	protected ASetsMachineClause createSetsClause() {
 		List<PSet> enumSets = getEnumSets(usedIdentifiers);
 		ASetsMachineClause setsClause = new ASetsMachineClause(enumSets);
 		if (!enumSets.isEmpty())
