@@ -65,6 +65,7 @@ public class XMLReader extends DefaultHandler {
 		} catch (Exception e) {
 			LOGGER.error("failed to read XML file", e);
 		}
+		closedXMLElements.sort(Comparator.comparingInt(XMLElement::recId));
 		return closedXMLElements;
 	}
 
