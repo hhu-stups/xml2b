@@ -172,6 +172,7 @@ public class XSDReader {
 				BAttributeType attributeType = extractAttributeType(decl.getType(), attributeName);
 				attributeType.withDefaultValue(use.getDefaultValue());
 				attributeType.withFixedValue(use.getFixedValue());
+				attributeType.withIsRequired(use.isRequired());
 				// put local name as key for later combination with read XMLElements
 				attributes.put(decl.getName(), attributeType);
 			}

@@ -14,6 +14,7 @@ public abstract class BAttributeType {
 	private final String attributeName, identifier, typeString;
 	private String defaultValue, fixedValue;
 	private final boolean isContent;
+	private boolean isRequired = false;
 
 	public BAttributeType(final String attributeName, final String typeString) {
 		this.attributeName = attributeName;
@@ -42,6 +43,10 @@ public abstract class BAttributeType {
 			}
 			this.fixedValue = fixedValue.toString();
 		}
+	}
+
+	public void withIsRequired(final boolean isRequired) {
+		this.isRequired = isRequired;
 	}
 
 	public String getDefaultOrFixedValue() {
@@ -73,6 +78,10 @@ public abstract class BAttributeType {
 
 	public String getIdentifier() {
 		return this.identifier;
+	}
+
+	public boolean isRequired() {
+		return this.isRequired;
 	}
 
 	public BStringAttributeType getStringAttributeType() {
