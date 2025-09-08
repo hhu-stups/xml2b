@@ -88,7 +88,7 @@ public class XSDReader {
 				if (simpleType.isRestriction()) {
 					XSRestrictionSimpleType restriction = simpleType.asRestriction();
 					BEnumSet enumSet = new BEnumSet(qNameToString(typeName), new HashSet<>());
-					getEnumValuesFromFacets(restriction.iterateDeclaredFacets(), enumSet);
+					collectEnumValuesFromFacets(restriction.iterateDeclaredFacets(), enumSet);
 					if (!enumSet.getEnumValues().isEmpty() && TypeUtils.getJavaType(restriction).equals("String")) {
 						if (!enumSets.containsKey(typeName)) {
 							enumSets.put(typeName, enumSet);
@@ -121,7 +121,7 @@ public class XSDReader {
 			XSRestrictionSimpleType restriction = type.asRestriction();
 			if (TypeUtils.getJavaType(restriction).equals("String")) {
 				// Caution: this implicitly collects the enum values!
-				if (getEnumValuesFromFacets(restriction.iterateDeclaredFacets(), enumSet))
+				if (collectEnumValuesFromFacets(restriction.iterateDeclaredFacets(), enumSet))
 					enumSet.setExtensible(); // TODO: we could allow all strings, not just patterns
 			} else { // allow all other types like Integer, Double, Boolean (validity of entry is checked by schema validation)
 				enumSet.setAllowBuiltIn();
@@ -134,7 +134,7 @@ public class XSDReader {
 		}
 	}
 
-	private static boolean getEnumValuesFromFacets(Iterator<XSFacet> facets, BEnumSet enumSet) {
+	private static boolean collectEnumValuesFromFacets(Iterator<XSFacet> facets, BEnumSet enumSet) {
 		boolean extensible = false;
 		while (facets.hasNext()) {
 			XSFacet facet = facets.next();
@@ -176,7 +176,6 @@ public class XSDReader {
 				attributes.put(decl.getName(), attributeType);
 			}
 		} else if (type.isSimpleType()) {
-			//System.out.println(elementDecl.getName() + " " + type.asSimpleType().getSimpleBaseType().getName());
 			contentType = extractAttributeType(type.asSimpleType(), null);
 			contentType.withDefaultValue(elementDecl.getDefaultValue());
 			contentType.withFixedValue(elementDecl.getFixedValue());
