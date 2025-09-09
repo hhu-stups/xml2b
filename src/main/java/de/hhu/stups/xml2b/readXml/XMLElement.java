@@ -34,19 +34,6 @@ public final class XMLElement {
 		this.endColumn = endColumn;
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof XMLElement) {
-			XMLElement xmlElement = (XMLElement) obj;
-			return elementType.equals(xmlElement.elementType())
-					&& pIds.equals(xmlElement.pIds())
-					&& recId == xmlElement.recId()
-					&& attributes.equals(xmlElement.attributes());
-		} else {
-			return false;
-		}
-	}
-
 	public void addTypeInformation(final XSDElement typeInformation) {
 		this.typeInformation = typeInformation;
 	}
@@ -103,6 +90,21 @@ public final class XMLElement {
 
 	public int endColumn() {
 		return endColumn;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj instanceof XMLElement) {
+			XMLElement xmlElement = (XMLElement) obj;
+			return elementType.equals(xmlElement.elementType())
+					&& pIds.equals(xmlElement.pIds())
+					&& recId == xmlElement.recId()
+					&& attributes.equals(xmlElement.attributes());
+		}
+		return false;
 	}
 
 	@Override

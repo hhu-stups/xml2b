@@ -5,6 +5,7 @@ import de.hhu.stups.xml2b.bTypes.BAttributeType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class XSDElement {
 
@@ -56,10 +57,18 @@ public class XSDElement {
 
 	@Override
 	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
 		if (obj instanceof XSDElement) {
 			final XSDElement other = (XSDElement) obj;
 			return this.qName.equals(other.qName) && this.parents.equals(other.parents);
 		}
 		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(qName, parents);
 	}
 }
