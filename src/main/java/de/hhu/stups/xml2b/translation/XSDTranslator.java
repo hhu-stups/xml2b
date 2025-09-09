@@ -21,11 +21,10 @@ public class XSDTranslator extends Translator {
 
     @Override
     protected void getTypes() {
-        Set<String> presentAttributes = new HashSet<>();
         Map<List<String>, XSDElement> types = xsdReader.getElements();
         Set<List<String>> notPresentElements = new HashSet<>(types.keySet());
         for (XMLElement xmlElement : xmlElements) {
-            presentAttributes.addAll(xmlElement.attributes().keySet());
+	        Set<String> presentAttributes = new HashSet<>(xmlElement.attributes().keySet());
 	        XSDElement xsdElement;
             if (types.containsKey(xmlElement.pNamesWithThis())) {
                 // we consider all parent elements here, so the attribute types should be unique
