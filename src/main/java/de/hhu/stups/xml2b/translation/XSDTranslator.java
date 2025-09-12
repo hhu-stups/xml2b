@@ -21,8 +21,8 @@ public class XSDTranslator extends Translator {
 
     @Override
     protected void getTypes() {
-        Map<List<String>, XSDElement> types = xsdReader.getElements();
-        Set<List<String>> notPresentElements = new HashSet<>(types.keySet());
+        Map<List<QName>, XSDElement> types = xsdReader.getElements();
+        Set<List<QName>> notPresentElements = new HashSet<>(types.keySet());
         for (XMLElement xmlElement : xmlElements) {
 	        Set<String> presentAttributes = new HashSet<>(xmlElement.attributes().keySet());
 	        XSDElement xsdElement;
@@ -51,7 +51,7 @@ public class XSDTranslator extends Translator {
             notPresentElements.remove(xmlElement.pNamesWithThis());
         }
 
-        for (List<String> notPresentElement : notPresentElements) {
+        for (List<QName> notPresentElement : notPresentElements) {
             XSDElement xsdElement = types.get(notPresentElement);
             xsdElement.getAttributeTypes().forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
             BAttributeType contentType = xsdElement.getContentType();

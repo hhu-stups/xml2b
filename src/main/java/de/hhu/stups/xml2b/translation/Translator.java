@@ -34,6 +34,7 @@ public abstract class Translator {
 	public static final String REC_ID_NAME = "recId";
 	// Element instead of element: first field in records for fast search
 	public static final String ELEMENT_NAME = "Element";
+	public static final String NAMESPACE_NAME = "ns";
 	public static final String CONTENT_NAME = "content";
 	public static final String ATTRIBUTES_NAME = "attributes";
 	public static final String LOCATION_NAME = "xmlLocation";
@@ -160,6 +161,10 @@ public abstract class Translator {
 				new AStringSetExpression()
 		));
 		recTypes.add(new ARecEntry(
+				new TIdentifierLiteral(NAMESPACE_NAME),
+				new AStringSetExpression()
+		));
+		recTypes.add(new ARecEntry(
 				new TIdentifierLiteral(CONTENT_NAME),
 				new APowSubsetExpression(createIdentifier(XML_FREETYPE_ATTRIBUTES_NAME))
 		));
@@ -195,7 +200,11 @@ public abstract class Translator {
 			));
 			recValues.add(new ARecEntry(
 					new TIdentifierLiteral(ELEMENT_NAME),
-					createStringExpression(xmlElement.elementType())
+					createStringExpression(xmlElement.elementType().getLocalPart())
+			));
+			recValues.add(new ARecEntry(
+					new TIdentifierLiteral(NAMESPACE_NAME),
+					createStringExpression(xmlElement.elementType().getNamespaceURI())
 			));
 			// Content:
 			{

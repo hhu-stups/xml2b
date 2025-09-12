@@ -32,7 +32,7 @@ public class XSDReader {
 			this.attributeTypes = attributeTypes;
 		}
 
-		public XSDElement createXSDElement(final String qName, final List<String> parents,
+		public XSDElement createXSDElement(final QName qName, final List<QName> parents,
 		                                   BigInteger minOccurs, BigInteger maxOccurs) {
 			return new XSDElement(qName, parents, contentType, attributeTypes, minOccurs, maxOccurs);
 		}
@@ -43,8 +43,8 @@ public class XSDReader {
 		}
 	}
 
-	private final Stack<String> openElements = new Stack<>();
-	private final Map<List<String>, XSDElement> elements = new HashMap<>();
+	private final Stack<QName> openElements = new Stack<>();
+	private final Map<List<QName>, XSDElement> elements = new HashMap<>();
 	private final Map<QName, BEnumSet> enumSets = new HashMap<>();
 	private final XSSchemaSet schemaSet;
 
@@ -65,7 +65,7 @@ public class XSDReader {
 		}
 	}
 
-	public Map<List<String>, XSDElement> getElements() {
+	public Map<List<QName>, XSDElement> getElements() {
 		return elements;
 	}
 
@@ -153,7 +153,7 @@ public class XSDReader {
 	}
 
 	private void collectElementsFromElement(XSElementDecl elementDecl, BigInteger minOccurs, BigInteger maxOccurs) {
-		this.openElements.push(getQNameAsStringFromDeclaration(elementDecl));
+		this.openElements.push(new QName(elementDecl.getTargetNamespace(),elementDecl.getName()));
 		Map<String, BAttributeType> attributes = new HashMap<>();
 		BAttributeType contentType = null;
 		XSType type = elementDecl.getType();
@@ -187,7 +187,8 @@ public class XSDReader {
 
 		this.openElements.pop();
 		XSDType xsdType = new XSDType(getQNameFromDeclaration(type), contentType, attributes);
-		XSDElement xsdElement = xsdType.createXSDElement(getQNameAsStringFromDeclaration(elementDecl), new ArrayList<>(openElements), minOccurs, maxOccurs);
+		XSDElement xsdElement = xsdType.createXSDElement(new QName(elementDecl.getTargetNamespace(), elementDecl.getName()),
+				new ArrayList<>(openElements), minOccurs, maxOccurs);
 		this.elements.put(xsdElement.getParentsWithThis(), xsdElement);
 	}
 

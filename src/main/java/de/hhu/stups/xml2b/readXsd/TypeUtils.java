@@ -262,4 +262,18 @@ public class TypeUtils {
 		}
 		return new BStringAttributeType(attributeName);
 	}
+
+	public static QName buildQName(String uri, String localName, String qName) {
+		QName qname;
+		if (uri.isEmpty() || localName.isEmpty()) {
+			if (localName.isEmpty()) {
+				qname = new QName(qName);
+			} else {
+				qname = new QName(localName);
+			}
+		} else {
+			qname = new QName(uri, localName);
+		}
+		return qname;
+	}
 }

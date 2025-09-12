@@ -9,6 +9,7 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.Schema;
@@ -16,6 +17,8 @@ import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static de.hhu.stups.xml2b.readXsd.TypeUtils.buildQName;
 
 public class XMLReader extends DefaultHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(XMLReader.class);
@@ -40,13 +43,13 @@ public class XMLReader extends DefaultHandler {
 			this.content += content;
 		}
 
-		private XMLElement getClosedXMLElement(String elementType, List<Integer> pIds, List<String> pNames, int endLine, int endColumn) {
+		private XMLElement getClosedXMLElement(QName elementType, List<Integer> pIds, List<QName> pNames, int endLine, int endColumn) {
 			return new XMLElement(elementType, pIds, pNames, nrOfChildren, recId, attributes, content, lineNumber, columnNumber, endLine, endColumn);
 		}
 	}
 
 	private final Stack<OpenXMLElement> openXMLElements = new Stack<>();
-	private final Stack<String> openXMLElementNames = new Stack<>();
+	private final Stack<QName> openXMLElementNames = new Stack<>();
 	private final List<XMLElement> closedXMLElements = new ArrayList<>();
 	private Locator locator;
 	private int recId = 1;
@@ -80,8 +83,7 @@ public class XMLReader extends DefaultHandler {
 		openXMLElements.forEach(OpenXMLElement::incNrOfChildren);
 		OpenXMLElement newNode = new OpenXMLElement(recId, locator.getLineNumber(), locator.getColumnNumber(), extractAttributes(attributes));
 		openXMLElements.push(newNode);
-		// namespaces are just copied, e.g. exampleNS:exampleTag is used as String for the element field of the B record
-		openXMLElementNames.push(qName);
+		openXMLElementNames.push(buildQName(uri,localName,qName));
 		recId++;
 	}
 
@@ -89,6 +91,7 @@ public class XMLReader extends DefaultHandler {
 		Map<String, String> extractedAttributes = new HashMap<>();
 		for (int i = 0; i < attributes.getLength(); i++) {
 			extractedAttributes.put(attributes.getQName(i), attributes.getValue(i));
+			// TODO: use QName objects for attributes as well
 		}
 		return extractedAttributes;
 	}
@@ -109,10 +112,10 @@ public class XMLReader extends DefaultHandler {
 		OpenXMLElement currentNode = openXMLElements.pop();
 		openXMLElementNames.pop();
 		List<Integer> pIds = openXMLElements.stream().map(o -> o.recId).collect(Collectors.toList());
-		List<String> pNames = new ArrayList<>(openXMLElementNames);
+		List<QName> pNames = new ArrayList<>(openXMLElementNames);
 		if (pIds.isEmpty())
 			pIds = Collections.singletonList(0);
-		closedXMLElements.add(currentNode.getClosedXMLElement(qName, pIds, pNames,
+		closedXMLElements.add(currentNode.getClosedXMLElement(buildQName(uri,localName,qName), pIds, pNames,
 					locator.getLineNumber(), locator.getColumnNumber()));
 	}
 

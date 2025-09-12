@@ -2,6 +2,7 @@ package de.hhu.stups.xml2b.readXsd;
 
 import de.hhu.stups.xml2b.bTypes.BAttributeType;
 
+import javax.xml.namespace.QName;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,17 +11,17 @@ import java.util.Objects;
 
 public class XSDElement {
 
-	private final String qName;
-	private final List<String> parents;
+	private final QName qName;
+	private final List<QName> parents;
 	private final BAttributeType contentType;
 	private final Map<String, BAttributeType> attributeTypes;
 	private final BigInteger minOccurs, maxOccurs;
 
-	public XSDElement(String name, List<String> parents, BAttributeType contentType, Map<String, BAttributeType> attributeTypes) {
+	public XSDElement(QName name, List<QName> parents, BAttributeType contentType, Map<String, BAttributeType> attributeTypes) {
 		this(name, parents, contentType, attributeTypes, null, null);
 	}
 
-	public XSDElement(String name, List<String> parents, BAttributeType contentType, Map<String, BAttributeType> attributeTypes,
+	public XSDElement(QName name, List<QName> parents, BAttributeType contentType, Map<String, BAttributeType> attributeTypes,
 	                  BigInteger minOccurs, BigInteger maxOccurs) {
 		this.qName = name;
 		this.parents = parents;
@@ -34,16 +35,16 @@ public class XSDElement {
 		this.attributeTypes.put(name, attributeType);
 	}
 
-	public String getQName() {
+	public QName getQName() {
 		return qName;
 	}
 
-	public List<String> getParents() {
+	public List<QName> getParents() {
 		return parents;
 	}
 
-	public List<String> getParentsWithThis() {
-		List<String> parentsWithThis = new ArrayList<>(this.parents);
+	public List<QName> getParentsWithThis() {
+		List<QName> parentsWithThis = new ArrayList<>(this.parents);
 		parentsWithThis.add(this.qName);
 		return parentsWithThis;
 	}
@@ -73,7 +74,7 @@ public class XSDElement {
 
 	@Override
 	public String toString() {
-		return "XSDElement[name: " + qName
+		return "XSDElement[qName: " + qName
 				+ ", parents: " + parents
 				+ ", contentType: " + contentType
 				+ ", attributeTypes: " + attributeTypes + "]"

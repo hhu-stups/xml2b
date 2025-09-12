@@ -2,15 +2,16 @@ package de.hhu.stups.xml2b.readXml;
 
 import de.hhu.stups.xml2b.readXsd.XSDElement;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public final class XMLElement {
-	private final String elementType;
+	private final QName elementType;
 	private final List<Integer> pIds;
-	private final List<String> pNames;
+	private final List<QName> pNames;
 	private final int maxChildId;
 	private final int recId;
 	private final Map<String, String> attributes;
@@ -19,7 +20,7 @@ public final class XMLElement {
 
 	private XSDElement typeInformation = null;
 
-	public XMLElement(String elementType, List<Integer> pIds, List<String> pNames, int nrOfChildren, int recId,
+	public XMLElement(QName elementType, List<Integer> pIds, List<QName> pNames, int nrOfChildren, int recId,
 	                  Map<String, String> attributes, String content, int startLine, int startColumn, int endLine, int endColumn) {
 		this.elementType = elementType;
 		this.pIds = pIds;
@@ -38,7 +39,7 @@ public final class XMLElement {
 		this.typeInformation = typeInformation;
 	}
 
-	public String elementType() {
+	public QName elementType() {
 		return elementType;
 	}
 
@@ -46,12 +47,12 @@ public final class XMLElement {
 		return pIds;
 	}
 
-	public List<String> pNames() {
+	public List<QName> pNames() {
 		return pNames;
 	}
 
-	public List<String> pNamesWithThis() {
-		List<String> parentsWithThis = new ArrayList<>(this.pNames);
+	public List<QName> pNamesWithThis() {
+		List<QName> parentsWithThis = new ArrayList<>(this.pNames);
 		parentsWithThis.add(this.elementType);
 		return parentsWithThis;
 	}
