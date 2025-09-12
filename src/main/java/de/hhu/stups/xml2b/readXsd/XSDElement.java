@@ -76,7 +76,9 @@ public class XSDElement {
 		return "XSDElement[name: " + qName
 				+ ", parents: " + parents
 				+ ", contentType: " + contentType
-				+ ", attributeTypes: " + attributeTypes + "]";
+				+ ", attributeTypes: " + attributeTypes + "]"
+				+ ", minOccurs: " + minOccurs
+				+ ", maxOccurs: " + maxOccurs;
 	}
 
 	@Override
