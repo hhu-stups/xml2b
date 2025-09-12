@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.*;
 
 import static com.sun.xml.xsom.XSFacet.FACET_ENUMERATION;
@@ -31,8 +32,9 @@ public class XSDReader {
 			this.attributeTypes = attributeTypes;
 		}
 
-		public XSDElement createXSDElement(final String qName, final List<String> parents) {
-			return new XSDElement(qName, parents, contentType, attributeTypes);
+		public XSDElement createXSDElement(final String qName, final List<String> parents,
+		                                   BigInteger minOccurs, BigInteger maxOccurs) {
+			return new XSDElement(qName, parents, contentType, attributeTypes, minOccurs, maxOccurs);
 		}
 
 		@Override
@@ -58,7 +60,7 @@ public class XSDReader {
 
 		for (XSSchema schema : schemaSet.getSchemas()) {
 			for (XSElementDecl element : schema.getElementDecls().values()) {
-				collectElementsFromElement(element);
+				collectElementsFromElement(element, null, null);
 			}
 		}
 	}
@@ -150,7 +152,7 @@ public class XSDReader {
 		return extensible;
 	}
 
-	private void collectElementsFromElement(XSElementDecl elementDecl) {
+	private void collectElementsFromElement(XSElementDecl elementDecl, BigInteger minOccurs, BigInteger maxOccurs) {
 		this.openElements.push(getQNameAsStringFromDeclaration(elementDecl));
 		Map<String, BAttributeType> attributes = new HashMap<>();
 		BAttributeType contentType = null;
@@ -185,7 +187,7 @@ public class XSDReader {
 
 		this.openElements.pop();
 		XSDType xsdType = new XSDType(getQNameFromDeclaration(type), contentType, attributes);
-		XSDElement xsdElement = xsdType.createXSDElement(getQNameAsStringFromDeclaration(elementDecl), new ArrayList<>(openElements));
+		XSDElement xsdElement = xsdType.createXSDElement(getQNameAsStringFromDeclaration(elementDecl), new ArrayList<>(openElements), minOccurs, maxOccurs);
 		this.elements.put(xsdElement.getParentsWithThis(), xsdElement);
 	}
 
@@ -193,7 +195,7 @@ public class XSDReader {
 		if (particle != null) {
 			XSTerm term = particle.getTerm();
 			if (term instanceof XSElementDecl) {
-				collectElementsFromElement(term.asElementDecl());
+				collectElementsFromElement(term.asElementDecl(), particle.getMinOccurs(), particle.getMaxOccurs());
 			} else if (term instanceof XSModelGroup) {
 				for (XSParticle childParticle : term.asModelGroup().getChildren()) {
 					collectElementsFromParticle(childParticle);

@@ -2,6 +2,7 @@ package de.hhu.stups.xml2b.readXsd;
 
 import de.hhu.stups.xml2b.bTypes.BAttributeType;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,12 +14,20 @@ public class XSDElement {
 	private final List<String> parents;
 	private final BAttributeType contentType;
 	private final Map<String, BAttributeType> attributeTypes;
+	private final BigInteger minOccurs, maxOccurs;
 
 	public XSDElement(String name, List<String> parents, BAttributeType contentType, Map<String, BAttributeType> attributeTypes) {
+		this(name, parents, contentType, attributeTypes, null, null);
+	}
+
+	public XSDElement(String name, List<String> parents, BAttributeType contentType, Map<String, BAttributeType> attributeTypes,
+	                  BigInteger minOccurs, BigInteger maxOccurs) {
 		this.qName = name;
 		this.parents = parents;
 		this.contentType = contentType;
 		this.attributeTypes = attributeTypes;
+		this.minOccurs = minOccurs;
+		this.maxOccurs = maxOccurs;
 	}
 
 	public void addAttributeType(final String name, final BAttributeType attributeType) {
@@ -45,6 +54,21 @@ public class XSDElement {
 
 	public Map<String, BAttributeType> getAttributeTypes() {
 		return attributeTypes;
+	}
+
+	public BigInteger getMinOccurs() {
+		return minOccurs;
+	}
+
+	public BigInteger getMaxOccurs() {
+		return maxOccurs;
+	}
+
+	public boolean occursExactlyOnce() {
+		if (minOccurs == null || maxOccurs == null) {
+			return false;
+		}
+		return minOccurs.equals(maxOccurs);
 	}
 
 	@Override
