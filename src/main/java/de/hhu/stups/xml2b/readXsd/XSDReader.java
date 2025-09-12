@@ -197,8 +197,13 @@ public class XSDReader {
 			XSTerm term = particle.getTerm();
 			if (term instanceof XSElementDecl) {
 				collectElementsFromElement(term.asElementDecl(), particle.getMinOccurs(), particle.getMaxOccurs());
-			} else if (term instanceof XSModelGroup) {
+			} else if (term instanceof XSModelGroup) { // <xs:all>, <xs:choice>, <xs:sequence>
 				for (XSParticle childParticle : term.asModelGroup().getChildren()) {
+					collectElementsFromParticle(childParticle);
+				}
+			} else if (term instanceof XSModelGroupDecl) { // <xs:group>
+				XSModelGroup modelGroup = ((XSModelGroupDecl) term).getModelGroup();
+				for (XSParticle childParticle : modelGroup.getChildren()) {
 					collectElementsFromParticle(childParticle);
 				}
 			}
