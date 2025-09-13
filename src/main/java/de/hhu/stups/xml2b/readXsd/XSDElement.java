@@ -16,19 +16,21 @@ public class XSDElement {
 	private final BAttributeType contentType;
 	private final Map<String, BAttributeType> attributeTypes;
 	private final BigInteger minOccurs, maxOccurs;
+	private final boolean isInChoice;
 
 	public XSDElement(QName name, List<QName> parents, BAttributeType contentType, Map<String, BAttributeType> attributeTypes) {
-		this(name, parents, contentType, attributeTypes, null, null);
+		this(name, parents, contentType, attributeTypes, null, null, false);
 	}
 
 	public XSDElement(QName name, List<QName> parents, BAttributeType contentType, Map<String, BAttributeType> attributeTypes,
-	                  BigInteger minOccurs, BigInteger maxOccurs) {
+	                  BigInteger minOccurs, BigInteger maxOccurs, boolean isInChoice) {
 		this.qName = name;
 		this.parents = parents;
 		this.contentType = contentType;
 		this.attributeTypes = attributeTypes;
 		this.minOccurs = minOccurs;
 		this.maxOccurs = maxOccurs;
+		this.isInChoice = isInChoice;
 	}
 
 	public void addAttributeType(final String name, final BAttributeType attributeType) {
@@ -65,8 +67,12 @@ public class XSDElement {
 		return maxOccurs;
 	}
 
+	public boolean isInChoice() {
+		return isInChoice;
+	}
+
 	public boolean occursExactlyOnce() {
-		if (minOccurs == null || maxOccurs == null) {
+		if (minOccurs == null || maxOccurs == null || isInChoice) {
 			return false;
 		}
 		return minOccurs.equals(maxOccurs);
@@ -79,7 +85,8 @@ public class XSDElement {
 				+ ", contentType: " + contentType
 				+ ", attributeTypes: " + attributeTypes + "]"
 				+ ", minOccurs: " + minOccurs
-				+ ", maxOccurs: " + maxOccurs;
+				+ ", maxOccurs: " + maxOccurs
+				+ ", isInChoice: " + isInChoice;
 	}
 
 	@Override

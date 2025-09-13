@@ -33,8 +33,8 @@ public class XSDReader {
 		}
 
 		public XSDElement createXSDElement(final QName qName, final List<QName> parents,
-		                                   BigInteger minOccurs, BigInteger maxOccurs) {
-			return new XSDElement(qName, parents, contentType, attributeTypes, minOccurs, maxOccurs);
+		                                   BigInteger minOccurs, BigInteger maxOccurs, boolean isInChoice) {
+			return new XSDElement(qName, parents, contentType, attributeTypes, minOccurs, maxOccurs, isInChoice);
 		}
 
 		@Override
@@ -60,7 +60,7 @@ public class XSDReader {
 
 		for (XSSchema schema : schemaSet.getSchemas()) {
 			for (XSElementDecl element : schema.getElementDecls().values()) {
-				collectElementsFromElement(element, null, null);
+				collectElementsFromElement(element, null, null, false);
 			}
 		}
 	}
@@ -152,7 +152,8 @@ public class XSDReader {
 		return extensible;
 	}
 
-	private void collectElementsFromElement(XSElementDecl elementDecl, BigInteger minOccurs, BigInteger maxOccurs) {
+	private void collectElementsFromElement(XSElementDecl elementDecl, BigInteger minOccurs, BigInteger maxOccurs,
+	                                        boolean isInChoice) {
 		this.openElements.push(new QName(elementDecl.getTargetNamespace(),elementDecl.getName()));
 		Map<String, BAttributeType> attributes = new HashMap<>();
 		BAttributeType contentType = null;
@@ -179,26 +180,32 @@ public class XSDReader {
 		this.openElements.pop();
 		XSDType xsdType = new XSDType(getQNameFromDeclaration(type), contentType, attributes);
 		XSDElement xsdElement = xsdType.createXSDElement(new QName(elementDecl.getTargetNamespace(), elementDecl.getName()),
-				new ArrayList<>(openElements), minOccurs, maxOccurs);
+				new ArrayList<>(openElements), minOccurs, maxOccurs, isInChoice);
 		this.elements.put(xsdElement.getParentsWithThis(), xsdElement);
 	}
 
 	private void collectElementsFromParticle(XSParticle particle) {
+		collectElementsFromParticle(particle, false);
+	}
+
+	private void collectElementsFromParticle(XSParticle particle, boolean isInChoice) {
 		if (particle != null) {
 			XSTerm term = particle.getTerm();
-			if (term instanceof XSElementDecl) {
-				collectElementsFromElement(term.asElementDecl(), particle.getMinOccurs(), particle.getMaxOccurs());
-			} else if (term instanceof XSModelGroup) { // <xs:all>, <xs:choice>, <xs:sequence>
-				for (XSParticle childParticle : term.asModelGroup().getChildren()) {
-					collectElementsFromParticle(childParticle);
-				}
-			} else if (term instanceof XSModelGroupDecl) { // <xs:group>
-				XSModelGroup modelGroup = ((XSModelGroupDecl) term).getModelGroup();
+			if (term.isElementDecl()) {
+				collectElementsFromElement(term.asElementDecl(), particle.getMinOccurs(), particle.getMaxOccurs(), isInChoice);
+			} else if (term.isModelGroup()) { // <xs:all>, <xs:choice>, <xs:sequence>
+				XSModelGroup modelGroup = term.asModelGroup();
 				for (XSParticle childParticle : modelGroup.getChildren()) {
-					collectElementsFromParticle(childParticle);
+					collectElementsFromParticle(childParticle, isInChoice || modelGroup.getCompositor().equals(XSModelGroup.Compositor.CHOICE));
+				}
+			} else if (term.isModelGroupDecl()) { // <xs:group>
+				XSModelGroup modelGroup = term.asModelGroupDecl().getModelGroup();
+				for (XSParticle childParticle : modelGroup.getChildren()) {
+					collectElementsFromParticle(childParticle, isInChoice || modelGroup.getCompositor().equals(XSModelGroup.Compositor.CHOICE));
 				}
 			}
 		}
+	}
 
 	private Map<String,BAttributeType> collectAttributeTypesFromComplexType(XSComplexType complexType) {
 		Map<String,BAttributeType> attributes = new HashMap<>();
