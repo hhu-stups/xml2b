@@ -168,16 +168,7 @@ public class XSDReader {
 			if (complexType.getExplicitContent() != null)
 				collectElementsFromParticle(complexType.getExplicitContent().asParticle());
 
-			for (XSAttributeUse use : complexType.getAttributeUses()) {
-				XSAttributeDecl decl = use.getDecl();
-				String attributeName = getQNameAsStringFromDeclaration(decl);
-				BAttributeType attributeType = extractAttributeType(decl.getType(), attributeName);
-				attributeType.withDefaultValue(use.getDefaultValue());
-				attributeType.withFixedValue(use.getFixedValue());
-				attributeType.withIsRequired(use.isRequired());
-				// put local name as key for later combination with read XMLElements
-				attributes.put(decl.getName(), attributeType);
-			}
+			attributes.putAll(collectAttributeTypesFromComplexType(complexType));
 		} else if (type.isSimpleType()) {
 			contentType = extractAttributeType(type.asSimpleType(), null);
 			contentType.withDefaultValue(elementDecl.getDefaultValue());
@@ -208,5 +199,24 @@ public class XSDReader {
 				}
 			}
 		}
+
+	private Map<String,BAttributeType> collectAttributeTypesFromComplexType(XSComplexType complexType) {
+		Map<String,BAttributeType> attributes = new HashMap<>();
+		if (complexType.getBaseType().isComplexType() && !complexType.getBaseType().asComplexType().equals(complexType))
+			// e.g. if xs:extension is used: obtain all attributes of base types
+			// for xs:restriction: first collect attributes of base types, then overwrite by the restrictions
+			attributes.putAll(collectAttributeTypesFromComplexType(complexType.getBaseType().asComplexType()));
+
+		for (XSAttributeUse use : complexType.getAttributeUses()) {
+			XSAttributeDecl decl = use.getDecl();
+			String attributeName = getQNameAsStringFromDeclaration(decl);
+			BAttributeType attributeType = extractAttributeType(decl.getType(), attributeName);
+			attributeType.withDefaultValue(use.getDefaultValue());
+			attributeType.withFixedValue(use.getFixedValue());
+			attributeType.withIsRequired(use.isRequired());
+			// put local name as key for later combination with read XMLElements
+			attributes.put(decl.getName(), attributeType);
+		}
+		return attributes;
 	}
 }
