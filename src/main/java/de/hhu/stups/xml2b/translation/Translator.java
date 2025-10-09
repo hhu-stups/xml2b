@@ -284,7 +284,7 @@ public abstract class Translator {
 		machineClauseList.add(new APropertiesMachineClause(
 				options.generateAbstractConstants() ? new AConjunctPredicate(probData, createAbstractConstantsProperties()) : probData
 		));
-		return right.clone();
+		return right;
 	}
 
 	private AFreetypesMachineClause createFreetypeClause() {
