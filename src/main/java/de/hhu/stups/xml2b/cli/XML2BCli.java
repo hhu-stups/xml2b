@@ -3,12 +3,10 @@ package de.hhu.stups.xml2b.cli;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.Start;
-import de.be4.classicalb.core.parser.util.BasePrettyPrinter;
 import de.be4.classicalb.core.parser.util.PrettyPrinter;
 import de.hhu.stups.xml2b.XML2B;
 import de.hhu.stups.xml2b.XML2BOptions;
 import de.hhu.stups.xml2b.XML2BOptions.XML2BOption;
-import de.prob.prolog.output.FastReadWriter;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +81,17 @@ public class XML2BCli {
 			if (xml2BCli.xsdFile != null) {
 				LOGGER.info("{} is valid according to {}", xml2BCli.xmlFile.getName(), xml2BCli.xsdFile.getName());
 			}
-			xml2BCli.createMachine(start);
+			if (xml2BCli.createOutput) {
+				try {
+					Path outputFile = xml2B.generateMachine();
+					LOGGER.info("created machine at {}", outputFile.toAbsolutePath());
+				} catch (IOException e) {
+					LOGGER.error("error creating machine file", e);
+				}
+			} else {
+				LOGGER.info("no output path provided, print machine");
+				System.out.println(PrettyPrinter.getPrettyPrint(start));
+			}
 			LOGGER.info("translation of {} succeeded", xml2BCli.xmlFile.getName());
 		} catch (BCompoundException e) {
 			if (xml2BCli.xsdFile != null) {
@@ -93,24 +101,6 @@ public class XML2BCli {
 			for (BException bException : bExceptions) {
 				LOGGER.error("{} at {}", bException.getMessage(), bException.getLocations().get(0).toString());
 			}
-		}
-	}
-
-	private void createMachine(Start start) {
-		if (createOutput) {
-			Path outputFile = xml2bOptions.directory().resolve(xml2bOptions.machineName() + ".mch");
-			try (final Writer writer = Files.newBufferedWriter(outputFile)) {
-				BasePrettyPrinter prettyPrinter = new BasePrettyPrinter(writer);
-				prettyPrinter.setUseIndentation(true);
-				start.apply(prettyPrinter);
-				prettyPrinter.flush();
-			} catch (IOException e) {
-				LOGGER.error("error creating machine file", e);
-			}
-			LOGGER.info("created machine at {}", outputFile.toAbsolutePath());
-		} else {
-			LOGGER.info("no output path provided, print machine");
-			System.out.println(PrettyPrinter.getPrettyPrint(start));
 		}
 	}
 

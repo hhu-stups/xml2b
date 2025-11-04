@@ -2,12 +2,15 @@ package de.hhu.stups.xml2b;
 
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.node.Start;
+import de.be4.classicalb.core.parser.util.PrettyPrinter;
 import de.hhu.stups.xml2b.translation.StandaloneTranslator;
 import de.hhu.stups.xml2b.translation.Translator;
 import de.hhu.stups.xml2b.translation.XSDTranslator;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
 public class XML2B {
@@ -33,6 +36,7 @@ public class XML2B {
     }
 
     private final Translator translator;
+    private Start translation;
 
     public XML2B(File xmlFile, XML2BOptions options) throws BCompoundException {
         this(xmlFile, null, options);
@@ -41,9 +45,21 @@ public class XML2B {
     public XML2B(File xmlFile, File xsdFile, XML2BOptions options) throws BCompoundException {
         this.translator = xsdFile == null ? new StandaloneTranslator(xmlFile) : new XSDTranslator(xmlFile, xsdFile);
         this.translator.setCustomOptions(options);
+        this.translation = null;
     }
 
     public Start translate() {
-        return translator.createBAst();
+        Start ast = translator.createBAst();
+        if (translation == null) {
+            translation = ast;
+        }
+        return ast;
+    }
+
+    public Path generateMachine() throws IOException {
+        XML2BOptions options = translator.getOptions();
+        Path outputFile = options.directory().resolve(options.machineName() + ".mch");
+        Files.write(outputFile, PrettyPrinter.getPrettyPrint(this.translate()).getBytes());
+        return outputFile;
     }
 }

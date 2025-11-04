@@ -316,4 +316,8 @@ public abstract class Translator {
 		}
 		return freetypeConstructors;
 	}
+
+	public XML2BOptions getOptions() {
+		return options;
+	}
 }
