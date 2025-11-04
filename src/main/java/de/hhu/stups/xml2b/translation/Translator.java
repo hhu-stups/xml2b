@@ -77,6 +77,7 @@ public abstract class Translator {
 	protected abstract void getTypes();
 
 	public Start createBAst() {
+		machineClauseList.clear();
 		AFileDefinitionDefinition probLibDefinition = new AFileDefinitionDefinition(new TStringLiteral("LibraryProB.def"));
 		machineClauseList.add(new ADefinitionsMachineClause(Collections.singletonList(probLibDefinition)));
 		AFreetypesMachineClause freetypesClause = createFreetypeClause();

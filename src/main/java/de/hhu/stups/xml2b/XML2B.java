@@ -49,11 +49,10 @@ public class XML2B {
     }
 
     public Start translate() {
-        Start ast = translator.createBAst();
         if (translation == null) {
-            translation = ast;
+            translation = translator.createBAst();
         }
-        return ast;
+        return translation;
     }
 
     public Path generateMachine() throws IOException {
