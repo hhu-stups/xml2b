@@ -7,14 +7,16 @@ import de.be4.classicalb.core.parser.util.PrettyPrinter;
 import de.hhu.stups.xml2b.XML2B;
 import de.hhu.stups.xml2b.XML2BOptions;
 import de.hhu.stups.xml2b.XML2BOptions.XML2BOption;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.help.HelpFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Writer;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -27,7 +29,7 @@ public class XML2BCli {
 	private XML2BOptions xml2bOptions;
 	private boolean createOutput = false;
 
-	private void handleParameter(String[] args) {
+	private void handleParameter(String[] args) throws IOException {
 		DefaultParser parser = new DefaultParser();
 		Options options = getCommandlineOptions();
 		try {
@@ -35,8 +37,8 @@ public class XML2BCli {
 			String[] remainingArgs = line.getArgs();
 			if (remainingArgs.length != 1) {
 				LOGGER.error("Error: expected an XML file.");
-				HelpFormatter formatter = new HelpFormatter();
-				formatter.printHelp("java -jar XML2B.jar [file]", options);
+				HelpFormatter.builder().setShowSince(false).get()
+						.printHelp("java -jar XML2B.jar [file]", "", options, "", true);
 				System.exit(-1);
 			}
 			xmlFile = new File(remainingArgs[0]);
@@ -63,8 +65,8 @@ public class XML2BCli {
 			}
 		} catch (ParseException e) {
 			LOGGER.error(e.getMessage());
-			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp("java -jar XML2B.jar [file]", options);
+			HelpFormatter.builder().setShowSince(false).get()
+					.printHelp("java -jar XML2B.jar [file]", "", options, "", true);
 			System.exit(-1);
 		}
 	}
