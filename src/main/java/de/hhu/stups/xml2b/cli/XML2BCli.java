@@ -27,7 +27,7 @@ public class XML2BCli {
 
 	private File xmlFile, xsdFile;
 	private XML2BOptions xml2bOptions;
-	private boolean createOutput = false;
+	private boolean generateMachine = true;
 
 	private void handleParameter(String[] args) throws IOException {
 		DefaultParser parser = new DefaultParser();
@@ -55,7 +55,9 @@ public class XML2BCli {
 				String[] splitName = outputFile.getName().split("\\.");
 				xml2bOptions = xml2bOptions.withMachineName(splitName[splitName.length > 1 ? splitName.length-2 : 0])
 						.withDirectory(outputFile.getParentFile().toPath());
-				createOutput = true;
+			}
+			if (line.hasOption(UPDATE_DATA_ONLY.arg())) {
+				generateMachine = false;
 			}
 			if (line.hasOption(VERSION.arg())) {
 				LOGGER.info("XML2B: {} [{}]", XML2B.getVersion(), XML2B.getGitSha());
@@ -83,16 +85,16 @@ public class XML2BCli {
 			if (xml2BCli.xsdFile != null) {
 				LOGGER.info("{} is valid according to {}", xml2BCli.xmlFile.getName(), xml2BCli.xsdFile.getName());
 			}
-			if (xml2BCli.createOutput) {
+			if (xml2BCli.generateMachine) {
 				try {
 					Path outputFile = xml2B.generateMachine();
-					LOGGER.info("created machine at {}", outputFile.toAbsolutePath());
+					LOGGER.info("created machine at {}", outputFile.toAbsolutePath().toRealPath());
 				} catch (IOException e) {
 					LOGGER.error("error creating machine file", e);
 				}
 			} else {
-				LOGGER.info("no output path provided, print machine");
-				System.out.println(PrettyPrinter.getPrettyPrint(start));
+				LOGGER.info("data update mode: machine file NOT generated");
+				LOGGER.info("updated data file at {}", xml2BCli.xml2bOptions.directory().resolve(xml2BCli.xml2bOptions.machineName() + ".probdata").toRealPath());
 			}
 			LOGGER.info("translation of {} succeeded", xml2BCli.xmlFile.getName());
 		} catch (BCompoundException e) {
