@@ -119,7 +119,7 @@ public class XSDReader {
 	}
 
 	private void collectUnionEnumSets(XSSimpleType type, BEnumSet enumSet) {
-		if (type.isRestriction()) {
+		if (type.isRestriction() && type.isGlobal()) { // isGlobal means !isAnonymous
 			XSRestrictionSimpleType restriction = type.asRestriction();
 			if (TypeUtils.getJavaType(restriction).equals("String")) {
 				// Caution: this implicitly collects the enum values!
