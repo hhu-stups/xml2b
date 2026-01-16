@@ -24,15 +24,15 @@ repositories {
 }
 
 dependencies {
-    implementation group: "de.hhu.stups", name: "bparser", version: "2.15.4"
-    implementation group: "ch.qos.logback", name: "logback-classic", version: "1.5.24"
-    implementation group: 'commons-cli', name: 'commons-cli', version: '1.11.0'
-    implementation group: 'org.glassfish.jaxb', name: 'xsom', version: '4.0.6'
+    implementation("de.hhu.stups:bparser:2.15.4")
+    implementation("ch.qos.logback:logback-classic:1.5.24")
+    implementation("commons-cli:commons-cli:1.11.0")
+    implementation("org.glassfish.jaxb:xsom:4.0.6")
 
-    testImplementation platform('org.junit:junit-bom:5.14.2')
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter'
-    testImplementation group: 'org.junit.platform', name: 'junit-platform-launcher'
-    testImplementation group: "de.hhu.stups", name: "prob-java", version: "4.15.0"
+    testImplementation(platform("org.junit:junit-bom:5.14.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.junit.platform:junit-platform-launcher")
+    testImplementation("de.hhu.stups:prob-java:4.15.0")
 }
 
 java {
