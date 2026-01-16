@@ -63,8 +63,11 @@ shadowJar {
 */
 
 processResources {
+    inputs.property("version", project.version)
+    inputs.property("currentGitCommit", readCurrentGitCommit())
+
     filesMatching("de/hhu/stups/xml2b/build.properties") {
-        expand(version: project.version, commit: readCurrentGitCommit())
+        expand(version: inputs.properties["version"], commit: inputs.properties["currentGitCommit"])
     }
 }
 
