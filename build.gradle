@@ -24,10 +24,10 @@ repositories {
 }
 
 dependencies {
-    implementation("ch.qos.logback:logback-classic:1.5.24")
+    implementation("ch.qos.logback:logback-classic:1.5.34")
     implementation("commons-cli:commons-cli:1.11.0")
     implementation("de.hhu.stups:bparser:2.15.4")
-    implementation("org.glassfish.jaxb:xsom:4.0.6")
+    implementation("org.glassfish.jaxb:xsom:4.0.9")
 
     testImplementation("de.hhu.stups:prob-java:4.15.1")
     testImplementation(platform("org.junit:junit-bom:5.14.2"))
