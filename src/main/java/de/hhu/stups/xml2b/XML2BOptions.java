@@ -64,6 +64,15 @@ public class XML2BOptions {
 		return file.getName().substring(0, lastIdx).replace(".",""); // dots are not supported in quoted B identifiers
 	}
 
+	public XML2BOptions withMachineName(String machineName) {
+		String cleanedName = machineName.replace(".","");
+		return new XML2BOptions(cleanedName, this.directory, this.frwPrologSystem, this.generateAbstractConstants, this.updateDataOnly);
+	}
+
+	public XML2BOptions withDirectory(Path directory) {
+		return new XML2BOptions(this.machineName, directory, this.frwPrologSystem, this.generateAbstractConstants, this.updateDataOnly);
+	}
+
 	public XML2BOptions withOutputFile(File machineFile) {
 		return new XML2BOptions(removeDotsFromFileName(machineFile), machineFile.getParentFile().toPath(),
 				this.frwPrologSystem, this.generateAbstractConstants, this.updateDataOnly);
