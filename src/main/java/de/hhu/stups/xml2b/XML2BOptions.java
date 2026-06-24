@@ -55,17 +55,18 @@ public class XML2BOptions {
 		if (xmlFile == null) {
 			throw new IllegalArgumentException("xmlFile must not be null");
 		}
-		String[] splitName = xmlFile.getName().split("\\.");
-		return new XML2BOptions(splitName[splitName.length > 1 ? splitName.length-2 : 0], xmlFile.getAbsoluteFile().getParentFile().toPath(),
+		return new XML2BOptions(removeDotsFromFileName(xmlFile), xmlFile.getAbsoluteFile().getParentFile().toPath(),
 				SICSTUS_NAME, false, false);
 	}
 
-	public XML2BOptions withMachineName(String machineName) {
-		return new XML2BOptions(machineName, this.directory, this.frwPrologSystem, this.generateAbstractConstants, this.updateDataOnly);
+	private static String removeDotsFromFileName(File file) {
+		int lastIdx = file.getName().lastIndexOf('.');
+		return file.getName().substring(0, lastIdx).replace(".",""); // dots are not supported in quoted B identifiers
 	}
 
-	public XML2BOptions withDirectory(Path directory) {
-		return new XML2BOptions(this.machineName, directory, this.frwPrologSystem, this.generateAbstractConstants, this.updateDataOnly);
+	public XML2BOptions withOutputFile(File machineFile) {
+		return new XML2BOptions(removeDotsFromFileName(machineFile), machineFile.getParentFile().toPath(),
+				this.frwPrologSystem, this.generateAbstractConstants, this.updateDataOnly);
 	}
 
 	public XML2BOptions withPrologSystem(String prologSystem) {

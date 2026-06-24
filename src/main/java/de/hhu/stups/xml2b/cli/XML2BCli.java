@@ -3,7 +3,6 @@ package de.hhu.stups.xml2b.cli;
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.exceptions.BException;
 import de.be4.classicalb.core.parser.node.Start;
-import de.be4.classicalb.core.parser.util.PrettyPrinter;
 import de.hhu.stups.xml2b.XML2B;
 import de.hhu.stups.xml2b.XML2BOptions;
 import de.hhu.stups.xml2b.XML2BOptions.XML2BOption;
@@ -51,10 +50,7 @@ public class XML2BCli {
 				xml2bOptions = xml2bOptions.withPrologSystem(line.getOptionValue(FAST_RW.arg()));
 			}
 			if (line.hasOption(OUTPUT.arg())) {
-				File outputFile = new File(line.getOptionValue(OUTPUT.arg()));
-				String[] splitName = outputFile.getName().split("\\.");
-				xml2bOptions = xml2bOptions.withMachineName(splitName[splitName.length > 1 ? splitName.length-2 : 0])
-						.withDirectory(outputFile.getParentFile().toPath());
+				xml2bOptions = xml2bOptions.withOutputFile(new File(line.getOptionValue(OUTPUT.arg())));
 			}
 			if (line.hasOption(UPDATE_DATA_ONLY.arg())) {
 				generateMachine = false;
