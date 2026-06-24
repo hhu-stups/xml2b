@@ -56,10 +56,9 @@ public class XMLReader extends DefaultHandler {
 
 	public List<XMLElement> readXML(File file, File xsdFile) {
 		try {
-			SAXParserFactory saxFactory = SAXParserFactory.newInstance();
+			SAXParserFactory saxFactory = SAXParserFactory.newDefaultInstance();
 			if (xsdFile != null) {
-				SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-				Schema schema = schemaFactory.newSchema(xsdFile);
+				Schema schema = SchemaFactory.newDefaultInstance().newSchema(xsdFile);
 				saxFactory.setSchema(schema);
 				saxFactory.setNamespaceAware(true);
 			}
