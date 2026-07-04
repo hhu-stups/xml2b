@@ -61,11 +61,11 @@ public class XML2BOptions {
 
 	private static String removeDotsFromFileName(File file) {
 		int lastIdx = file.getName().lastIndexOf('.');
-		return file.getName().substring(0, lastIdx).replace(".",""); // dots are not supported in quoted B identifiers
+		return file.getName().substring(0, lastIdx).replace(".","_"); // dots are not supported in quoted B identifiers
 	}
 
 	public XML2BOptions withMachineName(String machineName) {
-		String cleanedName = machineName.replace(".","");
+		String cleanedName = machineName.replace(".","_");
 		return new XML2BOptions(cleanedName, this.directory, this.frwPrologSystem, this.generateAbstractConstants, this.updateDataOnly);
 	}
 
