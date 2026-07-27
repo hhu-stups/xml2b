@@ -4,7 +4,7 @@ plugins {
     id 'maven-publish'
     id 'signing'
     id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
-    //id "com.gradleup.shadow" version "8.3.6"
+    //id "com.gradleup.shadow" version "9.4.2"
 }
 
 project.group = "de.hhu.stups"
@@ -24,13 +24,13 @@ repositories {
 }
 
 dependencies {
-    implementation("ch.qos.logback:logback-classic:1.5.34")
+    implementation("ch.qos.logback:logback-classic:1.6.0")
     implementation("commons-cli:commons-cli:1.11.0")
-    implementation("de.hhu.stups:bparser:2.15.4")
+    implementation("de.hhu.stups:bparser:2.16.0")
     implementation("org.glassfish.jaxb:xsom:4.0.9")
 
     testImplementation("de.hhu.stups:prob-java:4.15.1")
-    testImplementation(platform("org.junit:junit-bom:5.14.2"))
+    testImplementation(platform("org.junit:junit-bom:5.14.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
