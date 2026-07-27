@@ -69,4 +69,17 @@ public class SimpleTest {
 		Assertions.assertTrue(pathCorrect.toFile().delete());
 		Assertions.assertTrue(pathCorrect2.toFile().delete());
 	}
+
+	@Test
+	void testSimpleDotName() throws Exception {
+		final Path pathInput = path.resolve("empty.dot.xml");
+		final Path pathCorrect = path.resolve("empty_dot.mch");
+		final Path pathCorrect2 = path.resolve("empty_dot.probdata");
+
+		XML2BCli.main(new String[]{pathInput.toString(), "-o", pathCorrect.toString()});
+
+		Assertions.assertTrue(pathCorrect.toFile().delete());
+		Assertions.assertTrue(pathCorrect2.toFile().delete());
+	}
+
 }
