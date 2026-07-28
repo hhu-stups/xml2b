@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<school id="school01">
+    <student name="Anna" age="20">
+        <course title="Mathematik" credits="5"/>
+    </student>
+
+    <student name="Ben">
+        <course title="Informatik"/>
+    </student>
+</school>
+<!-- generated with ChatGPT -->
