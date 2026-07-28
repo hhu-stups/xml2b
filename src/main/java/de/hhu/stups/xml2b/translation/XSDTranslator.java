@@ -39,6 +39,7 @@ public class XSDTranslator extends Translator {
             }
             for (String attribute : presentAttributes) {
                 BAttributeType bAttributeType = new BStringAttributeType(attribute);
+                // no type is enforced by the schema -- use string
                 xsdElement.addAttributeType(attribute, bAttributeType);
                 allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
             }

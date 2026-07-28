@@ -155,5 +155,40 @@ public class XSDTest {
 		Assertions.assertTrue(pathData.toFile().delete());
 	}
 
-	// TODO: default, fixed value, anyAttribute
+	@Test
+	void testDefaultAndFixedValues() throws Exception {
+		String name = "settings";
+		final Path pathInput = path.resolve(name + ".xml");
+		final Path pathXsd = path.resolve(name + ".xsd");
+		final Path pathMachine = path.resolve(name + ".mch");
+		final Path pathData = path.resolve(name + ".probdata");
+
+		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+
+		StateSpace stateSpace = api.b_load(pathMachine.toString());
+		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
+		Assertions.assertEquals("[rec(Element:\"settings\",attributes:∅,content:∅,maxCId:3,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦11↦(5↦12))),rec(Element:\"user\",attributes:{(\"role\"↦XmlString(\"guest\")),(\"version\"↦XmlString(\"1.0\"))},content:∅,maxCId:2,ns:\"\",pIds:[1],recId:2,xmlLocation:(3↦12↦(3↦12))),rec(Element:\"user\",attributes:{(\"role\"↦XmlString(\"admin\")),(\"version\"↦XmlString(\"1.0\"))},content:∅,maxCId:3,ns:\"\",pIds:[1],recId:3,xmlLocation:(4↦39↦(4↦39)))]",
+				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
+		Assertions.assertTrue(pathMachine.toFile().delete());
+		Assertions.assertTrue(pathData.toFile().delete());
+	}
+
+	@Test
+	void testAnyAttribute() throws Exception {
+		String name = "device";
+		final Path pathInput = path.resolve(name + ".xml");
+		final Path pathXsd = path.resolve(name + ".xsd");
+		final Path pathMachine = path.resolve(name + ".mch");
+		final Path pathData = path.resolve(name + ".probdata");
+
+		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+
+		StateSpace stateSpace = api.b_load(pathMachine.toString());
+		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
+		Assertions.assertEquals("[rec(Element:\"devices\",attributes:∅,content:∅,maxCId:3,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦10↦(5↦11))),rec(Element:\"device\",attributes:{(\"enabled\"↦XmlString(\"true\")),(\"nr\"↦XmlInteger(1))},content:∅,maxCId:2,ns:\"\",pIds:[1],recId:2,xmlLocation:(3↦36↦(3↦36))),rec(Element:\"device\",attributes:{(\"nr\"↦XmlInteger(2)),(\"temperature\"↦XmlString(\"21.5\"))},content:∅,maxCId:3,ns:\"\",pIds:[1],recId:3,xmlLocation:(4↦40↦(4↦40)))]",
+				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
+		Assertions.assertTrue(pathMachine.toFile().delete());
+		Assertions.assertTrue(pathData.toFile().delete());
+	}
+
 }
