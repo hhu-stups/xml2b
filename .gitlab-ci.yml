@@ -27,6 +27,10 @@ tests:jdk-21:
   extends: .tests
   image: eclipse-temurin:21
 
+tests:jdk-25:
+  extends: .tests
+  image: eclipse-temurin:25
+
 publish:
   stage: deploy
   before_script:
