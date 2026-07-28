@@ -236,6 +236,7 @@ public abstract class Translator {
 			Map<String, String> attributesMap = xmlElement.attributes();
 			Map<String, BAttributeType> attributeTypes = xmlElement.typeInformation().getAttributeTypes();
 			for (String attrType : attributeTypes.keySet()) {
+				// note: at this point all attributes should have a type (either from Standalone- or XSDTranslator)
 				BAttributeType type = attributeTypes.get(attrType);
 				if (attributesMap.containsKey(attrType)) {
 					attributes.add(type.getDataExpression(attributesMap.get(attrType))); // if available: set provided value
@@ -244,16 +245,6 @@ public abstract class Translator {
 					if (defaultValue != null) {
 						attributes.add(type.getDataExpression(defaultValue)); // if not available, but default exists: use default value
 					}
-				}
-			}
-			for (String attribute : xmlElement.attributes().keySet()) {
-				if (attributeTypes.containsKey(attribute)) {
-					BAttributeType type = attributeTypes.get(attribute);
-					if (type == null) {
-						// should never happen
-						throw new IllegalStateException("identifier of attribute type does not exist");
-					}
-					attributes.add(type.getDataExpression(xmlElement.attributes().get(attribute)));
 				}
 			}
 			recValues.add(new ARecEntry(
