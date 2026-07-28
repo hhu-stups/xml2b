@@ -91,7 +91,4 @@ public abstract class BAttributeType {
 		return this.isRequired;
 	}
 
-	public BStringAttributeType getStringAttributeType() {
-		return new BStringAttributeType(this.attributeName);
-	}
 }
