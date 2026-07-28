@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library name="Stadtbibliothek">
+    <book title="XML Grundlagen" author="Max Mustermann"/>
+    <book title="Java Basics"/>
+</library>
+<!-- generated with ChatGPT -->

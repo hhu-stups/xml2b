@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<p:person
+        xmlns:p="http://example.com/person"
+        xmlns:a="http://example.com/address">
+
+    <p:name>Anna</p:name>
+    <a:city>Berlin</a:city>
+
+</p:person>
+<!-- generated with ChatGPT -->

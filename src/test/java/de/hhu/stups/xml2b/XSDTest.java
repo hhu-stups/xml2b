@@ -1,5 +1,6 @@
 package de.hhu.stups.xml2b;
 
+import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.hhu.stups.xml2b.bTypes.BIntegerAttributeType;
 import de.hhu.stups.xml2b.bTypes.BStringAttributeType;
 import de.hhu.stups.xml2b.cli.XML2BCli;
@@ -62,7 +63,7 @@ public class XSDTest {
 		Assertions.assertInstanceOf(BStringAttributeType.class, schoolElement.getAttributeTypes().get("id"));
 		Assertions.assertTrue(schoolElement.getAttributeTypes().get("id").isRequired());
 
-		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString(),"-frw","NONE"});
+		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
 
 		StateSpace stateSpace = api.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
@@ -72,5 +73,87 @@ public class XSDTest {
 		Assertions.assertTrue(pathData.toFile().delete());
 	}
 
-	// TODO: enum sets, namespaces, default, fixed value, anyAttribute
+	@Test
+	void testSimpleEnumeration() throws Exception {
+		String name = "ticket";
+		final Path pathInput = path.resolve(name + ".xml");
+		final Path pathXsd = path.resolve(name + ".xsd");
+		final Path pathMachine = path.resolve(name + ".mch");
+		final Path pathData = path.resolve(name + ".probdata");
+
+		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+
+		StateSpace stateSpace = api.b_load(pathMachine.toString());
+		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
+		Assertions.assertEquals("[rec(Element:\"ticket\",attributes:{(\"id\"↦XmlString(\"T1\")),(\"status\"↦XmlStatusType(StatusType_open))},content:∅,maxCId:1,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦32↦(2↦32)))]",
+				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
+		Assertions.assertEquals("{StatusType_pending,StatusType_closed,StatusType_open}",
+				constants.eval("StatusType", FormulaExpand.EXPAND).toString());
+		Assertions.assertTrue(pathMachine.toFile().delete());
+		Assertions.assertTrue(pathData.toFile().delete());
+	}
+
+	@Test
+	void testExtendableEnumeration() throws Exception {
+		String name = "status";
+		final Path pathInput = path.resolve(name + ".xml");
+		final Path pathXsd = path.resolve(name + ".xsd");
+		final Path pathMachine = path.resolve(name + ".mch");
+		final Path pathData = path.resolve(name + ".probdata");
+
+		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+
+		StateSpace stateSpace = api.b_load(pathMachine.toString());
+		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
+		Assertions.assertEquals("[rec(Element:\"accounts\",attributes:∅,content:∅,maxCId:6,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦11↦(8↦12))),rec(Element:\"account\",attributes:{(\"id\"↦XmlString(\"A1\")),(\"status\"↦XmlStatusType(StatusType_new))},content:∅,maxCId:2,ns:\"\",pIds:[1],recId:2,xmlLocation:(3↦36↦(3↦36))),rec(Element:\"account\",attributes:{(\"id\"↦XmlString(\"A2\")),(\"status\"↦XmlStatusType(StatusType_active))},content:∅,maxCId:3,ns:\"\",pIds:[1],recId:3,xmlLocation:(4↦39↦(4↦39))),rec(Element:\"account\",attributes:{(\"id\"↦XmlString(\"A3\")),(\"status\"↦XmlStatusType(`StatusType_custom-premium`))},content:∅,maxCId:4,ns:\"\",pIds:[1],recId:4,xmlLocation:(5↦47↦(5↦47))),rec(Element:\"account\",attributes:{(\"id\"↦XmlString(\"A4\")),(\"status\"↦XmlStatusType(`StatusType_custom-test123`))},content:∅,maxCId:5,ns:\"\",pIds:[1],recId:5,xmlLocation:(6↦47↦(6↦47))),rec(Element:\"account\",attributes:{(\"id\"↦XmlString(\"A5\")),(\"status\"↦XmlStatusType(StatusType_inactive))},content:∅,maxCId:6,ns:\"\",pIds:[1],recId:6,xmlLocation:(7↦41↦(7↦41)))]",
+				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
+		Assertions.assertTrue(pathMachine.toFile().delete());
+		Assertions.assertTrue(pathData.toFile().delete());
+	}
+
+	@Test
+	void testInvalidEnumeration() throws Exception {
+		final Path pathInput = path.resolve("status_invalid.xml");
+		final Path pathXsd = path.resolve("status.xsd");
+
+		Assertions.assertThrows(BCompoundException.class, () -> new XML2B(pathInput.toFile(), pathXsd.toFile(), XML2BOptions.defaultOptions(pathXsd.toFile())));
+	}
+
+	@Test
+	void testXSDInclusionWithComplexType() throws Exception {
+		String name = "library";
+		final Path pathInput = path.resolve(name + ".xml");
+		final Path pathXsd = path.resolve(name + ".xsd");
+		final Path pathMachine = path.resolve(name + ".mch");
+		final Path pathData = path.resolve(name + ".probdata");
+
+		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+
+		StateSpace stateSpace = api.b_load(pathMachine.toString());
+		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
+		Assertions.assertEquals("[rec(Element:\"library\",attributes:{(\"name\"↦XmlString(\"Stadtbibliothek\"))},content:∅,maxCId:3,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦33↦(5↦11))),rec(Element:\"book\",attributes:{(\"author\"↦XmlString(\"Max Mustermann\")),(\"title\"↦XmlString(\"XML Grundlagen\"))},content:∅,maxCId:2,ns:\"\",pIds:[1],recId:2,xmlLocation:(3↦59↦(3↦59))),rec(Element:\"book\",attributes:{(\"title\"↦XmlString(\"Java Basics\"))},content:∅,maxCId:3,ns:\"\",pIds:[1],recId:3,xmlLocation:(4↦32↦(4↦32)))]",
+				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
+		Assertions.assertTrue(pathMachine.toFile().delete());
+		Assertions.assertTrue(pathData.toFile().delete());
+	}
+
+	@Test
+	void testNameSpaces() throws Exception {
+		String name = "ns_data";
+		final Path pathInput = path.resolve(name + ".xml");
+		final Path pathXsd = path.resolve("ns_person.xsd");
+		final Path pathMachine = path.resolve(name + ".mch");
+		final Path pathData = path.resolve(name + ".probdata");
+
+		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+
+		StateSpace stateSpace = api.b_load(pathMachine.toString());
+		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
+		Assertions.assertEquals("[rec(Element:\"person\",attributes:∅,content:∅,maxCId:3,ns:\"http://example.com/person\",pIds:[0],recId:1,xmlLocation:(4↦46↦(9↦12))),rec(Element:\"name\",attributes:∅,content:{XmlString(\"Anna\")},maxCId:2,ns:\"http://example.com/person\",pIds:[1],recId:2,xmlLocation:(6↦13↦(6↦26))),rec(Element:\"city\",attributes:∅,content:{XmlString(\"Berlin\")},maxCId:3,ns:\"http://example.com/address\",pIds:[1],recId:3,xmlLocation:(7↦13↦(7↦28)))]",
+				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
+		Assertions.assertTrue(pathMachine.toFile().delete());
+		Assertions.assertTrue(pathData.toFile().delete());
+	}
+
+	// TODO: default, fixed value, anyAttribute
 }

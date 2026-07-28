@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<accounts>
+    <account id="A1" status="new"/>
+    <account id="A2" status="active"/>
+    <account id="A3" status="custom-premium"/>
+    <account id="A4" status="custom-test123"/>
+    <account id="A5" status="inactive"/>
+</accounts>

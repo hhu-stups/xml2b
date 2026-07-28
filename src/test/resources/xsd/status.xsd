@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:simpleType name="StandardStatus">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="new"/>
+            <xs:enumeration value="active"/>
+            <xs:enumeration value="inactive"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CustomStatus">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="custom-[A-Za-z0-9]+"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="StatusType">
+        <xs:union memberTypes="StandardStatus CustomStatus"/>
+    </xs:simpleType>
+
+    <xs:element name="accounts">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="account" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:attribute name="id" type="xs:string" use="required"/>
+                        <xs:attribute name="status" type="StatusType" use="required"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>
+<!-- generated with ChatGPT -->
