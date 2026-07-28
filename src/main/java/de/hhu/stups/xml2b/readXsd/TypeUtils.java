@@ -239,6 +239,9 @@ public class TypeUtils {
 	}
 
 	public static QName getQNameFromDeclaration(XSDeclaration xsDeclaration) {
+		if (xsDeclaration.getName() == null) {
+			return null;
+		}
 		return new QName(xsDeclaration.getTargetNamespace(), xsDeclaration.getName());
 	}
 
