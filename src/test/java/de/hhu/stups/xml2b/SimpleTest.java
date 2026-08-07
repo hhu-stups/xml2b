@@ -8,11 +8,8 @@ import de.prob.statespace.StateSpace;
 import de.prob.statespace.Transition;
 import org.junit.jupiter.api.*;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 public class SimpleTest {
 
