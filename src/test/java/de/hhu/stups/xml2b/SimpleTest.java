@@ -8,8 +8,10 @@ import de.prob.statespace.StateSpace;
 import de.prob.statespace.Transition;
 import org.junit.jupiter.api.*;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 public class SimpleTest {
 
@@ -21,6 +23,12 @@ public class SimpleTest {
 		api = TestModule.getInjector().getInstance(Api.class);
 	}
 
+	StateSpace b_load(String path) throws IOException {
+		StateSpace stateSpace = api.b_load(path);
+		stateSpace.changePreferences(Map.of("PP_SEQUENCES", "TRUE"));
+		return stateSpace;
+	}
+
 	@Test
 	void testSimpleSicstusFastRw() throws Exception {
 		String name = "simple";
@@ -30,9 +38,9 @@ public class SimpleTest {
 
 		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-o",pathMachine.toString()});
 
-		StateSpace stateSpace = api.b_load(pathMachine.toString());
+		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
-		Assertions.assertEquals("[rec(Element:\"order\",attributes:{(\"id\"↦XmlString(\"id_abc\"))},content:∅,maxCId:5,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦20↦(9↦9))),rec(Element:\"customer\",attributes:{(\"name\"↦XmlString(\"Müller\"))},content:∅,maxCId:3,ns:\"\",pIds:[1],recId:2,xmlLocation:(3↦29↦(5↦16))),rec(Element:\"item\",attributes:{(\"product\"↦XmlString(\"XMLFile1\")),(\"version\"↦XmlReal(1.0))},content:∅,maxCId:3,ns:\"\",pIds:[1,2],recId:3,xmlLocation:(4↦49↦(4↦49))),rec(Element:\"customer\",attributes:{(\"name\"↦XmlString(\"Paul\"))},content:∅,maxCId:5,ns:\"\",pIds:[1],recId:4,xmlLocation:(6↦27↦(8↦16))),rec(Element:\"item\",attributes:{(\"product\"↦XmlString(\"XMLFile2\"))},content:∅,maxCId:5,ns:\"\",pIds:[1,4],recId:5,xmlLocation:(7↦35↦(7↦35)))]",
+		Assertions.assertEquals("[rec(Element:\"order\",attributes:{(\"id\"↦XmlString(\"id_abc\"))},content:[],maxCId:5,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦20↦(9↦9))),rec(Element:\"customer\",attributes:{(\"name\"↦XmlString(\"Müller\"))},content:[],maxCId:3,ns:\"\",pIds:[1],recId:2,xmlLocation:(3↦29↦(5↦16))),rec(Element:\"item\",attributes:{(\"product\"↦XmlString(\"XMLFile1\")),(\"version\"↦XmlReal(1.0))},content:[],maxCId:3,ns:\"\",pIds:[1,2],recId:3,xmlLocation:(4↦49↦(4↦49))),rec(Element:\"customer\",attributes:{(\"name\"↦XmlString(\"Paul\"))},content:[],maxCId:5,ns:\"\",pIds:[1],recId:4,xmlLocation:(6↦27↦(8↦16))),rec(Element:\"item\",attributes:{(\"product\"↦XmlString(\"XMLFile2\"))},content:[],maxCId:5,ns:\"\",pIds:[1,4],recId:5,xmlLocation:(7↦35↦(7↦35)))]",
 				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
 		Assertions.assertTrue(pathMachine.toFile().delete());
 		Assertions.assertTrue(pathData.toFile().delete());
@@ -47,9 +55,9 @@ public class SimpleTest {
 
 		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-frw","NONE","-o",pathMachine.toString()});
 
-		StateSpace stateSpace = api.b_load(pathMachine.toString());
+		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
-		Assertions.assertEquals("[rec(Element:\"order\",attributes:{(\"id\"↦XmlString(\"id_abc\"))},content:∅,maxCId:5,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦20↦(9↦9))),rec(Element:\"customer\",attributes:{(\"name\"↦XmlString(\"Müller\"))},content:∅,maxCId:3,ns:\"\",pIds:[1],recId:2,xmlLocation:(3↦29↦(5↦16))),rec(Element:\"item\",attributes:{(\"product\"↦XmlString(\"XMLFile1\")),(\"version\"↦XmlReal(1.0))},content:∅,maxCId:3,ns:\"\",pIds:[1,2],recId:3,xmlLocation:(4↦49↦(4↦49))),rec(Element:\"customer\",attributes:{(\"name\"↦XmlString(\"Paul\"))},content:∅,maxCId:5,ns:\"\",pIds:[1],recId:4,xmlLocation:(6↦27↦(8↦16))),rec(Element:\"item\",attributes:{(\"product\"↦XmlString(\"XMLFile2\"))},content:∅,maxCId:5,ns:\"\",pIds:[1,4],recId:5,xmlLocation:(7↦35↦(7↦35)))]",
+		Assertions.assertEquals("[rec(Element:\"order\",attributes:{(\"id\"↦XmlString(\"id_abc\"))},content:[],maxCId:5,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦20↦(9↦9))),rec(Element:\"customer\",attributes:{(\"name\"↦XmlString(\"Müller\"))},content:[],maxCId:3,ns:\"\",pIds:[1],recId:2,xmlLocation:(3↦29↦(5↦16))),rec(Element:\"item\",attributes:{(\"product\"↦XmlString(\"XMLFile1\")),(\"version\"↦XmlReal(1.0))},content:[],maxCId:3,ns:\"\",pIds:[1,2],recId:3,xmlLocation:(4↦49↦(4↦49))),rec(Element:\"customer\",attributes:{(\"name\"↦XmlString(\"Paul\"))},content:[],maxCId:5,ns:\"\",pIds:[1],recId:4,xmlLocation:(6↦27↦(8↦16))),rec(Element:\"item\",attributes:{(\"product\"↦XmlString(\"XMLFile2\"))},content:[],maxCId:5,ns:\"\",pIds:[1,4],recId:5,xmlLocation:(7↦35↦(7↦35)))]",
 				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
 		Assertions.assertTrue(pathMachine.toFile().delete());
 		Assertions.assertTrue(pathData.toFile().delete());
