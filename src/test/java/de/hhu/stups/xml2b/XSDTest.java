@@ -78,6 +78,8 @@ public class XSDTest {
 				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
 		Assertions.assertTrue(pathMachine.toFile().delete());
 		Assertions.assertTrue(pathData.toFile().delete());
+
+		stateSpace.kill();
 	}
 
 	@Test
@@ -98,6 +100,8 @@ public class XSDTest {
 				constants.eval("StatusType", FormulaExpand.EXPAND).toString());
 		Assertions.assertTrue(pathMachine.toFile().delete());
 		Assertions.assertTrue(pathData.toFile().delete());
+
+		stateSpace.kill();
 	}
 
 	@Test
@@ -116,6 +120,8 @@ public class XSDTest {
 				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
 		Assertions.assertTrue(pathMachine.toFile().delete());
 		Assertions.assertTrue(pathData.toFile().delete());
+
+		stateSpace.kill();
 	}
 
 	@Test
@@ -142,6 +148,8 @@ public class XSDTest {
 				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
 		Assertions.assertTrue(pathMachine.toFile().delete());
 		Assertions.assertTrue(pathData.toFile().delete());
+
+		stateSpace.kill();
 	}
 
 	@Test
@@ -160,6 +168,8 @@ public class XSDTest {
 				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
 		Assertions.assertTrue(pathMachine.toFile().delete());
 		Assertions.assertTrue(pathData.toFile().delete());
+
+		stateSpace.kill();
 	}
 
 	@Test
@@ -178,6 +188,8 @@ public class XSDTest {
 				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
 		Assertions.assertTrue(pathMachine.toFile().delete());
 		Assertions.assertTrue(pathData.toFile().delete());
+
+		stateSpace.kill();
 	}
 
 	@Test
@@ -196,6 +208,8 @@ public class XSDTest {
 				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
 		Assertions.assertTrue(pathMachine.toFile().delete());
 		Assertions.assertTrue(pathData.toFile().delete());
+
+		stateSpace.kill();
 	}
 
 }

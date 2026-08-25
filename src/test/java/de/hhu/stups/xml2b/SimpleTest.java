@@ -6,7 +6,9 @@ import de.prob.scripting.Api;
 import de.prob.statespace.State;
 import de.prob.statespace.StateSpace;
 import de.prob.statespace.Transition;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -61,6 +63,8 @@ public class SimpleTest {
 				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
 		Assertions.assertTrue(pathMachine.toFile().delete());
 		Assertions.assertTrue(pathData.toFile().delete());
+
+		stateSpace.kill();
 	}
 
 	@Test
