@@ -1,6 +1,7 @@
 image: eclipse-temurin:17
 stages:
   - test
+  - build
   - deploy
 
 variables:
@@ -27,6 +28,14 @@ tests:jdk-25:
   extends: .tests
   image: eclipse-temurin:25
 
+buildJar:
+  stage: build
+  script: ./gradlew ${GRADLE_OPTIONS} shadowJar
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - build/libs
+
 publish:
   stage: deploy
   before_script:
@@ -40,3 +49,26 @@ publish:
     - ./gradlew ${GRADLE_OPTIONS} publish closeStagingRepositories
   only:
     - main@stups/prob/xml2b
+    - develop@stups/prob/xml2b
+
+deploy:snapshot:
+  stage: deploy
+  only:
+    - develop@stups/prob/xml2b
+  image: alpine:3
+  before_script:
+    - apk update
+    - apk add lftp openssh-client
+  script:
+    - LFTP_PASSWORD="${DEPLOY_PASSWORD}" lftp -c "set cmd:fail-exit true; set sftp:auto-confirm true; open --user ${DEPLOY_USERNAME} --env-password sftp://${DEPLOY_HOST}/${DEPLOY_REMOTE_BASEDIR}/downloads/xml2b/snapshot/; mput -e build/libs/*.jar"
+
+deploy:release:
+  stage: deploy
+  only:
+    - main@stups/prob/xml2b
+  image: alpine:3
+  before_script:
+    - apk update
+    - apk add lftp openssh-client
+  script:
+    - LFTP_PASSWORD="${DEPLOY_PASSWORD}" lftp -c "set cmd:fail-exit true; set sftp:auto-confirm true; open --user ${DEPLOY_USERNAME} --env-password sftp://${DEPLOY_HOST}/${DEPLOY_REMOTE_BASEDIR}/downloads/xml2b/; mkdir -p release-next; cd release-next; mput build/libs/*.jar"
