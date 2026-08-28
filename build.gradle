@@ -51,7 +51,7 @@ application {
 }
 
 shadowJar {
-    archiveFileName = 'XML2B.jar'
+    archiveFileName = 'xml2b-' + version + '.jar'
     manifest {
         attributes(
                 'Main-Class': application.mainClass.get(),
