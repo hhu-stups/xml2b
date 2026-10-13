@@ -255,8 +255,10 @@ public class TypeUtils {
 			return new BRealAttributeType(attributeName, true);
 		} catch (DateTimeParseException dtpe) {
 			try {
-				Double.parseDouble(attributeValue);
-				return new BRealAttributeType(attributeName);
+				double nr = Double.parseDouble(attributeValue);
+				if (!Double.isInfinite(nr) && !Double.isNaN(nr)) {
+					return new BRealAttributeType(attributeName);
+				}
 			} catch (NumberFormatException nfe) {
 				if (attributeValue.equals("true") || attributeValue.equals("false")) {
 					return new BBoolAttributeType(attributeName);
