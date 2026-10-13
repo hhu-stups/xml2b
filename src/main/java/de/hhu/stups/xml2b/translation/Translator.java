@@ -99,9 +99,9 @@ public abstract class Translator {
 		try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(dataValuePrologFile.toPath()))) {
 			IPrologTermOutput pout;
 			String prologSystem = options.frwPrologSystem();
-			if (prologSystem != null && prologSystem.equals(XML2BOptions.SICSTUS_NAME)) {
+			if (prologSystem != null && prologSystem.equalsIgnoreCase(XML2BOptions.SICSTUS_NAME)) {
 				pout = new FastSicstusTermOutput(out);
-			} else if (prologSystem != null && prologSystem.equals(XML2BOptions.SWI_NAME)) {
+			} else if (prologSystem != null && prologSystem.equalsIgnoreCase(XML2BOptions.SWI_NAME)) {
 				pout = new FastSwiTermOutput(out);
 			} else {
 				pout = new PrologTermOutput(out, false);
