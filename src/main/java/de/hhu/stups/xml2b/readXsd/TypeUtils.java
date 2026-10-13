@@ -256,7 +256,7 @@ public class TypeUtils {
 		} catch (DateTimeParseException dtpe) {
 			try {
 				double nr = Double.parseDouble(attributeValue);
-				if (!Double.isInfinite(nr) && !Double.isNaN(nr)) {
+				if (Double.isFinite(nr)) {
 					return new BRealAttributeType(attributeName);
 				}
 			} catch (NumberFormatException nfe) {
