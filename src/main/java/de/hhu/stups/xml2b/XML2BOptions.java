@@ -7,6 +7,7 @@ public class XML2BOptions {
 	public enum XML2BOption {
 		ABSTRACT_CONSTANTS("ac","include useful abstract constants in generated machine",false),
 		FAST_RW("frw","specify Prolog system for fast read-write: SICSTUS, SWI; NONE for standard output",true),
+		INLINE_DATA("inline-data","inline data directly into the B machine (do not generate a separate .probdata file)", false),
 		OUTPUT("o", "output path for generated machine", true),
 		UPDATE_DATA_ONLY("update","update only the generated probdata file", false),
 		VERSION("version", "prints the current version of XML2B", false),
@@ -40,14 +41,16 @@ public class XML2BOptions {
 	private final Path directory;
 	private final String frwPrologSystem;
 	private final boolean generateAbstractConstants;
+	private final boolean inlineData;
 	private final boolean updateDataOnly;
 
 	private XML2BOptions(String machineName, Path directory, String frwPrologSystem,
-	                     boolean generateAbstractConstants, boolean updateDataOnly) {
+	                     boolean generateAbstractConstants, boolean inlineData, boolean updateDataOnly) {
 		this.machineName = machineName;
 		this.directory = directory;
 		this.frwPrologSystem = frwPrologSystem;
 		this.generateAbstractConstants = generateAbstractConstants;
+		this.inlineData = inlineData;
 		this.updateDataOnly = updateDataOnly;
 	}
 
@@ -56,7 +59,7 @@ public class XML2BOptions {
 			throw new IllegalArgumentException("xmlFile must not be null");
 		}
 		return new XML2BOptions(removeDotsFromFileName(xmlFile), xmlFile.getAbsoluteFile().getParentFile().toPath(),
-				SICSTUS_NAME, false, false);
+				SICSTUS_NAME, false, false, false);
 	}
 
 	private static String removeDotsFromFileName(File file) {
@@ -66,34 +69,38 @@ public class XML2BOptions {
 
 	public XML2BOptions withMachineName(String machineName) {
 		String cleanedName = machineName.replace(".","_");
-		return new XML2BOptions(cleanedName, this.directory, this.frwPrologSystem, this.generateAbstractConstants, this.updateDataOnly);
+		return new XML2BOptions(cleanedName, this.directory, this.frwPrologSystem, this.generateAbstractConstants, this.inlineData, this.updateDataOnly);
 	}
 
 	public XML2BOptions withDirectory(Path directory) {
-		return new XML2BOptions(this.machineName, directory, this.frwPrologSystem, this.generateAbstractConstants, this.updateDataOnly);
+		return new XML2BOptions(this.machineName, directory, this.frwPrologSystem, this.generateAbstractConstants, this.inlineData, this.updateDataOnly);
 	}
 
 	public XML2BOptions withOutputFile(File machineFile) {
 		return new XML2BOptions(removeDotsFromFileName(machineFile), machineFile.getParentFile().toPath(),
-				this.frwPrologSystem, this.generateAbstractConstants, this.updateDataOnly);
+				this.frwPrologSystem, this.generateAbstractConstants, this.inlineData, this.updateDataOnly);
 	}
 
 	public XML2BOptions withPrologSystem(String prologSystem) {
 		if (prologSystem.equalsIgnoreCase(NONE_NAME)) {
-			return new XML2BOptions(this.machineName, this.directory, null, this.generateAbstractConstants, this.updateDataOnly);
+			return new XML2BOptions(this.machineName, this.directory, null, this.generateAbstractConstants, this.inlineData, this.updateDataOnly);
 		}
 		if (!prologSystem.equalsIgnoreCase(SICSTUS_NAME) && !prologSystem.equalsIgnoreCase(SWI_NAME)) {
 			throw new IllegalArgumentException("Unsupported Prolog system: " + prologSystem);
 		}
-		return new XML2BOptions(this.machineName, this.directory, prologSystem, this.generateAbstractConstants, this.updateDataOnly);
+		return new XML2BOptions(this.machineName, this.directory, prologSystem, this.generateAbstractConstants, this.inlineData, this.updateDataOnly);
 	}
 
 	public XML2BOptions withGenerateAbstractConstants(boolean generateAbstractConstants) {
-		return new XML2BOptions(this.machineName, this.directory, this.frwPrologSystem, generateAbstractConstants, this.updateDataOnly);
+		return new XML2BOptions(this.machineName, this.directory, this.frwPrologSystem, generateAbstractConstants, this.inlineData, this.updateDataOnly);
+	}
+
+	public XML2BOptions withInlineData(boolean inlineData) {
+		return new XML2BOptions(this.machineName, this.directory, this.frwPrologSystem, this.generateAbstractConstants, inlineData, this.updateDataOnly);
 	}
 
 	public XML2BOptions withUpdateDataOnly(boolean updateDataOnly) {
-		return new XML2BOptions(this.machineName, this.directory, this.frwPrologSystem, generateAbstractConstants, updateDataOnly);
+		return new XML2BOptions(this.machineName, this.directory, this.frwPrologSystem, generateAbstractConstants, this.inlineData, updateDataOnly);
 	}
 
 	public String machineName() {
@@ -110,6 +117,10 @@ public class XML2BOptions {
 
 	public boolean generateAbstractConstants() {
 		return generateAbstractConstants;
+	}
+
+	public boolean inlineData() {
+		return inlineData;
 	}
 
 	public boolean updateDataOnly() {

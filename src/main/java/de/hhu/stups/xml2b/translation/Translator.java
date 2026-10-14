@@ -95,21 +95,24 @@ public abstract class Translator {
 
 		checkForDuplicateIdentifiers();
 
-		// TODO: check if file already exists
-		try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(dataValuePrologFile.toPath()))) {
-			IPrologTermOutput pout;
-			String prologSystem = options.frwPrologSystem();
-			if (prologSystem != null && prologSystem.equalsIgnoreCase(XML2BOptions.SICSTUS_NAME)) {
-				pout = new FastSicstusTermOutput(out);
-			} else if (prologSystem != null && prologSystem.equalsIgnoreCase(XML2BOptions.SWI_NAME)) {
-				pout = new FastSwiTermOutput(out);
-			} else {
-				pout = new PrologTermOutput(out, false);
+		// generate .probdata file if the data is not inlined in the B machine
+		if (!options.inlineData()) {
+			// TODO: check if file already exists
+			try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(dataValuePrologFile.toPath()))) {
+				IPrologTermOutput pout;
+				String prologSystem = options.frwPrologSystem();
+				if (prologSystem != null && prologSystem.equalsIgnoreCase(XML2BOptions.SICSTUS_NAME)) {
+					pout = new FastSicstusTermOutput(out);
+				} else if (prologSystem != null && prologSystem.equalsIgnoreCase(XML2BOptions.SWI_NAME)) {
+					pout = new FastSwiTermOutput(out);
+				} else {
+					pout = new PrologTermOutput(out, false);
+				}
+				dataValues.apply(new PrologDataPrinter(pout, setsClause, freetypesClause));
+				pout.fullstop();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 			}
-			dataValues.apply(new PrologDataPrinter(pout, setsClause, freetypesClause));
-			pout.fullstop();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
 		}
 
 		// TODO: machineName can be different from output file name!
@@ -181,9 +184,6 @@ public abstract class Translator {
 		typification.setRight(typeExpression.clone());
 
 		// VALUE:
-		AEqualPredicate value = new AEqualPredicate();
-		value.setLeft(createIdentifier(XML_DATA_NAME));
-
 		List<PExpression> sequenceOfRecords = new ArrayList<>();
 		for (XMLElement xmlElement : xmlElements) {
 			List<PRecEntry> recValues = new ArrayList<>();
@@ -264,14 +264,17 @@ public abstract class Translator {
 			));
 		}
 		PExpression right = !sequenceOfRecords.isEmpty() ? new ASetExtensionExpression(sequenceOfRecords) : new AEmptySetExpression();
-		value.setRight(right.clone());
 
-		PPredicate probData = new AEqualPredicate(createIdentifier(XML_DATA_NAME),
-				new ADefinitionExpression(
-						new TIdentifierLiteral("READ_PROB_DATA_FILE"),
-						Arrays.asList(typeExpression.clone(), createStringExpression(dataValuePrologFile.getName()))
-				)
-		);
+		AEqualPredicate probData = new AEqualPredicate();
+		probData.setLeft(createIdentifier(XML_DATA_NAME));
+		if (options.inlineData()) {
+			probData.setRight(new ATypeofExpression(right,typeExpression.clone()));
+		} else {
+			probData.setRight(new ADefinitionExpression(
+					new TIdentifierLiteral("READ_PROB_DATA_FILE"),
+					Arrays.asList(typeExpression.clone(), createStringExpression(dataValuePrologFile.getName()))
+			));
+		}
 
 		machineClauseList.add(new APropertiesMachineClause(
 				options.generateAbstractConstants() ? new AConjunctPredicate(probData, createAbstractConstantsProperties()) : probData

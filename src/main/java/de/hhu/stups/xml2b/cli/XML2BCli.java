@@ -52,7 +52,10 @@ public class XML2BCli {
 			if (line.hasOption(OUTPUT.arg())) {
 				xml2bOptions = xml2bOptions.withOutputFile(new File(line.getOptionValue(OUTPUT.arg())));
 			}
-			if (line.hasOption(UPDATE_DATA_ONLY.arg())) {
+			if (line.hasOption(INLINE_DATA.arg())) {
+				xml2bOptions = xml2bOptions.withInlineData(true);
+			}
+			if (line.hasOption(UPDATE_DATA_ONLY.arg()) && !line.hasOption(INLINE_DATA.arg())) {
 				generateMachine = false;
 			}
 			if (line.hasOption(VERSION.arg())) {
