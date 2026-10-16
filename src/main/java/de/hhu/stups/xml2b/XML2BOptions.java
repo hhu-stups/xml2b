@@ -8,7 +8,7 @@ public class XML2BOptions {
 		ABSTRACT_CONSTANTS("ac","include useful abstract constants in generated machine",false),
 		FAST_RW("frw","specify Prolog system for fast read-write: SICSTUS, SWI; NONE for standard output",true),
 		INLINE_DATA("inline-data","inline data directly into the B machine (do not generate a separate .probdata file)", false),
-		OUTPUT("o", "output path for generated machine", true),
+		OUTPUT("o", "output path for the generated machine (expects a .mch file)", true),
 		UPDATE_DATA_ONLY("update","update only the generated probdata file", false),
 		VERSION("version", "prints the current version of XML2B", false),
 		XSD("xsd", "use XSD file for schema validation and type extraction", true);
@@ -77,6 +77,9 @@ public class XML2BOptions {
 	}
 
 	public XML2BOptions withOutputFile(File machineFile) {
+		if (machineFile.getParentFile() == null || !machineFile.getName().endsWith(".mch")) {
+			throw new IllegalArgumentException("invalid output location (is not a .mch machine file): " + machineFile.getAbsolutePath());
+		}
 		return new XML2BOptions(removeDotsFromFileName(machineFile), machineFile.getParentFile().toPath(),
 				this.frwPrologSystem, this.generateAbstractConstants, this.inlineData, this.updateDataOnly);
 	}

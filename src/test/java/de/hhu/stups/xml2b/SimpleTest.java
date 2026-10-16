@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -126,4 +127,11 @@ public class SimpleTest {
 		stateSpace.kill();
 	}
 
+	@Test
+	void testInvalidOutputFiles() {
+		final File input = path.resolve("simple.xml").toFile();
+
+		Assertions.assertThrows(IllegalArgumentException.class, () -> new XML2B(input, XML2BOptions.defaultOptions(input).withOutputFile(new File("."))));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> XML2BCli.main(new String[]{input.toString(),"-o","./invalid.rmch"}));
+	}
 }
