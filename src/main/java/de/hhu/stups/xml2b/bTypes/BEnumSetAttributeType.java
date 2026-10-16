@@ -39,7 +39,8 @@ public class BEnumSetAttributeType extends BAttributeType {
 	}
 
 	@Override
-	public PExpression getRawExpression(String data) {
+	public PExpression getRawExpression(String rawData) {
+		String data = rawData.replace(".","~"); // ensure no dots in B identifiers (see check in XSDReader:collectEnumValuesFromFacets)
 		if (enumSet.isAllowBuiltIn()) {
 			if (this.requiresClassicalType)
 				return createStringExpression(data);
@@ -48,7 +49,7 @@ public class BEnumSetAttributeType extends BAttributeType {
 		} else if (enumSet.isExtensible()) {
 			enumSet.addValue(data);
 		} else if (!enumSet.getEnumValues().contains(data)) {
-			throw new IllegalArgumentException("enum set does not contain argument");
+			throw new IllegalArgumentException("enum set does not contain argument " + data);
 		}
 		return createIdentifier(enumSet.getValueIdentifier(data));
 	}

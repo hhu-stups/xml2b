@@ -146,11 +146,17 @@ public class XSDReader {
 		boolean extensible = false;
 		while (facets.hasNext()) {
 			XSFacet facet = facets.next();
-			if (facet.getName().equals(FACET_ENUMERATION)) {
-				// defines a list of acceptable values
-				enumSet.addValue(facet.getValue().value);
-			} else if (facet.getName().equals(FACET_PATTERN)) {
-				// defines the exact sequence of characters that are acceptable
+			if (facet.getName().equals(FACET_ENUMERATION)) { // defines a list of acceptable values
+				// replace all dots as these are not allowed in backquoted ProB identifiers
+				String value = facet.getValue().value.replace(".", "~");
+				if (enumSet.getEnumValues().contains(value)) {
+					throw new UnsupportedOperationException(
+							"Incompatible enum values: " + value.replace("~",".") + " <-/-> " + value +
+							"\nThis is because dots ('.') in xs:enumeration are NOT supported if the same value exists " +
+							"with the escape character ~ instead of a dot.");
+				}
+				enumSet.addValue(value);
+			} else if (facet.getName().equals(FACET_PATTERN)) { // defines the exact sequence of characters that are acceptable
 				extensible = true;
 			}
 			// all other facet types do not introduce new acceptable values, but provide bounds for length, minLength, ...

@@ -96,8 +96,8 @@ public class XSDTest {
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
 		Assertions.assertEquals("[rec(Element:\"ticket\",attributes:{(\"id\"↦XmlString(\"T1\")),(\"status\"↦XmlStatusType(StatusType_open))},content:[],maxCId:1,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦32↦(2↦32)))]",
 				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
-		Assertions.assertEquals("{StatusType_pending,StatusType_closed,StatusType_open}",
-				constants.eval("StatusType", FormulaExpand.EXPAND).toString());
+		Assertions.assertEquals("TRUE",
+				constants.eval("StatusType = {StatusType_pending,StatusType_closed,StatusType_open}", FormulaExpand.EXPAND).toString());
 		Assertions.assertTrue(pathMachine.toFile().delete());
 		Assertions.assertTrue(pathData.toFile().delete());
 
@@ -130,6 +130,36 @@ public class XSDTest {
 		final Path pathXsd = path.resolve("status.xsd");
 
 		Assertions.assertThrows(BCompoundException.class, () -> new XML2B(pathInput.toFile(), pathXsd.toFile(), XML2BOptions.defaultOptions(pathXsd.toFile())));
+	}
+
+	@Test
+	void testEnumerationWithDots() throws Exception {
+		String name = "enum_dot";
+		final Path pathInput = path.resolve(name + ".xml");
+		final Path pathXsd = path.resolve(name + ".xsd");
+		final Path pathMachine = path.resolve(name + ".mch");
+
+		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-inline-data","-o",pathMachine.toString()});
+
+		StateSpace stateSpace = this.b_load(pathMachine.toString());
+		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
+		Assertions.assertEquals("[rec(Element:\"dots\",attributes:[],content:[],maxCId:3,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦7↦(5↦8))),rec(Element:\"dot\",attributes:{(\"kind\"↦XmlDotType(`DotType_check~dots1`))},content:[],maxCId:2,ns:\"\",pIds:[1],recId:2,xmlLocation:(3↦30↦(3↦30))),rec(Element:\"dot\",attributes:{(\"kind\"↦XmlDotType(`DotType_check~for~dots2`))},content:[],maxCId:3,ns:\"\",pIds:[1],recId:3,xmlLocation:(4↦34↦(4↦34)))]",
+				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
+		Assertions.assertEquals("TRUE",
+				constants.eval("DotType = {`DotType_check~dots1`,`DotType_check~for~dots2`}", FormulaExpand.EXPAND).toString());
+		Assertions.assertTrue(pathMachine.toFile().delete());
+
+		stateSpace.kill();
+	}
+
+	@Test
+	void testUnsupportedEnumerationWithDots() {
+		String name = "enum_dot_unsupported";
+		final Path pathInput = path.resolve(name + ".xml");
+		final Path pathXsd = path.resolve(name + ".xsd");
+
+		Assertions.assertThrows(UnsupportedOperationException.class,
+				() -> XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString()}));
 	}
 
 	@Test
