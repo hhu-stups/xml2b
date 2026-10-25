@@ -182,25 +182,14 @@ public class TypeUtils {
 	}
 
 	public static BAttributeType getBAttributeType(XSType xsdType, String attributeName) {
-		switch (getJavaType(xsdType)) {
-			case "BigDecimal":
-			case "Double":
-				return new BRealAttributeType(attributeName);
-			case "Float":
-				return new BFloatAttributeType(attributeName);
-			case "BigInteger":
-			case "Integer":
-			case "Short":
-			case "Long":
-			case "Byte":
-				return new BIntegerAttributeType(attributeName);
-			case "Duration":
-				return new BRealAttributeType(attributeName, true);
-			case "Boolean":
-				return new BBoolAttributeType(attributeName);
-			default:
-				return new BStringAttributeType(attributeName);
-		}
+		return switch (getJavaType(xsdType)) {
+			case "BigDecimal", "Double" -> new BRealAttributeType(attributeName);
+			case "Float" -> new BFloatAttributeType(attributeName);
+			case "BigInteger", "Integer", "Short", "Long", "Byte" -> new BIntegerAttributeType(attributeName);
+			case "Duration" -> new BRealAttributeType(attributeName, true);
+			case "Boolean" -> new BBoolAttributeType(attributeName);
+			default -> new BStringAttributeType(attributeName);
+		};
 	}
 
 	public static String getJavaType(XSType xsType) {
