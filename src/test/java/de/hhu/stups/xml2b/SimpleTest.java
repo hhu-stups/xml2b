@@ -134,4 +134,22 @@ public class SimpleTest {
 		Assertions.assertThrows(IllegalArgumentException.class, () -> new XML2B(input, XML2BOptions.defaultOptions(input).withOutputFile(new File("."))));
 		Assertions.assertThrows(IllegalArgumentException.class, () -> XML2BCli.main(new String[]{input.toString(),"-o","./invalid.rmch"}));
 	}
+
+	@Test
+	void testDurations() throws Exception {
+		// check that large numbers are handled correctly and that too large number is treated as string
+		final Path pathInput = path.resolve("durations.xml");
+		final Path pathCorrect = path.resolve("text_content.mch");
+
+		XML2BCli.main(new String[]{pathInput.toString(), "-inline-data", "-o", pathCorrect.toString()});
+		StateSpace stateSpace = this.b_load(pathCorrect.toString());
+		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
+		Assertions.assertEquals("[rec(Element:\"measurements\",attributes:{(\"batchJob\"↦XmlReal(45678.123456)),(\"cacheLookup\"↦XmlReal(0.123456)),(\"databaseQuery\"↦XmlReal(12.345678)),(\"httpRequest\"↦XmlReal(145.789123)),(\"longRunningJob\"↦XmlReal(8130123.456789)),(\"nanosecondOperation\"↦XmlReal(1.0E-06)),(\"processing\"↦XmlReal(1234.567891)),(\"smallOperation\"↦XmlReal(0.001234)),(\"timeout\"↦XmlReal(3.0E+04))},content:[],maxCId:1,ns:\"\",pIds:[0],recId:1,xmlLocation:(11↦48↦(11↦48)))]",
+				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
+
+		Assertions.assertTrue(pathCorrect.toFile().delete());
+
+		stateSpace.kill();
+	}
+
 }

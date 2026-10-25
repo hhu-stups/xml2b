@@ -4,6 +4,7 @@ import de.be4.classicalb.core.parser.node.ARealSetExpression;
 import de.be4.classicalb.core.parser.node.PExpression;
 import de.hhu.stups.xml2b.readXsd.TypeUtils;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 
 public class BRealAttributeType extends BAttributeType {
@@ -31,9 +32,13 @@ public class BRealAttributeType extends BAttributeType {
 
 	@Override
 	public PExpression getRawExpression(String data) {
-		if (isDuration)
-			data = Double.toString((double) Duration.parse(data).withNanos(0).toMillis());
+		if (isDuration) {
+			Duration duration = Duration.parse(data);
+			data = BigDecimal.valueOf(duration.toNanos())
+					.movePointLeft(6)
+					.stripTrailingZeros()
+					.toPlainString();
+		}
 		return TypeUtils.parseFiniteDouble(data);
 	}
 }
-

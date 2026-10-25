@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<measurements
+        databaseQuery="PT0.012345678S"
+        httpRequest="PT0.145789123S"
+        cacheLookup="PT0.000123456S"
+        smallOperation="PT0.000001234S"
+        nanosecondOperation="PT0.000000001S"
+        processing="PT1.234567891S"
+        batchJob="PT45.678123456S"
+        timeout="PT30S"
+        longRunningJob="PT2H15M30.123456789S"/>
+<!-- generated with ChatGPT -->
