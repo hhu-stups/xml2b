@@ -38,6 +38,14 @@ public class XML2B {
     private final Translator translator;
     private Start translation;
 
+    public XML2B(File xmlFile) throws BCompoundException {
+        this(xmlFile, (File) null);
+    }
+
+    public XML2B(File xmlFile, File xsdFile) throws BCompoundException {
+        this(xmlFile, xsdFile, XML2BOptions.defaultOptions(xmlFile));
+    }
+
     public XML2B(File xmlFile, XML2BOptions options) throws BCompoundException {
         this(xmlFile, null, options);
     }
