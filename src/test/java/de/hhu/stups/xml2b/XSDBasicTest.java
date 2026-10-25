@@ -38,7 +38,7 @@ public class XSDBasicTest {
 		final Path pathXsd = path.resolve(name + ".xsd");
 		final Path pathMachine = path.resolve(name + ".mch");
 
-		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-inline-data","-o",pathMachine.toString()});
+		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-inline-data","-o",pathMachine.toString()});
 
 		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);

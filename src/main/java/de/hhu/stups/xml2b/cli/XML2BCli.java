@@ -25,13 +25,13 @@ public class XML2BCli {
 	private static final int EXIT_OK = 0, EXIT_INVALID_INPUT = 1, EXIT_ERROR = 2;
 
 	public static void main(String[] args) {
-		int exitCode = new XML2BCli().run(args);
+		int exitCode = XML2BCli.run(args);
 		if (exitCode != EXIT_OK) {
 			System.exit(exitCode);
 		}
 	}
 
-	private int run(String[] args) {
+	public static int run(String[] args) {
 		Options options = getCommandlineOptions();
 		CommandLine line;
 		try {

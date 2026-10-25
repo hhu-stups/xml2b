@@ -39,7 +39,7 @@ public class SimpleTest {
 		final Path pathMachine = path.resolve(name + ".mch");
 		final Path pathData = path.resolve(name + ".probdata");
 
-		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-frw","SICSTUS","-o",pathMachine.toString()});
+		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-frw","SICSTUS","-o",pathMachine.toString()});
 
 		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
@@ -56,7 +56,7 @@ public class SimpleTest {
 		final Path pathMachine = path.resolve(name + ".mch");
 		final Path pathData = path.resolve(name + ".probdata");
 
-		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-frw","NONE","-o",pathMachine.toString()});
+		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-frw","NONE","-o",pathMachine.toString()});
 
 		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
@@ -74,7 +74,7 @@ public class SimpleTest {
 		final Path pathInput = path.resolve(name + ".xml");
 		final Path pathMachine = path.resolve(name + ".mch");
 
-		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-inline-data","-o",pathMachine.toString()});
+		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-inline-data","-o",pathMachine.toString()});
 
 		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
@@ -92,7 +92,7 @@ public class SimpleTest {
 		final Path pathCorrect = path.resolve("Simple.mch");
 		final Path pathCorrect2 = path.resolve("Simple.probdata");
 
-		XML2BCli.main(new String[]{pathInput.toString(), "-o", pathCorrect.toString()});
+		XML2BCli.run(new String[]{pathInput.toString(), "-o", pathCorrect.toString()});
 
 		Assertions.assertTrue(pathCorrect.toFile().delete());
 		Assertions.assertTrue(pathCorrect2.toFile().delete());
@@ -104,7 +104,7 @@ public class SimpleTest {
 		final Path pathCorrect = path.resolve("empty_dot.mch");
 		final Path pathCorrect2 = path.resolve("empty_dot.probdata");
 
-		XML2BCli.main(new String[]{pathInput.toString(), "-o", pathCorrect.toString()});
+		XML2BCli.run(new String[]{pathInput.toString(), "-o", pathCorrect.toString()});
 
 		Assertions.assertTrue(pathCorrect.toFile().delete());
 		Assertions.assertTrue(pathCorrect2.toFile().delete());
@@ -116,7 +116,7 @@ public class SimpleTest {
 		final Path pathInput = path.resolve("large_number.xml");
 		final Path pathCorrect = path.resolve("large_number.mch");
 
-		XML2BCli.main(new String[]{pathInput.toString(), "-inline-data", "-o", pathCorrect.toString()});
+		XML2BCli.run(new String[]{pathInput.toString(), "-inline-data", "-o", pathCorrect.toString()});
 		StateSpace stateSpace = this.b_load(pathCorrect.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
 		Assertions.assertEquals("[rec(Element:\"numbers\",attributes:[],content:[],maxCId:3,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦10↦(5↦11))),rec(Element:\"number\",attributes:{(\"bitmask\"↦XmlReal(1.101010101010101E+165))},content:[],maxCId:2,ns:\"\",pIds:[1],recId:2,xmlLocation:(3↦191↦(3↦191))),rec(Element:\"number\",attributes:{(\"bitmask\"↦XmlString(\"11010101010101010101010101010101010010101010011001111100000101010010101001010101001010101000010100101010101001010000100101010100101010010100100000100111111101010010101101010101010101010101010101010101001010101001100111110000010101001010100101010100101010100001010010101010100101000010010101010010101001010010000010011111110101001010\"))},content:[],maxCId:3,ns:\"\",pIds:[1],recId:3,xmlLocation:(4↦357↦(4↦357)))]",
@@ -132,7 +132,7 @@ public class SimpleTest {
 		final Path pathInput = path.resolve("text_content.xml");
 		final Path pathCorrect = path.resolve("text_content.mch");
 
-		XML2BCli.main(new String[]{pathInput.toString(), "-inline-data", "-o", pathCorrect.toString()});
+		XML2BCli.run(new String[]{pathInput.toString(), "-inline-data", "-o", pathCorrect.toString()});
 		StateSpace stateSpace = this.b_load(pathCorrect.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
 		Assertions.assertEquals("[rec(Element:\"examples\",attributes:[],content:{XmlString(\"This is example text\\n    \\n    \\n    \\n    for example.\")},maxCId:5,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦11↦(8↦12))),rec(Element:\"example1\",attributes:[],content:{XmlString(\"Lorem ipsum\")},maxCId:2,ns:\"\",pIds:[1],recId:2,xmlLocation:(4↦15↦(4↦37))),rec(Element:\"example2\",attributes:[],content:{XmlString(\"Lorem & ipsum\")},maxCId:3,ns:\"\",pIds:[1],recId:3,xmlLocation:(5↦15↦(5↦43))),rec(Element:\"example3\",attributes:[],content:{XmlString(\"Lorem  ipsum\")},maxCId:5,ns:\"\",pIds:[1],recId:4,xmlLocation:(6↦15↦(6↦50))),rec(Element:\"b\",attributes:[],content:{XmlString(\"dolor\")},maxCId:5,ns:\"\",pIds:[1,4],recId:5,xmlLocation:(6↦24↦(6↦33)))]",
@@ -148,7 +148,7 @@ public class SimpleTest {
 		final File input = path.resolve("simple.xml").toFile();
 
 		Assertions.assertThrows(IllegalArgumentException.class, () -> new XML2B(input, XML2BOptions.defaultOptions(input).withOutputFile(new File("."))));
-		Assertions.assertThrows(IllegalArgumentException.class, () -> XML2BCli.main(new String[]{input.toString(),"-o","./invalid.rmch"}));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> new XML2B(input, XML2BOptions.defaultOptions(input).withOutputFile(new File("./invalid.rmch"))));
 	}
 
 	@Test
@@ -157,7 +157,7 @@ public class SimpleTest {
 		final Path pathInput = path.resolve("durations.xml");
 		final Path pathCorrect = path.resolve("text_content.mch");
 
-		XML2BCli.main(new String[]{pathInput.toString(), "-inline-data", "-o", pathCorrect.toString()});
+		XML2BCli.run(new String[]{pathInput.toString(), "-inline-data", "-o", pathCorrect.toString()});
 		StateSpace stateSpace = this.b_load(pathCorrect.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
 		Assertions.assertEquals("[rec(Element:\"measurements\",attributes:{(\"batchJob\"↦XmlReal(45678.123456)),(\"cacheLookup\"↦XmlReal(0.123456)),(\"databaseQuery\"↦XmlReal(12.345678)),(\"httpRequest\"↦XmlReal(145.789123)),(\"longRunningJob\"↦XmlReal(8130123.456789)),(\"nanosecondOperation\"↦XmlReal(1.0E-06)),(\"processing\"↦XmlReal(1234.567891)),(\"smallOperation\"↦XmlReal(0.001234)),(\"timeout\"↦XmlReal(3.0E+04))},content:[],maxCId:1,ns:\"\",pIds:[0],recId:1,xmlLocation:(11↦48↦(11↦48)))]",

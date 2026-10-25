@@ -70,7 +70,7 @@ public class XSDTest {
 		Assertions.assertInstanceOf(BStringAttributeType.class, schoolElement.getAttributeTypes().get("id"));
 		Assertions.assertTrue(schoolElement.getAttributeTypes().get("id").isRequired());
 
-		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
 
 		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
@@ -90,7 +90,7 @@ public class XSDTest {
 		final Path pathMachine = path.resolve(name + ".mch");
 		final Path pathData = path.resolve(name + ".probdata");
 
-		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
 
 		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
@@ -112,7 +112,7 @@ public class XSDTest {
 		final Path pathMachine = path.resolve(name + ".mch");
 		final Path pathData = path.resolve(name + ".probdata");
 
-		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
 
 		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
@@ -139,7 +139,7 @@ public class XSDTest {
 		final Path pathXsd = path.resolve(name + ".xsd");
 		final Path pathMachine = path.resolve(name + ".mch");
 
-		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-inline-data","-o",pathMachine.toString()});
+		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-inline-data","-o",pathMachine.toString()});
 
 		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
@@ -158,8 +158,7 @@ public class XSDTest {
 		final Path pathInput = path.resolve(name + ".xml");
 		final Path pathXsd = path.resolve(name + ".xsd");
 
-		Assertions.assertThrows(UnsupportedOperationException.class,
-				() -> XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString()}));
+		Assertions.assertThrows(UnsupportedOperationException.class, () -> new XML2B(pathInput.toFile(), pathXsd.toFile()));
 	}
 
 	@Test
@@ -170,7 +169,7 @@ public class XSDTest {
 		final Path pathMachine = path.resolve(name + ".mch");
 		final Path pathData = path.resolve(name + ".probdata");
 
-		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
 
 		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
@@ -190,7 +189,7 @@ public class XSDTest {
 		final Path pathMachine = path.resolve(name + ".mch");
 		final Path pathData = path.resolve(name + ".probdata");
 
-		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
 
 		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
@@ -210,7 +209,7 @@ public class XSDTest {
 		final Path pathMachine = path.resolve(name + ".mch");
 		final Path pathData = path.resolve(name + ".probdata");
 
-		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
 
 		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
@@ -230,7 +229,7 @@ public class XSDTest {
 		final Path pathMachine = path.resolve(name + ".mch");
 		final Path pathData = path.resolve(name + ".probdata");
 
-		XML2BCli.main(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
 
 		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
