@@ -58,7 +58,10 @@ public class XML2B {
     public Path generateMachine() throws IOException {
         XML2BOptions options = translator.getOptions();
         Path outputFile = options.directory().resolve(options.machineName() + ".mch");
-        Files.write(outputFile, PrettyPrinter.getPrettyPrint(this.translate()).getBytes());
+        Start start = this.translate();
+        if (!Files.exists(outputFile) || !options.updateDataOnly()) {
+            Files.writeString(outputFile, PrettyPrinter.getPrettyPrint(start));
+        }
         return outputFile;
     }
 }
