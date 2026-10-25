@@ -70,12 +70,29 @@ public class XSDTest {
 		Assertions.assertInstanceOf(BStringAttributeType.class, schoolElement.getAttributeTypes().get("id"));
 		Assertions.assertTrue(schoolElement.getAttributeTypes().get("id").isRequired());
 
-		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-o",pathMachine.toString()});
+		XML2BCli.run(new String[]{pathInput.toFile().toString(),"-xsd",pathXsd.toString(),"-ac","-o",pathMachine.toString()});
 
 		StateSpace stateSpace = this.b_load(pathMachine.toString());
 		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
 		Assertions.assertEquals("[rec(Element:\"school\",attributes:{(\"id\"↦XmlString(\"school01\"))},content:[],maxCId:5,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦23↦(10↦10))),rec(Element:\"student\",attributes:{(\"age\"↦XmlInteger(20)),(\"name\"↦XmlString(\"Anna\"))},content:[],maxCId:3,ns:\"\",pIds:[1],recId:2,xmlLocation:(3↦35↦(5↦15))),rec(Element:\"course\",attributes:{(\"credits\"↦XmlInteger(5)),(\"title\"↦XmlString(\"Mathematik\"))},content:[],maxCId:3,ns:\"\",pIds:[1,2],recId:3,xmlLocation:(4↦49↦(4↦49))),rec(Element:\"student\",attributes:{(\"name\"↦XmlString(\"Ben\"))},content:[],maxCId:5,ns:\"\",pIds:[1],recId:4,xmlLocation:(7↦25↦(9↦15))),rec(Element:\"course\",attributes:{(\"title\"↦XmlString(\"Informatik\"))},content:[],maxCId:5,ns:\"\",pIds:[1,4],recId:5,xmlLocation:(8↦37↦(8↦37)))]",
 				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
+
+		// test abstract constants work:
+		Assertions.assertEquals("[]",
+				constants.eval("XML_getElementsOfType(\"hallo\")", FormulaExpand.EXPAND).toString());
+		Assertions.assertEquals("{rec(Element:\"course\",attributes:{(\"credits\"↦XmlInteger(5)),(\"title\"↦XmlString(\"Mathematik\"))},content:[],maxCId:3,ns:\"\",pIds:[1,2],recId:3,xmlLocation:(4↦49↦(4↦49))),rec(Element:\"course\",attributes:{(\"title\"↦XmlString(\"Informatik\"))},content:[],maxCId:5,ns:\"\",pIds:[1,4],recId:5,xmlLocation:(8↦37↦(8↦37)))}",
+				constants.eval("XML_getElementsOfType(\"course\")", FormulaExpand.EXPAND).toString());
+		Assertions.assertEquals("{rec(Element:\"school\",attributes:{(\"id\"↦XmlString(\"school01\"))},content:[],maxCId:5,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦23↦(10↦10)))}",
+				constants.eval("XML_getElementOfId(\"school01\")", FormulaExpand.EXPAND).toString());
+		Assertions.assertEquals("{rec(Element:\"student\",attributes:{(\"age\"↦XmlInteger(20)),(\"name\"↦XmlString(\"Anna\"))},content:[],maxCId:3,ns:\"\",pIds:[1],recId:2,xmlLocation:(3↦35↦(5↦15))),rec(Element:\"student\",attributes:{(\"name\"↦XmlString(\"Ben\"))},content:[],maxCId:5,ns:\"\",pIds:[1],recId:4,xmlLocation:(7↦25↦(9↦15)))}",
+				constants.eval("XML_getChilds(XML_getElementOfId(\"school01\")?)", FormulaExpand.EXPAND).toString());
+		Assertions.assertEquals("{rec(Element:\"student\",attributes:{(\"age\"↦XmlInteger(20)),(\"name\"↦XmlString(\"Anna\"))},content:[],maxCId:3,ns:\"\",pIds:[1],recId:2,xmlLocation:(3↦35↦(5↦15))),rec(Element:\"student\",attributes:{(\"name\"↦XmlString(\"Ben\"))},content:[],maxCId:5,ns:\"\",pIds:[1],recId:4,xmlLocation:(7↦25↦(9↦15)))}",
+				constants.eval("XML_getChildsOfType(XML_getElementOfId(\"school01\")?,\"student\")", FormulaExpand.EXPAND).toString());
+		Assertions.assertEquals("{\"school01\"}",
+				constants.eval("XML_getIdOfElement(XML_DATA(1))", FormulaExpand.EXPAND).toString());
+		Assertions.assertEquals("{\"school01\"}",
+				constants.eval("XML_allIdsOfType(\"school\")", FormulaExpand.EXPAND).toString());
+
 		Assertions.assertTrue(pathMachine.toFile().delete());
 		Assertions.assertTrue(pathData.toFile().delete());
 

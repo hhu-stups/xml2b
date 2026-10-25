@@ -11,6 +11,8 @@ import static de.hhu.stups.xml2b.translation.Translator.*;
 
 public class AbstractConstantsProvider {
 
+	private static final String STRING_CONSTRUCTOR_NAME = "XmlString";
+
 	private static final String XML_GET_ELEMENTS_OF_TYPE_NAME = "XML_getElementsOfType",
 			XML_GET_ELEMENT_OF_ID_NAME = "XML_getElementOfId",
 			XML_GET_CHILDS_NAME = "XML_getChilds",
@@ -27,6 +29,13 @@ public class AbstractConstantsProvider {
 		identifiers.add(XML_GET_ID_OF_ELEMENT_NAME);
 		identifiers.add(XML_ALL_IDS_OF_TYPE_NAME);
 		return identifiers;
+	}
+
+	private static PPredicate isDirectChildOf(String child, String parent) {
+		return new AEqualPredicate(
+				new ALastExpression(new ARecordFieldExpression(createIdentifier(child), new TIdentifierLiteral(P_IDS_NAME))),
+				new ARecordFieldExpression(createIdentifier(parent), new TIdentifierLiteral(REC_ID_NAME))
+		);
 	}
 
 	public static AAbstractConstantsMachineClause createAbstractConstantsClause() {
@@ -65,7 +74,7 @@ public class AbstractConstantsProvider {
 				)
 		));
 
-		// XML_getElementOfId = %(i).(i : STRING | dom({ e, el | e : ran(XML_DATA) & `STRING__VALUE`(i) : e'attributes[{"id"}] }))
+		// XML_getElementOfId = %(i).(i : STRING | dom({ e, el | e : ran(XML_DATA) & XmlString(i) : e'attributes[{"id"}] }))
 		AEqualPredicate getElementOfId = new AEqualPredicate();
 		getElementOfId.setLeft(createIdentifier(XML_GET_ELEMENT_OF_ID_NAME));
 		getElementOfId.setRight(new ALambdaExpression(
@@ -83,7 +92,7 @@ public class AbstractConstantsProvider {
 								),
 								new AMemberPredicate(
 										new AFunctionExpression(
-												createIdentifier("STRING__VALUE"),
+												createIdentifier(STRING_CONSTRUCTOR_NAME),
 												createIdentifierList("i")
 										),
 										new AImageExpression(
@@ -99,7 +108,7 @@ public class AbstractConstantsProvider {
 				)
 		));
 
-		// XML_getChilds = %(e).(e : ran(XML_DATA) | { c | c : ran(XML_DATA) & e'recId : ran(c'pIds) })
+		// XML_getChilds = %(e).(e : ran(XML_DATA) | { c | c : ran(XML_DATA) & last(c'pIds) = e'recId })
 		AEqualPredicate getChilds = new AEqualPredicate();
 		getChilds.setLeft(createIdentifier(XML_GET_CHILDS_NAME));
 		getChilds.setRight(new ALambdaExpression(
@@ -115,23 +124,12 @@ public class AbstractConstantsProvider {
 										createIdentifier("c"),
 										new ARangeExpression(createIdentifier(XML_DATA_NAME))
 								),
-								new AMemberPredicate(
-										new ARecordFieldExpression(
-												createIdentifier("e"),
-												new TIdentifierLiteral(REC_ID_NAME)
-										),
-										new ARangeExpression(
-											new ARecordFieldExpression(
-													createIdentifier("c"),
-													new TIdentifierLiteral(P_IDS_NAME)
-											)
-										)
-								)
+								isDirectChildOf("c", "e")
 						)
 				)
 		));
 
-		// XML_getChildsOfType = %(e,t).(e : ran(XML_DATA) & t : STRING | { c | c : ran(XML_DATA) & e'recId : ran(c'pIds) & c'element = t })
+		// XML_getChildsOfType = %(e,t).(e : ran(XML_DATA) & t : STRING | { c | c : ran(XML_DATA) & last(c'pIds) = e'recId & c'Element = t })
 		AEqualPredicate getChildsOfType = new AEqualPredicate();
 		getChildsOfType.setLeft(createIdentifier(XML_GET_CHILDS_OF_TYPE_NAME));
 		getChildsOfType.setRight(new ALambdaExpression(
@@ -154,18 +152,7 @@ public class AbstractConstantsProvider {
 										new ARangeExpression(createIdentifier(XML_DATA_NAME))
 								),
 								new AConjunctPredicate(
-										new AMemberPredicate(
-												new ARecordFieldExpression(
-														createIdentifier("e"),
-														new TIdentifierLiteral(REC_ID_NAME)
-												),
-												new ARangeExpression(
-														new ARecordFieldExpression(
-																createIdentifier("c"),
-																new TIdentifierLiteral(P_IDS_NAME)
-														)
-												)
-										),
+										isDirectChildOf("c", "e"),
 										new AEqualPredicate(
 												new ARecordFieldExpression(
 														createIdentifier("c"),
@@ -178,7 +165,7 @@ public class AbstractConstantsProvider {
 				)
 		));
 
-		// XML_getIdOfElement = %(e).(e : ran(XML_DATA) | { i | `STRING__VALUE`(i) : e'attributes[{"id"}] })
+		// XML_getIdOfElement = %(e).(e : ran(XML_DATA) | { i | XmlString(i) : e'attributes[{"id"}] })
 		AEqualPredicate getIdOfElement = new AEqualPredicate();
 		getIdOfElement.setLeft(createIdentifier(XML_GET_ID_OF_ELEMENT_NAME));
 		getIdOfElement.setRight(new ALambdaExpression(
@@ -196,7 +183,7 @@ public class AbstractConstantsProvider {
 								),
 								new AMemberPredicate(
 										new AFunctionExpression(
-												createIdentifier("STRING__VALUE"),
+												createIdentifier(STRING_CONSTRUCTOR_NAME),
 												createIdentifierList("i")
 										),
 										new AImageExpression(
@@ -212,7 +199,7 @@ public class AbstractConstantsProvider {
 				)
 		));
 
-		// XML_allIdsOfType = %(t).(t : STRING | dom({ i,e | e : ran(XML_DATA) & e'type = t & `STRING__VALUE`(i) : e'attributes[{"id"}] }))
+		// XML_allIdsOfType = %(t).(t : STRING | dom({ i,e | e : ran(XML_DATA) & e'Element = t & XmlString(i) : e'attributes[{"id"}] }))
 		AEqualPredicate allIdsOfType = new AEqualPredicate();
 		allIdsOfType.setLeft(createIdentifier(XML_ALL_IDS_OF_TYPE_NAME));
 		allIdsOfType.setRight(new ALambdaExpression(
@@ -239,7 +226,7 @@ public class AbstractConstantsProvider {
 												),
 												new AMemberPredicate(
 														new AFunctionExpression(
-																createIdentifier("STRING__VALUE"),
+																createIdentifier(STRING_CONSTRUCTOR_NAME),
 																createIdentifierList("i")
 														),
 														new AImageExpression(
