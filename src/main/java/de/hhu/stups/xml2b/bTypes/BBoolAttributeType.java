@@ -22,6 +22,10 @@ public class BBoolAttributeType extends BAttributeType {
 
 	@Override
 	public PExpression getRawExpression(String data) {
-		return data.equals("true") ? new ABooleanTrueExpression() : new ABooleanFalseExpression();
+		return switch (data) {
+			case "true", "1" -> new ABooleanTrueExpression();
+			case "false", "0" -> new ABooleanFalseExpression();
+			default -> throw new IllegalArgumentException("is not a valid xs:boolean value: " + data); // should not happen after schema validation!
+		};
 	}
 }
