@@ -128,6 +128,22 @@ public class SimpleTest {
 	}
 
 	@Test
+	void testTextContent() throws Exception {
+		final Path pathInput = path.resolve("text_content.xml");
+		final Path pathCorrect = path.resolve("text_content.mch");
+
+		XML2BCli.main(new String[]{pathInput.toString(), "-inline-data", "-o", pathCorrect.toString()});
+		StateSpace stateSpace = this.b_load(pathCorrect.toString());
+		State constants = stateSpace.getRoot().perform(Transition.SETUP_CONSTANTS_NAME);
+		Assertions.assertEquals("[rec(Element:\"examples\",attributes:[],content:{XmlString(\"This is example text\\n    \\n    \\n    \\n    for example.\")},maxCId:5,ns:\"\",pIds:[0],recId:1,xmlLocation:(2↦11↦(8↦12))),rec(Element:\"example1\",attributes:[],content:{XmlString(\"Lorem ipsum\")},maxCId:2,ns:\"\",pIds:[1],recId:2,xmlLocation:(4↦15↦(4↦37))),rec(Element:\"example2\",attributes:[],content:{XmlString(\"Lorem & ipsum\")},maxCId:3,ns:\"\",pIds:[1],recId:3,xmlLocation:(5↦15↦(5↦43))),rec(Element:\"example3\",attributes:[],content:{XmlString(\"Lorem  ipsum\")},maxCId:5,ns:\"\",pIds:[1],recId:4,xmlLocation:(6↦15↦(6↦50))),rec(Element:\"b\",attributes:[],content:{XmlString(\"dolor\")},maxCId:5,ns:\"\",pIds:[1,4],recId:5,xmlLocation:(6↦24↦(6↦33)))]",
+				constants.eval("XML_DATA", FormulaExpand.EXPAND).toString());
+
+		Assertions.assertTrue(pathCorrect.toFile().delete());
+
+		stateSpace.kill();
+	}
+
+	@Test
 	void testInvalidOutputFiles() {
 		final File input = path.resolve("simple.xml").toFile();
 

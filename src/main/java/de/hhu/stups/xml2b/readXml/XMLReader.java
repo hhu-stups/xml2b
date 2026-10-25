@@ -5,51 +5,63 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
+import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
-import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static de.hhu.stups.xml2b.readXsd.TypeUtils.buildQName;
 
 public class XMLReader extends DefaultHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(XMLReader.class);
+
 	private static class OpenXMLElement {
 		private final int recId, lineNumber, columnNumber;
+		private final QName name;
 		private final Map<String, String> attributes;
-		private String content = "";
-		private int nrOfChildren = 0;
+		private final List<Integer> pIds;
+		private final List<QName> pNames;
+		private final List<Integer> childPIds;
+		private final List<QName> childPNames;
+		private final StringBuilder content = new StringBuilder();
 
-		private OpenXMLElement(int recId, int lineNumber, int columnNumber, Map<String, String> attributes) {
+		private OpenXMLElement(int recId, int lineNumber, int columnNumber, QName name, Map<String, String> attributes,
+		                       OpenXMLElement parent) {
 			this.recId = recId;
 			this.lineNumber = lineNumber;
 			this.columnNumber = columnNumber;
+			this.name = name;
 			this.attributes = attributes;
+			if (parent == null) {
+				this.pIds = Collections.singletonList(0);
+				this.pNames = Collections.emptyList();
+				this.childPIds = Collections.singletonList(recId);
+				this.childPNames = Collections.singletonList(name);
+			} else {
+				this.pIds = parent.childPIds;
+				this.pNames = parent.childPNames;
+				this.childPIds = Stream.concat(pIds.stream(), Stream.of(recId)).toList();
+				this.childPNames = Stream.concat(pNames.stream(), Stream.of(name)).toList();
+			}
 		}
 
-		private void incNrOfChildren() {
-			this.nrOfChildren++;
-		}
-
-		private void addContent(final String content) {
-			this.content += content;
-		}
-
-		private XMLElement getClosedXMLElement(QName elementType, List<Integer> pIds, List<QName> pNames, int endLine, int endColumn) {
-			return new XMLElement(elementType, pIds, pNames, nrOfChildren, recId, attributes, content, lineNumber, columnNumber, endLine, endColumn);
+		private XMLElement close(int nrOfDescendants, int endLine, int endColumn) {
+			String rawContent = content.toString(); // exclude useless newlines
+			return new XMLElement(name, pIds, pNames, nrOfDescendants, recId, attributes, rawContent.strip(),
+					lineNumber, columnNumber, endLine, endColumn);
 		}
 	}
 
-	private final Stack<OpenXMLElement> openXMLElements = new Stack<>();
-	private final Stack<QName> openXMLElementNames = new Stack<>();
+	private final Deque<OpenXMLElement> openXMLElements = new ArrayDeque<>();
 	private final List<XMLElement> closedXMLElements = new ArrayList<>();
 	private Locator locator;
 	private int recId = 1;
@@ -62,12 +74,15 @@ public class XMLReader extends DefaultHandler {
 				saxFactory.setSchema(schema);
 				saxFactory.setNamespaceAware(true);
 			}
-			SAXParser saxParser = saxFactory.newSAXParser();
-			saxParser.parse(file, this);
-		} catch (Exception e) {
-			LOGGER.error("failed to read XML file", e);
+			saxFactory.newSAXParser().parse(file, this);
+		} catch (SAXParseException e) {
+			errors.add(collectError(e));
+		} catch (SAXException | IOException | ParserConfigurationException e) {
+			errors.add(new ValidationError(String.valueOf(e.getMessage()), e));
 		}
-		closedXMLElements.sort(Comparator.comparingInt(XMLElement::recId));
+		if (!errors.isEmpty()) {
+			closedXMLElements.removeIf(Objects::isNull); // parsing was aborted, some elements are still open
+		}
 		return closedXMLElements;
 	}
 
@@ -79,10 +94,10 @@ public class XMLReader extends DefaultHandler {
 
 	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
-		openXMLElements.forEach(OpenXMLElement::incNrOfChildren);
-		OpenXMLElement newNode = new OpenXMLElement(recId, locator.getLineNumber(), locator.getColumnNumber(), extractAttributes(attributes));
-		openXMLElements.push(newNode);
-		openXMLElementNames.push(buildQName(uri,localName,qName));
+		OpenXMLElement parent = openXMLElements.peek();
+		openXMLElements.push(new OpenXMLElement(recId, locator.getLineNumber(), locator.getColumnNumber(),
+				buildQName(uri, localName, qName), extractAttributes(attributes), parent));
+		closedXMLElements.add(null);
 		recId++;
 	}
 
@@ -98,32 +113,29 @@ public class XMLReader extends DefaultHandler {
 	@Override
 	public void characters(char[] ch, int start, int length) {
 		OpenXMLElement node = openXMLElements.peek();
-		if (node != null) {
-			String content = new String(ch, start, length).trim(); // this could break content with surrounding white spaces!
-			if (!content.isEmpty()) { // ignore indents and line breaks
-				node.addContent(content);
-			}
+		if (node != null) { // collect text content
+			node.content.append(ch, start, length);
 		}
 	}
 
 	@Override
 	public void endElement(String uri, String localName, String qName) {
 		OpenXMLElement currentNode = openXMLElements.pop();
-		openXMLElementNames.pop();
-		List<Integer> pIds = openXMLElements.stream().map(o -> o.recId).collect(Collectors.toList());
-		List<QName> pNames = new ArrayList<>(openXMLElementNames);
-		if (pIds.isEmpty())
-			pIds = Collections.singletonList(0);
-		closedXMLElements.add(currentNode.getClosedXMLElement(buildQName(uri,localName,qName), pIds, pNames,
-					locator.getLineNumber(), locator.getColumnNumber()));
+		int nrOfDescendants = (recId - 1) - currentNode.recId;
+		closedXMLElements.set(currentNode.recId - 1,
+				currentNode.close(nrOfDescendants, locator.getLineNumber(), locator.getColumnNumber()));
 	}
 
 	public static class ValidationError {
 		private final String message;
 		private final int startLine, startColumn, endLine, endColumn;
-		private final SAXParseException exception;
+		private final Exception exception;
 
-		public ValidationError(String message, int startLine, int startColumn, int endLine, int endColumn, SAXParseException exception) {
+		public ValidationError(String message, Exception exception) {
+			this(message, 1, 1, 1, 1, exception);
+		}
+
+		public ValidationError(String message, int startLine, int startColumn, int endLine, int endColumn, Exception exception) {
 			this.message = message;
 			this.startLine = startLine;
 			this.startColumn = startColumn;
@@ -141,7 +153,7 @@ public class XMLReader extends DefaultHandler {
 			return new BException(fileName, Collections.singletonList(location), message, exception);
 		}
 
-		public SAXParseException getException() {
+		public Exception getException() {
 			return exception;
 		}
 	}

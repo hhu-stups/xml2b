@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<examples>
+    This is example text
+    <example1>Lorem ipsum</example1>
+    <example2>Lorem &amp; ipsum</example2>
+    <example3>Lorem <b>dolor</b> ipsum</example3>
+    for example.
+</examples>
