@@ -2,11 +2,13 @@ package de.hhu.stups.xml2b.readXsd;
 
 import com.sun.xml.xsom.XSContentType;
 import com.sun.xml.xsom.XSDeclaration;
+import com.sun.xml.xsom.XSSimpleType;
 import com.sun.xml.xsom.XSType;
 import de.be4.classicalb.core.parser.node.PExpression;
 import de.be4.classicalb.core.parser.util.ASTBuilder;
 import de.hhu.stups.xml2b.bTypes.*;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
@@ -195,25 +197,24 @@ public class TypeUtils {
 	}
 
 	public static String getJavaType(XSType xsType) {
-		String originalType = xsdTypesToJava.get(getQNameAsStringFromDeclaration(xsType));
-		if (originalType != null) {
-			return originalType;
+		XSType type = xsType;
+		while (type != null) {
+			if (type.getName() != null && XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(type.getTargetNamespace())) {
+				// get XSD basic type
+				// TODO: check if getQNameAsStringFromDeclaration is really necessary
+				return xsdTypesToJava.getOrDefault(getQNameAsStringFromDeclaration(type), "String");
+			}
+			type = getBaseType(type);
 		}
-		return xsdTypesToJava.getOrDefault(getQNameAsStringFromDeclaration(getBaseType(xsType)), "String");
+		return "String";
 	}
 
 	private static XSType getBaseType(XSType type) {
 		if (type.isSimpleType()) {
-			XSType baseType = type.asSimpleType().getBaseType();
-			if (baseType == null || baseType.getName().equals("anySimpleType")) {
-				return type;
-			}
-			return getBaseType(baseType);
+			return type.asSimpleType().getBaseType();
 		} else if (type.isComplexType()) {
 			XSContentType contentType = type.asComplexType().getContentType();
-			if (contentType.asSimpleType() != null) {
-				return getBaseType(contentType.asSimpleType());
-			}
+			return contentType.asSimpleType();
 		}
 		return null;
 	}
