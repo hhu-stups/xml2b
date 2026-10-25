@@ -15,7 +15,9 @@ Optionally, the following options can be provided:
 
 - `-xsd`: path to an XSD file that should be used for schema validation and type extraction
 - `-frw`: specify Prolog system for fast read-write: SICSTUS, SWI; NONE for standard output; default is SICSTUS,
-- `-o`: specify an output path if the machine files should be generated, otherwise the machine is pretty printed to stdout
+- `-o`: specify an output path for the generated machine file; the data file (`.probdata`) is written next to it. Without `-o` the machine and the data file are written next to the XML file (`<xml file name>.mch`, existing files are overwritten)
+- `-ac`: add useful abstract constants to the generated machine (see below)
+- `-update`: only update the generated `.probdata` file, the machine file is not touched
 - `-version`: print the current version of XML2B
 
 #### Java
@@ -140,15 +142,17 @@ Then, the B types of attributes and contents are derived by application of the f
 ### General remarks
 
 - Namespaces are available if used in the XML file, e.g. `<exampleNS:exampleTag>` is mapped to a record with field `element: "exampleNS:exampleTag"`, while the same without a namespace prefix (`<exampleTag>`) is mapped to a record with field `element: "exampleTag"`.
+- `INF`, `+INF`, `-INF` and `NaN` (valid for `xs:double` and `xs:float`) cannot be represented as B reals and are reported as errors.
 - Get value of an attribute wrapped in a free type: e.g., `b : XmlBool~[e'attributes]`. Caution: if an attribute is present, but has another type than `BOOL` it is ignored this way!
+- Text content is kept as it is, only leading and trailing white space is removed and white-space-only content is ignored. Text around child elements (mixed content) is concatenated.
 
 ### Provided Abstract Constants
 
-Will be added if option `-ac` is provided.
+The following abstract constants will be added to the generated B machine if the option `-ac` is provided:
 
-- `XML_getElementsOfType = %t.(t : XML_ELEMENT_TYPES | { e | e : ran(XML_DATA) & e'elementType = t })`
-- `XML_getElementOfId = %(i).(i : dom('id') | dom({ e, el | e : ran(XML_DATA) & (i,el) : 'id' & el : e'attributes }))`
-- `XML_getChilds = %(e).(e : ran(XML_DATA) | { c | c : ran(XML_DATA) & c'pId = e'recId })`
-- `XML_getChildsOfType = %(e,t).(e : ran(XML_DATA) & t : XML_ELEMENT_TYPES | { c | c : ran(XML_DATA) & c'pId = e'recId & c'type = t })`
-- `XML_getIdOfElement = %(e).(e : ran(XML_DATA) | { i | 'id'(i) : e'attributes })`
-- `XML_allIdsOfType = %(t).(t : XML_ELEMENT_TYPES | dom({ i,e | e : ran(XML_DATA) & e'type = t & 'id'(i) : e'attributes }))`
+- `XML_getElementsOfType = %t.(t : STRING | { e | e : ran(XML_DATA) & e'Element = t })`
+- `XML_getElementOfId = %(i).(i : STRING | { e | e : ran(XML_DATA) & XmlString(i) : e'attributes[{"id"}] })`
+- `XML_getChilds = %(e).(e : ran(XML_DATA) | { c | c : ran(XML_DATA) & last(c'pIds) = e'recId })` (direct children; all descendants of `e` are the elements with `recId` in `e'recId+1..e'maxCId`)
+- `XML_getChildsOfType = %(e,t).(e : ran(XML_DATA) & t : STRING | { c | c : ran(XML_DATA) & last(c'pIds) = e'recId & c'Element = t })`
+- `XML_getIdOfElement = %(e).(e : ran(XML_DATA) | { i | i : STRING & XmlString(i) : e'attributes[{"id"}] })`
+- `XML_allIdsOfType = %(t).(t : STRING | dom({ i,e | e : ran(XML_DATA) & e'Element = t & XmlString(i) : e'attributes[{"id"}] }))`
