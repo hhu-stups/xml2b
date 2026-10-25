@@ -16,13 +16,20 @@ import de.prob.prolog.output.FastSwiTermOutput;
 import de.prob.prolog.output.IPrologTermOutput;
 import de.prob.prolog.output.PrologTermOutput;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static de.be4.classicalb.core.parser.util.ASTBuilder.*;
-import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.*;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createIdentifier;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createIdentifierList;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createIntegerExpression;
+import static de.be4.classicalb.core.parser.util.ASTBuilder.createStringExpression;
+import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.createAbstractConstantsClause;
+import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.createAbstractConstantsProperties;
+import static de.hhu.stups.xml2b.translation.AbstractConstantsProvider.getIdentifiers;
 
 public abstract class Translator {
 
@@ -77,6 +84,7 @@ public abstract class Translator {
 	protected abstract void getTypes();
 
 	public Start createBAst() {
+		usedIdentifiers.clear();
 		machineClauseList.clear();
 		AFileDefinitionDefinition probLibDefinition = new AFileDefinitionDefinition(new TStringLiteral("LibraryProB.def"));
 		machineClauseList.add(new ADefinitionsMachineClause(Collections.singletonList(probLibDefinition)));
