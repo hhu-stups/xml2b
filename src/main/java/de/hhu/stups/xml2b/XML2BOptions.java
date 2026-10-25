@@ -63,8 +63,10 @@ public class XML2BOptions {
 	}
 
 	private static String removeDotsFromFileName(File file) {
-		int lastIdx = file.getName().lastIndexOf('.');
-		return file.getName().substring(0, lastIdx).replace(".","_"); // dots are not supported in quoted B identifiers
+		String name = file.getName();
+		int lastIdx = name.lastIndexOf('.');
+		String baseName = lastIdx > 0 ? name.substring(0, lastIdx) : name;
+		return baseName.replace(".","_"); // dots are not supported in quoted B identifiers
 	}
 
 	public XML2BOptions withMachineName(String machineName) {
