@@ -85,13 +85,14 @@ public class XML2BOptions {
 	}
 
 	public XML2BOptions withPrologSystem(String prologSystem) {
-		if (prologSystem.equalsIgnoreCase(NONE_NAME)) {
+		String normalized = prologSystem.toLowerCase();
+		if (normalized.equalsIgnoreCase(NONE_NAME)) {
 			return new XML2BOptions(this.machineName, this.directory, null, this.generateAbstractConstants, this.inlineData, this.updateDataOnly);
 		}
-		if (!prologSystem.equalsIgnoreCase(SICSTUS_NAME) && !prologSystem.equalsIgnoreCase(SWI_NAME)) {
+		if (!normalized.equalsIgnoreCase(SICSTUS_NAME) && !prologSystem.equalsIgnoreCase(SWI_NAME)) {
 			throw new IllegalArgumentException("Unsupported Prolog system: " + prologSystem);
 		}
-		return new XML2BOptions(this.machineName, this.directory, prologSystem, this.generateAbstractConstants, this.inlineData, this.updateDataOnly);
+		return new XML2BOptions(this.machineName, this.directory, normalized, this.generateAbstractConstants, this.inlineData, this.updateDataOnly);
 	}
 
 	public XML2BOptions withGenerateAbstractConstants(boolean generateAbstractConstants) {
