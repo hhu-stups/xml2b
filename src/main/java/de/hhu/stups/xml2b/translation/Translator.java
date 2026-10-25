@@ -145,8 +145,6 @@ public abstract class Translator {
 
 	private PExpression createPropertyClause(final File dataValuePrologFile) {
 		// TYPE:
-		AMemberPredicate typification = new AMemberPredicate();
-		typification.setLeft(createIdentifier(XML_DATA_NAME));
 		List<PRecEntry> recTypes = new ArrayList<>();
 		recTypes.add(new ARecEntry(
 				new TIdentifierLiteral(MAX_CID_NAME),
@@ -181,7 +179,6 @@ public abstract class Translator {
 				new ACartesianProductExpression(new ACartesianProductExpression(new AIntegerSetExpression(), new AIntegerSetExpression()), new ACartesianProductExpression(new AIntegerSetExpression(), new AIntegerSetExpression()))
 		));
 		PExpression typeExpression = new ASeqExpression(new AStructExpression(recTypes));
-		typification.setRight(typeExpression.clone());
 
 		// VALUE:
 		List<PExpression> sequenceOfRecords = new ArrayList<>();
