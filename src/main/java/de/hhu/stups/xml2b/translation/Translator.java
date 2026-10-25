@@ -265,11 +265,11 @@ public abstract class Translator {
 		AEqualPredicate probData = new AEqualPredicate();
 		probData.setLeft(createIdentifier(XML_DATA_NAME));
 		if (options.inlineData()) {
-			probData.setRight(new ATypeofExpression(right,typeExpression.clone()));
+			probData.setRight(new ATypeofExpression(right,typeExpression));
 		} else {
 			probData.setRight(new ADefinitionExpression(
 					new TIdentifierLiteral("READ_PROB_DATA_FILE"),
-					Arrays.asList(typeExpression.clone(), createStringExpression(dataValuePrologFile.getName()))
+					Arrays.asList(typeExpression, createStringExpression(dataValuePrologFile.getName()))
 			));
 		}
 
