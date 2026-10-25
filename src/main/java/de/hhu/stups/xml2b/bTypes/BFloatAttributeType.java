@@ -2,8 +2,7 @@ package de.hhu.stups.xml2b.bTypes;
 
 import de.be4.classicalb.core.parser.node.AFloatSetExpression;
 import de.be4.classicalb.core.parser.node.PExpression;
-
-import static de.be4.classicalb.core.parser.util.ASTBuilder.createRealExpression;
+import de.hhu.stups.xml2b.readXsd.TypeUtils;
 
 public class BFloatAttributeType extends BAttributeType {
 
@@ -23,6 +22,6 @@ public class BFloatAttributeType extends BAttributeType {
 
 	@Override
 	public PExpression getRawExpression(String data) {
-		return createRealExpression(String.valueOf(Float.parseFloat(data)));
+		return TypeUtils.parseFiniteDouble(data);
 	}
 }

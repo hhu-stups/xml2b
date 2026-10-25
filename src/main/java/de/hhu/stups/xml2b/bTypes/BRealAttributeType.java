@@ -2,10 +2,9 @@ package de.hhu.stups.xml2b.bTypes;
 
 import de.be4.classicalb.core.parser.node.ARealSetExpression;
 import de.be4.classicalb.core.parser.node.PExpression;
+import de.hhu.stups.xml2b.readXsd.TypeUtils;
 
 import java.time.Duration;
-
-import static de.be4.classicalb.core.parser.util.ASTBuilder.createRealExpression;
 
 public class BRealAttributeType extends BAttributeType {
 	private final boolean isDuration;
@@ -34,6 +33,7 @@ public class BRealAttributeType extends BAttributeType {
 	public PExpression getRawExpression(String data) {
 		if (isDuration)
 			data = Double.toString((double) Duration.parse(data).withNanos(0).toMillis());
-		return createRealExpression(String.valueOf(Double.parseDouble(data)));
+		return TypeUtils.parseFiniteDouble(data);
 	}
 }
+

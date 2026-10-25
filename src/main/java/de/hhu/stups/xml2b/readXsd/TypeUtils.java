@@ -3,6 +3,8 @@ package de.hhu.stups.xml2b.readXsd;
 import com.sun.xml.xsom.XSContentType;
 import com.sun.xml.xsom.XSDeclaration;
 import com.sun.xml.xsom.XSType;
+import de.be4.classicalb.core.parser.node.PExpression;
+import de.be4.classicalb.core.parser.util.ASTBuilder;
 import de.hhu.stups.xml2b.bTypes.*;
 
 import javax.xml.namespace.QName;
@@ -269,5 +271,16 @@ public class TypeUtils {
 			qname = new QName(uri, localName);
 		}
 		return qname;
+	}
+
+	public static PExpression parseFiniteDouble(String candidate) {
+		switch (candidate) {
+			case "NaN", "INF", "+INF", "-INF" -> throw new UnsupportedOperationException("number value '" + candidate + "' cannot be represented in B");
+		}
+		double value = Double.parseDouble(candidate);
+		if (!Double.isFinite(value)) {
+			throw new UnsupportedOperationException("number value '" + value + "' cannot be represented in B");
+		}
+		return ASTBuilder.createRealExpression(String.valueOf(value));
 	}
 }

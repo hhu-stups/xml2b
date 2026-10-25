@@ -49,4 +49,23 @@ public class XSDBasicTest {
 		stateSpace.kill();
 	}
 
+	@Test
+	void testUnsupportedFloats() {
+		final Path pathInput1 = path.resolve("float_infinity.xml");
+		final Path pathInput2 = path.resolve("float_nan.xml");
+		final Path pathXsd = path.resolve("float.xsd");
+
+		Exception exc1 = Assertions.assertThrows(
+				UnsupportedOperationException.class,
+				() -> new XML2B(pathInput1.toFile(), pathXsd.toFile()).translate()
+		);
+		Assertions.assertEquals("number value 'INF' cannot be represented in B", exc1.getMessage());
+		Exception exc2 = Assertions.assertThrows(
+				UnsupportedOperationException.class,
+				() -> new XML2B(pathInput2.toFile(), pathXsd.toFile()).translate(),
+				""
+		);
+		Assertions.assertEquals("number value 'NaN' cannot be represented in B", exc2.getMessage());
+	}
+
 }
