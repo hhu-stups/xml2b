@@ -2,7 +2,6 @@ package de.hhu.stups.xml2b.cli;
 
 import de.be4.classicalb.core.parser.exceptions.BCompoundException;
 import de.be4.classicalb.core.parser.exceptions.BException;
-import de.be4.classicalb.core.parser.node.Start;
 import de.hhu.stups.xml2b.XML2B;
 import de.hhu.stups.xml2b.XML2BOptions;
 import de.hhu.stups.xml2b.XML2BOptions.XML2BOption;
@@ -23,26 +22,45 @@ import static de.hhu.stups.xml2b.XML2BOptions.XML2BOption.*;
 
 public class XML2BCli {
 	private static final Logger LOGGER = LoggerFactory.getLogger(XML2BCli.class);
+	private static final int EXIT_OK = 0, EXIT_INVALID_INPUT = 1, EXIT_ERROR = 2;
 
-	private File xmlFile, xsdFile;
-	private XML2BOptions xml2bOptions;
-	private boolean generateMachine = true;
+	public static void main(String[] args) {
+		int exitCode = new XML2BCli().run(args);
+		if (exitCode != EXIT_OK) {
+			System.exit(exitCode);
+		}
+	}
 
-	private void handleParameter(String[] args) throws IOException {
-		DefaultParser parser = new DefaultParser();
+	private int run(String[] args) {
 		Options options = getCommandlineOptions();
+		CommandLine line;
 		try {
-			CommandLine line = parser.parse(options, args);
-			String[] remainingArgs = line.getArgs();
-			if (remainingArgs.length != 1) {
-				LOGGER.error("Error: expected an XML file.");
-				HelpFormatter.builder().setShowSince(false).get()
-						.printHelp("java -jar XML2B.jar [file]", "", options, "", true);
-				System.exit(-1);
-			}
-			xmlFile = new File(remainingArgs[0]);
-			xml2bOptions = XML2BOptions.defaultOptions(xmlFile);
+			line = new DefaultParser().parse(options, args);
+		} catch (ParseException e) {
+			LOGGER.error(e.getMessage());
+			printHelp(options);
+			return EXIT_ERROR;
+		}
 
+		if (line.hasOption(VERSION.arg())) {
+			LOGGER.info("XML2B: {} [{}]", XML2B.getVersion(), XML2B.getGitSha());
+			if (line.getArgs().length == 0) {
+				return EXIT_OK;
+			}
+		}
+
+		String[] remainingArgs = line.getArgs();
+		if (remainingArgs.length != 1) {
+			LOGGER.error("Error: expected an XML file.");
+			printHelp(options);
+			return EXIT_ERROR;
+		}
+
+		File xmlFile = new File(remainingArgs[0]);
+		File xsdFile = line.hasOption(XSD.arg()) ? new File(line.getOptionValue(XSD.arg())) : null;
+		XML2BOptions xml2bOptions;
+		try {
+			xml2bOptions = XML2BOptions.defaultOptions(xmlFile);
 			if (line.hasOption(ABSTRACT_CONSTANTS.arg())) {
 				xml2bOptions = xml2bOptions.withGenerateAbstractConstants(true);
 			}
@@ -56,54 +74,51 @@ public class XML2BCli {
 				xml2bOptions = xml2bOptions.withInlineData(true);
 			}
 			if (line.hasOption(UPDATE_DATA_ONLY.arg()) && !line.hasOption(INLINE_DATA.arg())) {
-				generateMachine = false;
+				xml2bOptions = xml2bOptions.withUpdateDataOnly(true);
 			}
-			if (line.hasOption(VERSION.arg())) {
-				LOGGER.info("XML2B: {} [{}]", XML2B.getVersion(), XML2B.getGitSha());
-			}
-			if (line.hasOption(XSD.arg())) {
-				xsdFile = new File(line.getOptionValue(XSD.arg()));
-			}
-		} catch (ParseException e) {
+		} catch (IllegalArgumentException e) {
 			LOGGER.error(e.getMessage());
-			HelpFormatter.builder().setShowSince(false).get()
-					.printHelp("java -jar XML2B.jar [file]", "", options, "", true);
-			System.exit(-1);
+			printHelp(options);
+			return EXIT_ERROR;
 		}
-	}
-
-	public static void main(String[] args) throws Exception {
-		XML2BCli xml2BCli = new XML2BCli();
-		xml2BCli.handleParameter(args);
 
 		try {
-			XML2B xml2B = xml2BCli.xsdFile != null ? new XML2B(xml2BCli.xmlFile, xml2BCli.xsdFile, xml2BCli.xml2bOptions)
-					: new XML2B(xml2BCli.xmlFile, xml2BCli.xml2bOptions);
-
-			Start start = xml2B.translate();
-			if (xml2BCli.xsdFile != null) {
-				LOGGER.info("{} is valid according to {}", xml2BCli.xmlFile.getName(), xml2BCli.xsdFile.getName());
+			XML2B xml2B = xsdFile != null ? new XML2B(xmlFile, xsdFile, xml2bOptions) : new XML2B(xmlFile, xml2bOptions);
+			xml2B.translate();
+			if (xsdFile != null) {
+				LOGGER.info("{} is valid according to {}", xmlFile.getName(), xsdFile.getName());
 			}
-			if (xml2BCli.generateMachine) {
-				try {
-					Path outputFile = xml2B.generateMachine();
-					LOGGER.info("created machine at {}", outputFile.toAbsolutePath().toRealPath());
-				} catch (IOException e) {
-					LOGGER.error("error creating machine file", e);
-				}
+			if (!xml2bOptions.updateDataOnly()) {
+				Path outputFile = xml2B.generateMachine();
+				LOGGER.info("created machine at {}", outputFile.toAbsolutePath().toRealPath());
 			} else {
 				LOGGER.info("data update mode: machine file NOT generated");
-				LOGGER.info("updated data file at {}", xml2BCli.xml2bOptions.directory().resolve(xml2BCli.xml2bOptions.machineName() + ".probdata").toRealPath());
+				LOGGER.info("updated data file at {}", xml2bOptions.directory().resolve(xml2bOptions.machineName() + ".probdata").toRealPath());
 			}
-			LOGGER.info("translation of {} succeeded", xml2BCli.xmlFile.getName());
+			LOGGER.info("translation of {} succeeded", xmlFile.getName());
+			return EXIT_OK;
 		} catch (BCompoundException e) {
-			if (xml2BCli.xsdFile != null) {
-				LOGGER.error("{} is NOT valid according to {}", xml2BCli.xmlFile.getName(), xml2BCli.xsdFile.getName());
+			if (xsdFile != null) {
+				LOGGER.error("{} is NOT valid according to {}", xmlFile.getName(), xsdFile.getName());
 			}
 			List<BException> bExceptions = e.getBExceptions();
 			for (BException bException : bExceptions) {
-				LOGGER.error("{} at {}", bException.getMessage(), bException.getLocations().get(0).toString());
+				List<BException.Location> locations = bException.getLocations();
+				LOGGER.error("{}{}", bException.getMessage(), locations.isEmpty() ? "" : " at " + locations.get(0));
 			}
+			return EXIT_INVALID_INPUT;
+		} catch (IOException | RuntimeException e) {
+			LOGGER.error("translation of {} failed: {}", xmlFile.getName(), e.getMessage(), e);
+			return EXIT_ERROR;
+		}
+	}
+
+	private static void printHelp(Options options) {
+		try {
+			HelpFormatter.builder().setShowSince(false).get()
+					.printHelp("java -jar XML2B.jar [file]", "", options, "", true);
+		} catch (IOException e) {
+			LOGGER.error("could not print help", e);
 		}
 	}
 
