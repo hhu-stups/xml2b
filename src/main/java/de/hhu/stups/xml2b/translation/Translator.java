@@ -191,82 +191,7 @@ public abstract class Translator {
 		// VALUE:
 		List<PExpression> sequenceOfRecords = new ArrayList<>();
 		for (XMLElement xmlElement : xmlElements) {
-			List<PRecEntry> recValues = new ArrayList<>();
-			recValues.add(new ARecEntry(
-					new TIdentifierLiteral(MAX_CID_NAME),
-					createIntegerExpression(xmlElement.maxCId())
-			));
-			recValues.add(new ARecEntry(
-					new TIdentifierLiteral(P_IDS_NAME),
-					new ASequenceExtensionExpression(xmlElement.pIds().stream().map(ASTBuilder::createIntegerExpression).collect(Collectors.toList()))
-			));
-			recValues.add(new ARecEntry(
-					new TIdentifierLiteral(REC_ID_NAME),
-					createIntegerExpression(xmlElement.recId())
-			));
-			recValues.add(new ARecEntry(
-					new TIdentifierLiteral(ELEMENT_NAME),
-					createStringExpression(xmlElement.elementType().getLocalPart())
-			));
-			recValues.add(new ARecEntry(
-					new TIdentifierLiteral(NAMESPACE_NAME),
-					createStringExpression(xmlElement.elementType().getNamespaceURI())
-			));
-			// Content:
-			{
-				BAttributeType type = xmlElement.typeInformation().getContentType();
-				if (type == null) {
-					type = new BStringAttributeType(null);
-				}
-				PExpression contentExpression;
-				if (xmlElement.content().isEmpty()) {
-					String defaultValue = type.getDefaultOrFixedValue();
-					if (defaultValue != null) {
-						contentExpression = new ASetExtensionExpression(Collections.singletonList(
-								type.getDataExpression(defaultValue))); // if not available, but default exists: use default value
-					} else {
-						contentExpression = new AEmptySetExpression(); // else: empty set
-					}
-				} else {
-					contentExpression = new ASetExtensionExpression(Collections.singletonList(
-							type.getDataExpression(xmlElement.content())));
-				}
-				recValues.add(new ARecEntry(
-						new TIdentifierLiteral(CONTENT_NAME),
-						contentExpression
-				));
-			}
-			// Attributes:
-			List<PExpression> attributes = new ArrayList<>();
-			Map<String, String> attributesMap = xmlElement.attributes();
-			Map<String, BAttributeType> attributeTypes = xmlElement.typeInformation().getAttributeTypes();
-			for (String attrType : attributeTypes.keySet()) {
-				// note: at this point all attributes should have a type (either from Standalone- or XSDTranslator)
-				BAttributeType type = attributeTypes.get(attrType);
-				if (attributesMap.containsKey(attrType)) {
-					attributes.add(type.getDataExpression(attributesMap.get(attrType))); // if available: set provided value
-				} else {
-					String defaultValue = type.getDefaultOrFixedValue();
-					if (defaultValue != null) {
-						attributes.add(type.getDataExpression(defaultValue)); // if not available, but default exists: use default value
-					}
-				}
-			}
-			recValues.add(new ARecEntry(
-					new TIdentifierLiteral(ATTRIBUTES_NAME),
-					!attributes.isEmpty() ? new ASetExtensionExpression(attributes) : new AEmptySetExpression()
-			));
-			List<PExpression> locations = new ArrayList<>();
-			locations.add(new ACoupleExpression(Arrays.asList(createIntegerExpression(xmlElement.startLine()), createIntegerExpression(xmlElement.startColumn()))));
-			locations.add(new ACoupleExpression(Arrays.asList(createIntegerExpression(xmlElement.endLine()), createIntegerExpression(xmlElement.endColumn()))));
-			recValues.add(new ARecEntry(
-					new TIdentifierLiteral(LOCATION_NAME),
-					new ACoupleExpression(locations)
-			));
-			sequenceOfRecords.add(new ACoupleExpression(Arrays.asList(
-					createIntegerExpression(xmlElement.recId()),
-					new ARecExpression(recValues))
-			));
+			sequenceOfRecords.add(createRecordEntry(xmlElement));
 		}
 		PExpression right = !sequenceOfRecords.isEmpty() ? new ASetExtensionExpression(sequenceOfRecords) : new AEmptySetExpression();
 
@@ -285,6 +210,86 @@ public abstract class Translator {
 				options.generateAbstractConstants() ? new AConjunctPredicate(probData, createAbstractConstantsProperties()) : probData
 		));
 		return right;
+	}
+
+	private PExpression createRecordEntry(XMLElement xmlElement) {
+		List<PRecEntry> recValues = new ArrayList<>();
+		recValues.add(new ARecEntry(
+				new TIdentifierLiteral(MAX_CID_NAME),
+				createIntegerExpression(xmlElement.maxCId())
+		));
+		recValues.add(new ARecEntry(
+				new TIdentifierLiteral(P_IDS_NAME),
+				new ASequenceExtensionExpression(xmlElement.pIds().stream().map(ASTBuilder::createIntegerExpression).collect(Collectors.toList()))
+		));
+		recValues.add(new ARecEntry(
+				new TIdentifierLiteral(REC_ID_NAME),
+				createIntegerExpression(xmlElement.recId())
+		));
+		recValues.add(new ARecEntry(
+				new TIdentifierLiteral(ELEMENT_NAME),
+				createStringExpression(xmlElement.elementType().getLocalPart())
+		));
+		recValues.add(new ARecEntry(
+				new TIdentifierLiteral(NAMESPACE_NAME),
+				createStringExpression(xmlElement.elementType().getNamespaceURI())
+		));
+		// Content:
+		{
+			BAttributeType type = xmlElement.typeInformation().getContentType();
+			if (type == null) {
+				type = new BStringAttributeType(null);
+			}
+			PExpression contentExpression;
+			if (xmlElement.content().isEmpty()) {
+				String defaultValue = type.getDefaultOrFixedValue();
+				if (defaultValue != null) {
+					contentExpression = new ASetExtensionExpression(Collections.singletonList(
+							type.getDataExpression(defaultValue))); // if not available, but default exists: use default value
+				} else {
+					contentExpression = new AEmptySetExpression(); // else: empty set
+				}
+			} else {
+				contentExpression = new ASetExtensionExpression(Collections.singletonList(
+						type.getDataExpression(xmlElement.content())));
+			}
+			recValues.add(new ARecEntry(
+					new TIdentifierLiteral(CONTENT_NAME),
+					contentExpression
+			));
+		}
+		// Attributes:
+		List<PExpression> attributes = new ArrayList<>();
+		Map<String, String> attributesMap = xmlElement.attributes();
+		Map<String, BAttributeType> attributeTypes = xmlElement.typeInformation().getAttributeTypes();
+		for (String attrType : attributeTypes.keySet()) {
+			// note: at this point all attributes should have a type (either from Standalone- or XSDTranslator)
+			BAttributeType type = attributeTypes.get(attrType);
+			if (attributesMap.containsKey(attrType)) {
+				attributes.add(type.getDataExpression(attributesMap.get(attrType))); // if available: set provided value
+			} else {
+				String defaultValue = type.getDefaultOrFixedValue();
+				if (defaultValue != null) {
+					attributes.add(type.getDataExpression(defaultValue)); // if not available, but default exists: use default value
+				}
+			}
+		}
+		recValues.add(new ARecEntry(
+				new TIdentifierLiteral(ATTRIBUTES_NAME),
+				!attributes.isEmpty() ? new ASetExtensionExpression(attributes) : new AEmptySetExpression()
+		));
+		List<PExpression> locations = new ArrayList<>();
+		locations.add(new ACoupleExpression(Arrays.asList(createIntegerExpression(xmlElement.startLine()), createIntegerExpression(xmlElement.startColumn()))));
+		locations.add(new ACoupleExpression(Arrays.asList(createIntegerExpression(xmlElement.endLine()), createIntegerExpression(xmlElement.endColumn()))));
+		recValues.add(new ARecEntry(
+				new TIdentifierLiteral(LOCATION_NAME),
+				new ACoupleExpression(locations)
+		));
+
+		return new ACoupleExpression(Arrays.asList(
+				createIntegerExpression(xmlElement.recId()),
+				new ARecExpression(recValues)
+		));
 	}
 
 	private AFreetypesMachineClause createFreetypeClause() {
