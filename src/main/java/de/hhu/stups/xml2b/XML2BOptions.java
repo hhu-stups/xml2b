@@ -77,10 +77,11 @@ public class XML2BOptions {
 	}
 
 	public XML2BOptions withOutputFile(File machineFile) {
-		if (machineFile.getParentFile() == null || !machineFile.getName().endsWith(".mch")) {
+		File parent = machineFile.getAbsoluteFile().getParentFile();
+		if (parent == null || !machineFile.getName().endsWith(".mch")) {
 			throw new IllegalArgumentException("invalid output location (is not a .mch machine file): " + machineFile.getAbsolutePath());
 		}
-		return new XML2BOptions(removeDotsFromFileName(machineFile), machineFile.getParentFile().toPath(),
+		return new XML2BOptions(removeDotsFromFileName(machineFile), parent.toPath(),
 				this.frwPrologSystem, this.generateAbstractConstants, this.inlineData, this.updateDataOnly);
 	}
 
