@@ -12,7 +12,9 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -45,13 +47,22 @@ public class XSDReader {
 
 		@Override
 		public boolean equals(Object obj) {
-			return obj instanceof XSDType && this.qName.equals(((XSDType) obj).qName);
+			// anonymous types (qName == null) are only equal to themselves
+			return this == obj || (obj instanceof XSDType xsdType && this.qName != null && this.qName.equals(xsdType.qName));
+		}
+
+		@Override
+		public int hashCode() {
+			return qName == null ? System.identityHashCode(this) : qName.hashCode();
 		}
 	}
 
 	private final Stack<QName> openElements = new Stack<>();
+	private final Deque<XSElementDecl> openElementDecls = new ArrayDeque<>();
 	private final Map<List<QName>, XSDElement> elements = new HashMap<>();
 	private final Map<QName, BEnumSet> enumSets = new HashMap<>();
+	// B identifier -> XSD type name: types with the same local name in different namespaces get different identifiers
+	private final Map<String, QName> enumIdentifiers = new HashMap<>();
 	private final XSSchemaSet schemaSet;
 
 	public XSDReader(final File xsdSchema) {
@@ -60,7 +71,10 @@ public class XSDReader {
 			parser.parse(xsdSchema);
 			this.schemaSet = parser.getResult();
 		} catch (SAXException | IOException e) {
-			throw new RuntimeException(e);
+			throw new IllegalArgumentException("cannot read XSD file " + xsdSchema + ": " + e.getMessage(), e);
+		}
+		if (this.schemaSet == null) {
+			throw new IllegalArgumentException("XSD file " + xsdSchema + " is not a valid schema");
 		}
 		this.collectEnumSets();
 
@@ -95,7 +109,7 @@ public class XSDReader {
 				QName typeName = getQNameFromDeclaration(simpleType);
 				if (simpleType.isRestriction()) {
 					XSRestrictionSimpleType restriction = simpleType.asRestriction();
-					BEnumSet enumSet = new BEnumSet(qNameToString(typeName), new HashSet<>());
+					BEnumSet enumSet = new BEnumSet(uniqueEnumIdentifier(typeName), new HashSet<>());
 					collectEnumValuesFromFacets(restriction.iterateDeclaredFacets(), enumSet);
 					if (!enumSet.getEnumValues().isEmpty() && TypeUtils.getJavaType(restriction).equals("String")) {
 						if (!enumSets.containsKey(typeName)) {
@@ -108,7 +122,7 @@ public class XSDReader {
 					// e.g. <xs:union memberTypes="rail3:tBaliseGroupType rail3:tOtherEnumerationValue"/>
 					// create new type containing values of all union types
 					XSUnionSimpleType union = simpleType.asUnion();
-					BEnumSet enumSet = new BEnumSet(qNameToString(typeName), new HashSet<>());
+					BEnumSet enumSet = new BEnumSet(uniqueEnumIdentifier(typeName), new HashSet<>());
 					for (int i = 0; i < union.getMemberSize(); i++) {
 						collectUnionEnumSets(union.getMember(i), enumSet);
 						if (!enumSet.getEnumValues().isEmpty()) { // at least one XmlSchemaEnumerationFacet should have been found
@@ -122,6 +136,16 @@ public class XSDReader {
 				}
 			}
 		}
+	}
+
+	private String uniqueEnumIdentifier(QName typeName) {
+		String base = qNameToString(typeName);
+		String identifier = base;
+		for (int i = 2; enumIdentifiers.containsKey(identifier) && !enumIdentifiers.get(identifier).equals(typeName); i++) {
+			identifier = base + "_" + i;
+		}
+		enumIdentifiers.put(identifier, typeName);
+		return identifier;
 	}
 
 	private void collectUnionEnumSets(XSSimpleType type, BEnumSet enumSet) {
@@ -166,20 +190,25 @@ public class XSDReader {
 
 	private void collectElementsFromElement(XSElementDecl elementDecl, BigInteger minOccurs, BigInteger maxOccurs,
 	                                        boolean isInChoice) {
+		// A recursive schema (an element that can contain itself, directly or via a type) would be expanded forever
+		boolean recursive = openElementDecls.contains(elementDecl);
+		this.openElementDecls.push(elementDecl);
 		this.openElements.push(new QName(elementDecl.getTargetNamespace(),elementDecl.getName()));
 		Map<String, BAttributeType> attributes = new HashMap<>();
 		BAttributeType contentType = null;
 		XSType type = elementDecl.getType();
 		if (type.isComplexType()) {
 			XSComplexType complexType = type.asComplexType();
-			for (XSComplexType c : complexType.getSubtypes()) {
-				collectElementsFromParticle(c.getContentType().asParticle());
-				if (c.getExplicitContent() != null)
-					collectElementsFromParticle(c.getExplicitContent().asParticle());
+			if (!recursive) {
+				for (XSComplexType c : complexType.getSubtypes()) {
+					collectElementsFromParticle(c.getContentType().asParticle());
+					if (c.getExplicitContent() != null)
+						collectElementsFromParticle(c.getExplicitContent().asParticle());
+				}
+				collectElementsFromParticle(complexType.getContentType().asParticle());
+				if (complexType.getExplicitContent() != null)
+					collectElementsFromParticle(complexType.getExplicitContent().asParticle());
 			}
-			collectElementsFromParticle(complexType.getContentType().asParticle());
-			if (complexType.getExplicitContent() != null)
-				collectElementsFromParticle(complexType.getExplicitContent().asParticle());
 
 			attributes.putAll(collectAttributeTypesFromComplexType(complexType));
 		} else if (type.isSimpleType()) {
@@ -190,6 +219,7 @@ public class XSDReader {
 		// TODO: mixed element types (content + complex)
 
 		this.openElements.pop();
+		this.openElementDecls.pop();
 		XSDType xsdType = new XSDType(getQNameFromDeclaration(type), contentType, attributes);
 		XSDElement xsdElement = xsdType.createXSDElement(new QName(elementDecl.getTargetNamespace(), elementDecl.getName()),
 				new ArrayList<>(openElements), minOccurs, maxOccurs, isInChoice);
