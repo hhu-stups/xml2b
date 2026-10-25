@@ -98,8 +98,7 @@ public final class XMLElement {
 		if (this == obj) {
 			return true;
 		}
-		if (obj instanceof XMLElement) {
-			XMLElement xmlElement = (XMLElement) obj;
+		if (obj instanceof XMLElement xmlElement) {
 			return elementType.equals(xmlElement.elementType())
 					&& pIds.equals(xmlElement.pIds())
 					&& recId == xmlElement.recId()

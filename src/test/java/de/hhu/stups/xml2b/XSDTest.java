@@ -129,7 +129,7 @@ public class XSDTest {
 		final Path pathInput = path.resolve("status_invalid.xml");
 		final Path pathXsd = path.resolve("status.xsd");
 
-		Assertions.assertThrows(BCompoundException.class, () -> new XML2B(pathInput.toFile(), pathXsd.toFile(), XML2BOptions.defaultOptions(pathXsd.toFile())));
+		Assertions.assertThrows(BCompoundException.class, () -> new XML2B(pathInput.toFile(), pathXsd.toFile()));
 	}
 
 	@Test
