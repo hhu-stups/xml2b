@@ -71,12 +71,17 @@ public class BEnumSet {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof BEnumSet) {
-			BEnumSet enumSet = (BEnumSet) obj;
-			return this.enum_values.containsAll(enumSet.enum_values)
-					&& this.identifier.equals(enumSet.identifier);
-		} else {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof BEnumSet enumSet)) {
 			return false;
 		}
+		return this.identifier.equals(enumSet.identifier); // && this.enum_values.containsAll(enumSet.enum_values);
+	}
+
+	@Override
+	public int hashCode() {
+		return identifier.hashCode();
 	}
 }
