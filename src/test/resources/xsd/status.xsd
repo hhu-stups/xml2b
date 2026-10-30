@@ -16,7 +16,7 @@
     </xs:simpleType>
 
     <xs:simpleType name="StatusType">
-        <xs:union memberTypes="StandardStatus CustomStatus"/>
+        <xs:union memberTypes="StandardStatus CustomStatus xs:double"/>
     </xs:simpleType>
 
     <xs:element name="accounts">

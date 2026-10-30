@@ -5,4 +5,5 @@
     <account id="A3" status="custom-premium"/>
     <account id="A4" status="custom-test123"/>
     <account id="A5" status="inactive"/>
+    <account id="A5" status="40.0"/>
 </accounts>
