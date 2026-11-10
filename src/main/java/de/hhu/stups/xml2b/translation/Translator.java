@@ -58,12 +58,16 @@ public abstract class Translator {
 	protected XML2BOptions options;
 
 	public Translator(final File xmlFile, final File xsdFile) throws BCompoundException {
+		this(xmlFile, xsdFile == null ? List.of() : List.of(xsdFile), Map.of());
+	}
+
+	public Translator(final File xmlFile, final List<File> xsdFiles, final Map<String, File> localSchemas) throws BCompoundException {
 		this.options = XML2BOptions.defaultOptions(xmlFile);
 
 		XMLReader xmlReader = new XMLReader();
-		this.xmlElements = xmlReader.readXML(xmlFile, xsdFile);
+		this.xmlElements = xmlReader.readXML(xmlFile, xsdFiles, localSchemas);
 		this.handleValidationErrors(xmlFile, xmlReader.getErrors());
-		this.xsdReader = xsdFile != null ? new XSDReader(xsdFile) : null;
+		this.xsdReader = xsdFiles.isEmpty() ? null : new XSDReader(xsdFiles, localSchemas);
 		this.getTypes();
 	}
 

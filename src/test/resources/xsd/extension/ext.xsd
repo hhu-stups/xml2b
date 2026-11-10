@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- extension of base.xsd; the import refers to an online location that does not exist -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:base="urn:base" xmlns:ext="urn:ext"
+           targetNamespace="urn:ext" elementFormDefault="qualified" attributeFormDefault="qualified">
+	<xs:import namespace="urn:base" schemaLocation="https://schemas.invalid.example/base.xsd"/>
+
+	<!-- extension selected with xsi:type -->
+	<xs:complexType name="ExtendedItem">
+		<xs:complexContent>
+			<xs:extension base="base:Item">
+				<xs:sequence>
+					<xs:element name="info" type="ext:Info"/>
+				</xs:sequence>
+				<xs:attribute name="code" type="xs:integer"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<!-- indirect subtype of base:Item -->
+	<xs:complexType name="SpecialItem">
+		<xs:complexContent>
+			<xs:extension base="ext:ExtendedItem">
+				<xs:attribute name="level" type="xs:integer" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+
+	<xs:complexType name="Info">
+		<xs:attribute name="text" type="xs:string" use="required"/>
+	</xs:complexType>
+
+	<!-- payload for the slot base:extension -->
+	<xs:complexType name="Payload">
+		<xs:complexContent>
+			<xs:extension base="base:ExtensionBase">
+				<xs:attribute name="value" type="xs:integer" use="required"/>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:element name="payload" type="ext:Payload" substitutionGroup="base:extension"/>
+</xs:schema>

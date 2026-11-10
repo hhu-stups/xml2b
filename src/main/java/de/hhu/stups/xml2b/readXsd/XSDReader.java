@@ -5,6 +5,7 @@ import com.sun.xml.xsom.parser.XSOMParser;
 import de.hhu.stups.xml2b.bTypes.BAttributeType;
 import de.hhu.stups.xml2b.bTypes.BEnumSet;
 import de.hhu.stups.xml2b.bTypes.BEnumSetAttributeType;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
@@ -66,15 +67,24 @@ public class XSDReader {
 	private final XSSchemaSet schemaSet;
 
 	public XSDReader(final File xsdSchema) {
+		this(List.of(xsdSchema), Map.of());
+	}
+
+	public XSDReader(final List<File> xsdSchemas, final Map<String, File> localSchemas) {
 		XSOMParser parser = new XSOMParser(SAXParserFactory.newInstance());
+		// for xs:import, XSOM passes the namespace as public ID (null for xs:include)
+		parser.setEntityResolver((namespace, systemId) -> namespace != null && localSchemas.containsKey(namespace)
+				? new InputSource(localSchemas.get(namespace).toURI().toString()) : null);
 		try {
-			parser.parse(xsdSchema);
+			for (File xsdSchema : xsdSchemas) {
+				parser.parse(xsdSchema);
+			}
 			this.schemaSet = parser.getResult();
 		} catch (SAXException | IOException e) {
-			throw new IllegalArgumentException("cannot read XSD file " + xsdSchema + ": " + e.getMessage(), e);
+			throw new IllegalArgumentException("cannot read XSD files " + xsdSchemas + ": " + e.getMessage(), e);
 		}
 		if (this.schemaSet == null) {
-			throw new IllegalArgumentException("XSD file " + xsdSchema + " is not a valid schema");
+			throw new IllegalArgumentException("XSD files " + xsdSchemas + " are not a valid schema");
 		}
 		this.collectEnumSets();
 

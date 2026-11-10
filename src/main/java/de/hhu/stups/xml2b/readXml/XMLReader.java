@@ -12,6 +12,8 @@ import org.xml.sax.helpers.DefaultHandler;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.io.File;
@@ -67,10 +69,15 @@ public class XMLReader extends DefaultHandler {
 	private int recId = 1;
 
 	public List<XMLElement> readXML(File file, File xsdFile) {
+		return readXML(file, xsdFile == null ? List.of() : List.of(xsdFile), Map.of());
+	}
+
+	public List<XMLElement> readXML(File file, List<File> xsdFiles, Map<String, File> localSchemas) {
 		try {
 			SAXParserFactory saxFactory = SAXParserFactory.newDefaultInstance();
-			if (xsdFile != null) {
-				Schema schema = SchemaFactory.newDefaultInstance().newSchema(xsdFile);
+			if (!xsdFiles.isEmpty()) {
+				Schema schema = SchemaFactory.newDefaultInstance().newSchema(Stream.concat(localSchemas.values().stream(),
+						xsdFiles.stream()).distinct().map(StreamSource::new).toArray(Source[]::new));
 				saxFactory.setSchema(schema);
 				saxFactory.setNamespaceAware(true);
 			}

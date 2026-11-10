@@ -19,6 +19,10 @@ public class XSDTranslator extends Translator {
 		super(xmlFile, xsdFile);
 	}
 
+	public XSDTranslator(final File xmlFile, final List<File> xsdFiles, final Map<String, File> localSchemas) throws BCompoundException {
+		super(xmlFile, xsdFiles, localSchemas);
+	}
+
 	@Override
 	protected void getTypes() {
 		Map<List<QName>, XSDElement> types = xsdReader.getElements();

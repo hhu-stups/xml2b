@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<items xmlns="urn:base" xmlns:ext="urn:ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<item id="i1"/>
+	<item id="i2" xsi:type="ext:ExtendedItem" ext:code="7">
+		<ext:info ext:text="hello"/>
+	</item>
+	<item id="i3">
+		<ext:payload ext:value="3"/>
+	</item>
+	<item id="i4" xsi:type="ext:SpecialItem" ext:level="2">
+		<ext:info ext:text="deep"/>
+	</item>
+</items>

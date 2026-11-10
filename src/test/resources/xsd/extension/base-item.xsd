@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- included by base.xsd -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:base="urn:base"
+           targetNamespace="urn:base" elementFormDefault="qualified">
+	<xs:complexType name="Item">
+		<xs:sequence>
+			<xs:element ref="base:extension" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="required"/>
+	</xs:complexType>
+</xs:schema>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- base schema that is extended by ext.xsd -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:base="urn:base"
+           targetNamespace="urn:base" elementFormDefault="qualified">
+	<xs:include schemaLocation="base-item.xsd"/>
+
+	<xs:complexType name="ExtensionBase" abstract="true"/>
+	<xs:element name="extension" type="base:ExtensionBase" abstract="true"/>
+
+	<xs:element name="items">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="item" type="base:Item" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
