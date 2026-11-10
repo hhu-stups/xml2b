@@ -1,6 +1,7 @@
 package de.hhu.stups.xml2b;
 
 import de.hhu.stups.xml2b.readXml.XMLReader;
+import de.hhu.stups.xml2b.readXsd.XSDElement;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,8 @@ public class XSDExtensionTest {
 
 	private static final QName ITEMS = new QName("urn:base", "items");
 	private static final QName ITEM = new QName("urn:base", "item");
+	private static final QName PAYLOAD = new QName("urn:ext", "payload");
+	private static final QName SLOT = new QName("urn:base", "extension");
 
 	@Test
 	void testImportResolvedToLocalSchema() {
@@ -35,5 +38,15 @@ public class XSDExtensionTest {
 		XMLReader xmlReader = new XMLReader();
 		Assertions.assertEquals(8, xmlReader.readXML(XML, SCHEMAS, LOCAL_SCHEMAS).size()); // all elements read and validated
 		Assertions.assertEquals(List.of(), xmlReader.getErrors());
+	}
+
+	@Test
+	void testSubstitutionGroup() {
+		Map<List<QName>, XSDElement> elements = new XSDReader(SCHEMAS, LOCAL_SCHEMAS).getElements();
+		// payload replaces the abstract slot base:extension, which itself cannot occur
+		XSDElement payload = elements.get(List.of(ITEMS, ITEM, PAYLOAD));
+		Assertions.assertNotNull(payload);
+		Assertions.assertTrue(payload.getAttributeTypes().get("value").isRequired());
+		Assertions.assertNull(elements.get(List.of(ITEMS, ITEM, SLOT)));
 	}
 }

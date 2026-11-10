@@ -244,7 +244,15 @@ public class XSDReader {
 		if (particle != null) {
 			XSTerm term = particle.getTerm();
 			if (term.isElementDecl()) {
-				collectElementsFromElement(term.asElementDecl(), particle.getMinOccurs(), particle.getMaxOccurs(), isInChoice);
+				// the element can be replaced by any member of its substitution group (getSubstitutables() includes the element itself); abstract elements cannot occur in documents
+				List<XSElementDecl> substitutables = term.asElementDecl().getSubstitutables().stream()
+						.filter(element -> !element.isAbstract())
+						.map(element -> (XSElementDecl) element)
+						.toList();
+				boolean isAlternative = isInChoice || substitutables.size() > 1;
+				for (XSElementDecl element : substitutables) {
+					collectElementsFromElement(element, particle.getMinOccurs(), particle.getMaxOccurs(), isAlternative);
+				}
 			} else if (term.isModelGroup()) { // <xs:all>, <xs:choice>, <xs:sequence>
 				XSModelGroup modelGroup = term.asModelGroup();
 				for (XSParticle childParticle : modelGroup.getChildren()) {
