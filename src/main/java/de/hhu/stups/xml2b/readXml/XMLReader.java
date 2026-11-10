@@ -9,6 +9,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
@@ -67,6 +68,7 @@ public class XMLReader extends DefaultHandler {
 	private final List<XMLElement> closedXMLElements = new ArrayList<>();
 	private Locator locator;
 	private int recId = 1;
+	private boolean schemaMode = false;
 
 	public List<XMLElement> readXML(File file, File xsdFile) {
 		return readXML(file, xsdFile == null ? List.of() : List.of(xsdFile), Map.of());
@@ -75,7 +77,8 @@ public class XMLReader extends DefaultHandler {
 	public List<XMLElement> readXML(File file, List<File> xsdFiles, Map<String, File> localSchemas) {
 		try {
 			SAXParserFactory saxFactory = SAXParserFactory.newDefaultInstance();
-			if (!xsdFiles.isEmpty()) {
+			this.schemaMode = !xsdFiles.isEmpty();
+			if (schemaMode) {
 				Schema schema = SchemaFactory.newDefaultInstance().newSchema(Stream.concat(localSchemas.values().stream(),
 						xsdFiles.stream()).distinct().map(StreamSource::new).toArray(Source[]::new));
 				saxFactory.setSchema(schema);
@@ -103,15 +106,26 @@ public class XMLReader extends DefaultHandler {
 	public void startElement(String uri, String localName, String qName, Attributes attributes) {
 		OpenXMLElement parent = openXMLElements.peek();
 		openXMLElements.push(new OpenXMLElement(recId, locator.getLineNumber(), locator.getColumnNumber(),
-				buildQName(uri, localName, qName), extractAttributes(attributes), parent));
+				buildQName(uri, localName, qName), extractAttributes(attributes, schemaMode), parent));
 		closedXMLElements.add(null);
 		recId++;
 	}
 
-	private static Map<String, String> extractAttributes(Attributes attributes) {
+	private static Map<String, String> extractAttributes(Attributes attributes, boolean schemaMode) {
 		Map<String, String> extractedAttributes = new HashMap<>();
 		for (int i = 0; i < attributes.getLength(); i++) {
-			extractedAttributes.put(attributes.getQName(i), attributes.getValue(i));
+			String name = attributes.getQName(i);
+			if (schemaMode && !attributes.getURI(i).isEmpty()) {
+				if (XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI.equals(attributes.getURI(i))) {
+					continue; // xsi:type, xsi:schemaLocation, ...: instructions for the validator, no data
+				}
+				// qualified attribute, e.g. ext:code: use the local name, unless it is already used by another attribute
+				String localName = attributes.getLocalName(i);
+				if (attributes.getIndex("", localName) < 0 && !extractedAttributes.containsKey(localName)) {
+					name = localName;
+				}
+			}
+			extractedAttributes.put(name, attributes.getValue(i));
 			// TODO: use QName objects for attributes as well
 		}
 		return extractedAttributes;

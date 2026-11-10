@@ -1,5 +1,6 @@
 package de.hhu.stups.xml2b;
 
+import de.hhu.stups.xml2b.readXml.XMLElement;
 import de.hhu.stups.xml2b.readXml.XMLReader;
 import de.hhu.stups.xml2b.readXsd.XSDElement;
 import de.hhu.stups.xml2b.readXsd.XSDReader;
@@ -64,5 +65,15 @@ public class XSDExtensionTest {
 		Assertions.assertTrue(item.getAttributeTypes().get("id").isRequired());
 		Assertions.assertFalse(item.getAttributeTypes().get("code").isRequired());
 		Assertions.assertFalse(item.getAttributeTypes().get("level").isRequired());
+	}
+
+	@Test
+	void testAttributesInSchemaMode() {
+		List<XMLElement> xmlElements = new XMLReader().readXML(XML, SCHEMAS, LOCAL_SCHEMAS);
+		// <item id="i2" xsi:type="ext:ExtendedItem" ext:code="7">: like the XSD types, qualified attributes use their
+		// local name; xsi:type is no data
+		Assertions.assertEquals(Map.of("id", "i2", "code", "7"), xmlElements.get(2).attributes());
+		// <ext:info ext:text="hello"/>
+		Assertions.assertEquals(Map.of("text", "hello"), xmlElements.get(3).attributes());
 	}
 }
