@@ -29,6 +29,7 @@ public class XSDExtensionTest {
 	private static final QName ITEM = new QName("urn:base", "item");
 	private static final QName PAYLOAD = new QName("urn:ext", "payload");
 	private static final QName SLOT = new QName("urn:base", "extension");
+	private static final QName INFO = new QName("urn:ext", "info");
 
 	@Test
 	void testImportResolvedToLocalSchema() {
@@ -48,5 +49,20 @@ public class XSDExtensionTest {
 		Assertions.assertNotNull(payload);
 		Assertions.assertTrue(payload.getAttributeTypes().get("value").isRequired());
 		Assertions.assertNull(elements.get(List.of(ITEMS, ITEM, SLOT)));
+	}
+
+	@Test
+	void testDerivedTypes() {
+		Map<List<QName>, XSDElement> elements = new XSDReader(SCHEMAS, LOCAL_SCHEMAS).getElements();
+		// ext:info is required in ext:ExtendedItem, but only occurs for items of that type
+		XSDElement info = elements.get(List.of(ITEMS, ITEM, INFO));
+		Assertions.assertNotNull(info);
+		Assertions.assertEquals(0, info.getMinOccurs().intValue());
+		Assertions.assertFalse(info.occursExactlyOnce());
+		// attributes of direct and indirect subtypes are optional attributes of the declared type
+		XSDElement item = elements.get(List.of(ITEMS, ITEM));
+		Assertions.assertTrue(item.getAttributeTypes().get("id").isRequired());
+		Assertions.assertFalse(item.getAttributeTypes().get("code").isRequired());
+		Assertions.assertFalse(item.getAttributeTypes().get("level").isRequired());
 	}
 }

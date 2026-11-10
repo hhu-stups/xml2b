@@ -21,7 +21,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Stack;
+import java.util.stream.Stream;
 
 import static com.sun.xml.xsom.XSFacet.FACET_ENUMERATION;
 import static com.sun.xml.xsom.XSFacet.FACET_PATTERN;
@@ -65,6 +67,7 @@ public class XSDReader {
 	// B identifier -> XSD type name: types with the same local name in different namespaces get different identifiers
 	private final Map<String, QName> enumIdentifiers = new HashMap<>();
 	private final XSSchemaSet schemaSet;
+	private final Map<XSComplexType, List<XSComplexType>> subtypes = new HashMap<>();
 
 	public XSDReader(final File xsdSchema) {
 		this(List.of(xsdSchema), Map.of());
@@ -209,11 +212,19 @@ public class XSDReader {
 		XSType type = elementDecl.getType();
 		if (type.isComplexType()) {
 			XSComplexType complexType = type.asComplexType();
+			// Extensions: types derived (directly or indirectly) in another namespace, selected with xsi:type. Their children and attributes are optional for the declared type.
+			List<XSComplexType> extensions = getAllSubtypes(complexType)
+					.filter(c -> !Objects.equals(c.getTargetNamespace(), complexType.getTargetNamespace()))
+					.toList();
 			if (!recursive) {
-				for (XSComplexType c : complexType.getSubtypes()) {
+				for (XSComplexType c : getSubtypes(complexType)) {
 					collectElementsFromParticle(c.getContentType().asParticle());
 					if (c.getExplicitContent() != null)
 						collectElementsFromParticle(c.getExplicitContent().asParticle());
+				}
+				for (XSComplexType c : extensions) {
+					if (c.getExplicitContent() != null)
+						collectElementsFromParticle(c.getExplicitContent().asParticle(), false, true);
 				}
 				collectElementsFromParticle(complexType.getContentType().asParticle());
 				if (complexType.getExplicitContent() != null)
@@ -221,6 +232,12 @@ public class XSDReader {
 			}
 
 			attributes.putAll(collectAttributeTypesFromComplexType(complexType));
+			for (XSComplexType c : extensions) {
+				collectAttributeTypesFromComplexType(c).forEach((name, attributeType) -> {
+					attributeType.withIsRequired(false);
+					attributes.putIfAbsent(name, attributeType);
+				});
+			}
 		} else if (type.isSimpleType()) {
 			contentType = extractAttributeType(type.asSimpleType(), null);
 			contentType.withDefaultValue(elementDecl.getDefaultValue());
@@ -236,11 +253,22 @@ public class XSDReader {
 		this.elements.put(xsdElement.getParentsWithThis(), xsdElement);
 	}
 
-	private void collectElementsFromParticle(XSParticle particle) {
-		collectElementsFromParticle(particle, false);
+	private Stream<XSComplexType> getAllSubtypes(XSComplexType type) {
+		return getSubtypes(type).stream().flatMap(s -> Stream.concat(Stream.of(s), getAllSubtypes(s)));
 	}
 
-	private void collectElementsFromParticle(XSParticle particle, boolean isInChoice) {
+	private List<XSComplexType> getSubtypes(XSComplexType type) {
+		return subtypes.computeIfAbsent(type, XSComplexType::getSubtypes);
+	}
+
+	private void collectElementsFromParticle(XSParticle particle) {
+		collectElementsFromParticle(particle, false, false);
+	}
+
+	/**
+	 * @param optional the elements are optional (minOccurs 0), e.g. children of a derived type
+	 */
+	private void collectElementsFromParticle(XSParticle particle, boolean isInChoice, boolean optional) {
 		if (particle != null) {
 			XSTerm term = particle.getTerm();
 			if (term.isElementDecl()) {
@@ -250,18 +278,19 @@ public class XSDReader {
 						.map(element -> (XSElementDecl) element)
 						.toList();
 				boolean isAlternative = isInChoice || substitutables.size() > 1;
+				BigInteger minOccurs = optional ? BigInteger.ZERO : particle.getMinOccurs();
 				for (XSElementDecl element : substitutables) {
-					collectElementsFromElement(element, particle.getMinOccurs(), particle.getMaxOccurs(), isAlternative);
+					collectElementsFromElement(element, minOccurs, particle.getMaxOccurs(), isAlternative);
 				}
 			} else if (term.isModelGroup()) { // <xs:all>, <xs:choice>, <xs:sequence>
 				XSModelGroup modelGroup = term.asModelGroup();
 				for (XSParticle childParticle : modelGroup.getChildren()) {
-					collectElementsFromParticle(childParticle, isInChoice || modelGroup.getCompositor().equals(XSModelGroup.Compositor.CHOICE));
+					collectElementsFromParticle(childParticle, isInChoice || modelGroup.getCompositor().equals(XSModelGroup.Compositor.CHOICE), optional);
 				}
 			} else if (term.isModelGroupDecl()) { // <xs:group>
 				XSModelGroup modelGroup = term.asModelGroupDecl().getModelGroup();
 				for (XSParticle childParticle : modelGroup.getChildren()) {
-					collectElementsFromParticle(childParticle, isInChoice || modelGroup.getCompositor().equals(XSModelGroup.Compositor.CHOICE));
+					collectElementsFromParticle(childParticle, isInChoice || modelGroup.getCompositor().equals(XSModelGroup.Compositor.CHOICE), optional);
 				}
 			}
 		}
