@@ -15,64 +15,64 @@ import java.util.stream.Collectors;
 
 public class XSDTranslator extends Translator {
 
-    public XSDTranslator(final File xmlFile, final File xsdFile) throws BCompoundException {
-        super(xmlFile, xsdFile);
-    }
+	public XSDTranslator(final File xmlFile, final File xsdFile) throws BCompoundException {
+		super(xmlFile, xsdFile);
+	}
 
-    @Override
-    protected void getTypes() {
-        Map<List<QName>, XSDElement> types = xsdReader.getElements();
-        Set<List<QName>> notPresentElements = new HashSet<>(types.keySet());
-        for (XMLElement xmlElement : xmlElements) {
-	        Set<String> presentAttributes = new HashSet<>(xmlElement.attributes().keySet());
-	        XSDElement xsdElement;
-            if (types.containsKey(xmlElement.pNamesWithThis())) {
-                // we consider all parent elements here, so the attribute types should be unique
-                // thus: same attribute for same xmlElement in same namespace should not be a problem
-                xsdElement = types.get(xmlElement.pNamesWithThis());
-                Map<String, BAttributeType> attributeTypes = xsdElement.getAttributeTypes();
-                attributeTypes.forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
-                presentAttributes.removeAll(attributeTypes.keySet());
-            } else {
-                // type is not provided by XSD, do standalone translation for this element
-                xsdElement = StandaloneTranslator.getXsdElement(xmlElement, allAttributeTypes);
-            }
-            for (String attribute : presentAttributes) {
-                BAttributeType bAttributeType = new BStringAttributeType(attribute);
-                // no type is enforced by the schema -- use string
-                xsdElement.addAttributeType(attribute, bAttributeType);
-                allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
-            }
-            BAttributeType contentType = xsdElement.getContentType();
-            if (contentType != null) {
-                allAttributeTypes.put(contentType.getIdentifier(), contentType);
-            }
-            // IMPORTANT: ensure that for each xmlElement type info is added!
-            xmlElement.addTypeInformation(xsdElement);
-            notPresentElements.remove(xmlElement.pNamesWithThis());
-        }
+	@Override
+	protected void getTypes() {
+		Map<List<QName>, XSDElement> types = xsdReader.getElements();
+		Set<List<QName>> notPresentElements = new HashSet<>(types.keySet());
+		for (XMLElement xmlElement : xmlElements) {
+			Set<String> presentAttributes = new HashSet<>(xmlElement.attributes().keySet());
+			XSDElement xsdElement;
+			if (types.containsKey(xmlElement.pNamesWithThis())) {
+				// we consider all parent elements here, so the attribute types should be unique
+				// thus: same attribute for same xmlElement in same namespace should not be a problem
+				xsdElement = types.get(xmlElement.pNamesWithThis());
+				Map<String, BAttributeType> attributeTypes = xsdElement.getAttributeTypes();
+				attributeTypes.forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
+				presentAttributes.removeAll(attributeTypes.keySet());
+			} else {
+				// type is not provided by XSD, do standalone translation for this element
+				xsdElement = StandaloneTranslator.getXsdElement(xmlElement, allAttributeTypes);
+			}
+			for (String attribute : presentAttributes) {
+				BAttributeType bAttributeType = new BStringAttributeType(attribute);
+				// no type is enforced by the schema -- use string
+				xsdElement.addAttributeType(attribute, bAttributeType);
+				allAttributeTypes.put(bAttributeType.getIdentifier(), bAttributeType);
+			}
+			BAttributeType contentType = xsdElement.getContentType();
+			if (contentType != null) {
+				allAttributeTypes.put(contentType.getIdentifier(), contentType);
+			}
+			// IMPORTANT: ensure that for each xmlElement type info is added!
+			xmlElement.addTypeInformation(xsdElement);
+			notPresentElements.remove(xmlElement.pNamesWithThis());
+		}
 
-        for (List<QName> notPresentElement : notPresentElements) {
-            XSDElement xsdElement = types.get(notPresentElement);
-            xsdElement.getAttributeTypes().forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
-            BAttributeType contentType = xsdElement.getContentType();
-            if (contentType != null) {
-                allAttributeTypes.put(contentType.getIdentifier(), contentType);
-            }
-        }
-    }
+		for (List<QName> notPresentElement : notPresentElements) {
+			XSDElement xsdElement = types.get(notPresentElement);
+			xsdElement.getAttributeTypes().forEach((name, type) -> allAttributeTypes.put(type.getIdentifier(), type));
+			BAttributeType contentType = xsdElement.getContentType();
+			if (contentType != null) {
+				allAttributeTypes.put(contentType.getIdentifier(), contentType);
+			}
+		}
+	}
 
-    @Override
-    protected List<PSet> getEnumSets(List<String> usedIdentifiers) {
-        List<PSet> enumSets = new ArrayList<>();
-        for (QName enumSetId : xsdReader.getEnumSets().keySet()) {
-            BEnumSet enumSet = xsdReader.getEnumSets().get(enumSetId);
-            enumSets.add(new AEnumeratedSetSet(enumSet.getIdentifierExpression().getIdentifier(),
-                    enumSet.getEnumValues().stream()
-                            .map(enumSet::getValueIdentifier)
-                            .map(ASTBuilder::createIdentifier).collect(Collectors.toList())));
-            usedIdentifiers.add(enumSet.getIdentifierExpression().toString().trim());
-        }
-        return enumSets;
-    }
+	@Override
+	protected List<PSet> getEnumSets(List<String> usedIdentifiers) {
+		List<PSet> enumSets = new ArrayList<>();
+		for (QName enumSetId : xsdReader.getEnumSets().keySet()) {
+			BEnumSet enumSet = xsdReader.getEnumSets().get(enumSetId);
+			enumSets.add(new AEnumeratedSetSet(enumSet.getIdentifierExpression().getIdentifier(),
+					enumSet.getEnumValues().stream()
+							.map(enumSet::getValueIdentifier)
+							.map(ASTBuilder::createIdentifier).collect(Collectors.toList())));
+			usedIdentifiers.add(enumSet.getIdentifierExpression().toString().trim());
+		}
+		return enumSets;
+	}
 }
