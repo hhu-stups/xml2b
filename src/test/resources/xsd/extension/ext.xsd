@@ -10,6 +10,8 @@
 			<xs:extension base="base:Item">
 				<xs:sequence>
 					<xs:element name="info" type="ext:Info"/>
+					<!-- no type: xs:anyType -->
+					<xs:element name="note" minOccurs="0"/>
 				</xs:sequence>
 				<xs:attribute name="code" type="xs:integer"/>
 			</xs:extension>

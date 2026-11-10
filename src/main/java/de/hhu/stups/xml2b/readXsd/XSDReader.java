@@ -258,7 +258,7 @@ public class XSDReader {
 	}
 
 	private List<XSComplexType> getSubtypes(XSComplexType type) {
-		return subtypes.computeIfAbsent(type, XSComplexType::getSubtypes);
+		return type == schemaSet.getAnyType() ? List.of() : subtypes.computeIfAbsent(type, XSComplexType::getSubtypes);
 	}
 
 	private void collectElementsFromParticle(XSParticle particle) {

@@ -60,6 +60,8 @@ public class XSDExtensionTest {
 		Assertions.assertNotNull(info);
 		Assertions.assertEquals(0, info.getMinOccurs().intValue());
 		Assertions.assertFalse(info.occursExactlyOnce());
+		// ext:note is declared without a type (xs:anyType)
+		Assertions.assertNotNull(elements.get(List.of(ITEMS, ITEM, new QName("urn:ext", "note"))));
 		// attributes of direct and indirect subtypes are optional attributes of the declared type
 		XSDElement item = elements.get(List.of(ITEMS, ITEM));
 		Assertions.assertTrue(item.getAttributeTypes().get("id").isRequired());
