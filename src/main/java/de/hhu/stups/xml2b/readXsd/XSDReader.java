@@ -218,9 +218,10 @@ public class XSDReader {
 					.toList();
 			if (!recursive) {
 				for (XSComplexType c : getSubtypes(complexType)) {
-					collectElementsFromParticle(c.getContentType().asParticle());
+					// children of a derived type (selected with xsi:type) are optional for the declared type
+					collectElementsFromParticle(c.getContentType().asParticle(), false, true);
 					if (c.getExplicitContent() != null)
-						collectElementsFromParticle(c.getExplicitContent().asParticle());
+						collectElementsFromParticle(c.getExplicitContent().asParticle(), false, true);
 				}
 				for (XSComplexType c : extensions) {
 					if (c.getExplicitContent() != null)
